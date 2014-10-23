@@ -88,22 +88,24 @@ set(CUDA_SDK_SEARCH_PATH
   "$ENV{HOME}/NVIDIA_GPU_Computing_SDK" 
   "/Developer/CUDA"
   "/opt/cuda/sdk"
-  "$ENV{CUDA_SDK_ROOT_DIR}"      
+  "$ENV{CUDA_SDK_ROOT_DIR}"
+  "$ENV{NVSDKCOMPUTE_ROOT}"
+  "$ENV{CUDA_EXAMPLE_DIR}"
   )
 
 
 
 # Find include file from the CUDA_SDK_SEARCH_PATH
 
-find_path(CUDA_CUT_INCLUDE_DIR
-  cutil.h
-  PATHS ${CUDA_SDK_SEARCH_PATH}
+find_path(CUDA_SDK_INCLUDE_DIR
+  NAMES cutil.h helper_cuda.h
+  PATHS ${CUDA_SDK_SEARCH_PATH}  
   PATH_SUFFIXES "common/inc" "C/common/inc"
-  DOC "Location of cutil.h"
+  DOC "Cuda SDK include directory"
   NO_DEFAULT_PATH
   )
 # Now search system paths
-find_path(CUDA_CUT_INCLUDE_DIR cutil.h DOC "Location of cutil.h")
+find_path(CUDA_SDK_INCLUDE_DIR NAMES cutil.h helper_cuda.h DOC "Cuda SDK include directory")
 
 # mark_as_advanced(CUDA_CUT_INCLUDE_DIR)
 
@@ -116,11 +118,11 @@ find_path(CUDA_CUT_INCLUDE_DIR cutil.h DOC "Location of cutil.h")
 
 # New library might be called cutil_x86_64 !
 
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(cuda_cutil_name cutil64)
-else(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(cuda_cutil_name cutil32)
-endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+# if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+#   set(cuda_cutil_name cutil64)
+# else(CMAKE_SIZEOF_VOID_P EQUAL 8)
+#   set(cuda_cutil_name cutil32)
+# endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
 find_library(CUDA_CUT_LIBRARY
   NAMES ${cuda_cutil_name} cutil cutil_x86_64 cutil_i386
@@ -133,14 +135,16 @@ find_library(CUDA_CUT_LIBRARY
   )
 # # Now search system paths
 # find_library(CUDA_CUT_LIBRARY NAMES cutil ${cuda_cutil_name} DOC "Location of cutil library")
-mark_as_advanced(CUDA_CUT_LIBRARY)
-set(CUDA_CUT_LIBRARIES ${CUDA_CUT_LIBRARY})
+# mark_as_advanced(CUDA_CUT_LIBRARY)
+# set(CUDA_CUT_LIBRARIES ${CUDA_CUT_LIBRARY})
 
 #############################
 # Check for required components
-if(CUDA_CUT_INCLUDE_DIR)
+if(CUDA_SDK_INCLUDE_DIR)
   set(CUDASDK_FOUND TRUE)
-endif(CUDA_CUT_INCLUDE_DIR)
+else(CUDA_SDK_INCLUDE_DIR)
+  set(CUDASDK_FOUND FALSE)
+endif(CUDA_SDK_INCLUDE_DIR)
 
 # set(CUDA_SDK_ROOT_DIR_INTERNAL "${CUDA_SDK_ROOT_DIR}" CACHE INTERNAL
 #   "This is the value of the last time CUDA_SDK_ROOT_DIR was set successfully." FORCE)
