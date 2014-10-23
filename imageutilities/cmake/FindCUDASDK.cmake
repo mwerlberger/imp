@@ -135,6 +135,7 @@ find_library(CUDA_CUT_LIBRARY
   )
 # # Now search system paths
 # find_library(CUDA_CUT_LIBRARY NAMES cutil ${cuda_cutil_name} DOC "Location of cutil library")
+
 # mark_as_advanced(CUDA_CUT_LIBRARY)
 # set(CUDA_CUT_LIBRARIES ${CUDA_CUT_LIBRARY})
 
