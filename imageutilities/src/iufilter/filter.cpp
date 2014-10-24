@@ -24,98 +24,133 @@
 #include <iucore/copy.h>
 #include <iumath/arithmetic.h>
 #include "filter.h"
+#include "filter.cuh"
 
 namespace iuprivate {
 
+/* ***************************************************************************/
+
 // device; 32-bit; 1-channel
-void filterGauss(const iu::ImageGpu_32f_C1* src, iu::ImageGpu_32f_C1* dst, const IuRect& roi, float sigma, int kernel_size)
+void filterMedian3x3(const iu::ImageGpu_32f_C1* src, iu::ImageGpu_32f_C1* dst, const IuRect& roi)
 {
-  IuStatus status = cuFilterGauss(src, dst, roi, sigma, kernel_size);
-  if (status != IU_SUCCESS) throw IuException("function returned with an error", __FILE__, __FUNCTION__, __LINE__);
+  cuFilterMedian3x3(src, dst, roi);
+}
+
+
+/* ***************************************************************************/
+
+// device; 32-bit; 1-channel
+void filterGauss(const iu::ImageGpu_32f_C1* src, iu::ImageGpu_32f_C1* dst, const IuRect& roi,
+                 float sigma, int kernel_size, iu::ImageGpu_32f_C1 *temp, cudaStream_t stream)
+{
+  cuFilterGauss(src, dst, roi, sigma, kernel_size, temp, stream);
 }
 
 // device; Volume; 32-bit; 1-channel
 void filterGauss(const iu::VolumeGpu_32f_C1* src, iu::VolumeGpu_32f_C1* dst, float sigma, int kernel_size)
 {
-  IuStatus status = cuFilterGauss(src, dst, sigma, kernel_size);
-  if (status != IU_SUCCESS) throw IuException("function returned with an error", __FILE__, __FUNCTION__, __LINE__);
+  cuFilterGauss(src, dst, sigma, kernel_size);
 }
 
 // device; 32-bit; 4-channel
 void filterGauss(const iu::ImageGpu_32f_C4* src, iu::ImageGpu_32f_C4* dst, const IuRect& roi, float sigma, int kernel_size)
 {
-  IuStatus status = cuFilterGauss(src, dst, roi, sigma, kernel_size);
-  if (status != IU_SUCCESS) throw IuException("function returned with an error", __FILE__, __FUNCTION__, __LINE__);
+  cuFilterGauss(src, dst, roi, sigma, kernel_size);
 }
 
-// device; 32-bit; 1-channel
-void filterMedian3x3(const iu::ImageGpu_32f_C1* src, iu::ImageGpu_32f_C1* dst, const IuRect& roi)
+
+/* ***************************************************************************/
+// Bilateral filter
+
+// C1
+void filterBilateral(const iu::ImageGpu_32f_C1* src, iu::ImageGpu_32f_C1* dst, const IuRect& roi,
+                     const iu::ImageGpu_32f_C1* prior, const int iters,
+                     const float sigma_spatial, const float sigma_range,
+                     const int radius)
 {
-  IuStatus status = cuFilterMedian3x3(src, dst, roi);
-  if (status != IU_SUCCESS) throw IuException("function returned with an error", __FILE__, __FUNCTION__, __LINE__);
+  if (prior == NULL)
+    prior = src;
+  cuFilterBilateral(src, dst, roi, prior, iters, sigma_spatial, sigma_range, radius);
 }
 
-// device; 32-bit; 1-channel
-void cubicBSplinePrefilter(iu::ImageGpu_32f_C1* srcdst)
+// C1 but C4 prior
+void filterBilateral(const iu::ImageGpu_32f_C1* src, iu::ImageGpu_32f_C1* dst, const IuRect& roi,
+                     const iu::ImageGpu_32f_C4* prior, const int iters,
+                     const float sigma_spatial, const float sigma_range,
+                     const int radius)
 {
-  IuStatus status = cuCubicBSplinePrefilter_32f_C1I(srcdst);
-  if (status != IU_SUCCESS) throw IuException("function returned with an error", __FILE__, __FUNCTION__, __LINE__);
+  cuFilterBilateral(src, dst, roi, prior, iters, sigma_spatial, sigma_range, radius);
 }
 
+// C4
+void filterBilateral(const iu::ImageGpu_32f_C4* src, iu::ImageGpu_32f_C4* dst, const IuRect& roi,
+                     const iu::ImageGpu_32f_C4* prior, const int iters,
+                     const float sigma_spatial, const float sigma_range,
+                     const int radius)
+{
+  if (prior == NULL)
+    prior = src;
+  cuFilterBilateral(src, dst, roi, prior, iters, sigma_spatial, sigma_range, radius);
+}
+
+/* ***************************************************************************/
 
 // edge filter; device; 32-bit; 1-channel
 void filterEdge(const iu::ImageGpu_32f_C1* src, iu::ImageGpu_32f_C2* dst, const IuRect& roi)
 {
-  IuStatus status = cuFilterEdge(src, dst, roi);
-  if (status != IU_SUCCESS) throw IuException("function returned with an error", __FILE__, __FUNCTION__, __LINE__);
+  cuFilterEdge(src, dst, roi);
 }
 
 // edge filter + evaluation; device; 32-bit; 1-channel
 void filterEdge(const iu::ImageGpu_32f_C1* src, iu::ImageGpu_32f_C1* dst, const IuRect& roi,
                     float alpha, float beta, float minval)
 {
-  IuStatus status = cuFilterEdge(src, dst, roi, alpha, beta, minval);
-  if (status != IU_SUCCESS) throw IuException("function returned with an error", __FILE__, __FUNCTION__, __LINE__);
+  cuFilterEdge(src, dst, roi, alpha, beta, minval);
 }
 
 // edge filter + evaluation; device; 32-bit; 1-channel
 void filterEdge(const iu::ImageGpu_32f_C1* src, iu::ImageGpu_32f_C2* dst, const IuRect& roi,
                     float alpha, float beta, float minval)
 {
-  IuStatus status = cuFilterEdge(src, dst, roi, alpha, beta, minval);
-  if (status != IU_SUCCESS) throw IuException("function returned with an error", __FILE__, __FUNCTION__, __LINE__);
+  cuFilterEdge(src, dst, roi, alpha, beta, minval);
 }
 
 // edge filter + evaluation; device; 32-bit; 1-channel
 void filterEdge(const iu::ImageGpu_32f_C1* src, iu::ImageGpu_32f_C4* dst, const IuRect& roi,
                     float alpha, float beta, float minval)
 {
-  IuStatus status = cuFilterEdge(src, dst, roi, alpha, beta, minval);
-  if (status != IU_SUCCESS) throw IuException("function returned with an error", __FILE__, __FUNCTION__, __LINE__);
+  cuFilterEdge(src, dst, roi, alpha, beta, minval);
 }
 
 // edge filter + evaluation; device; 32-bit; 4-channel (RGB)
 void filterEdge(const iu::ImageGpu_32f_C4* src, iu::ImageGpu_32f_C1* dst, const IuRect& roi,
                     float alpha, float beta, float minval)
 {
-  IuStatus status = cuFilterEdge(src, dst, roi, alpha, beta, minval);
-  if (status != IU_SUCCESS) throw IuException("function returned with an error", __FILE__, __FUNCTION__, __LINE__);
+  cuFilterEdge(src, dst, roi, alpha, beta, minval);
 }
 
 // edge filter + evaluation; device; 32-bit; 4-channel (RGB)
 void filterEdge(const iu::ImageGpu_32f_C4* src, iu::ImageGpu_32f_C2* dst, const IuRect& roi,
                     float alpha, float beta, float minval)
 {
-  IuStatus status = cuFilterEdge(src, dst, roi, alpha, beta, minval);
-  if (status != IU_SUCCESS) throw IuException("function returned with an error", __FILE__, __FUNCTION__, __LINE__);
+  cuFilterEdge(src, dst, roi, alpha, beta, minval);
 }
 
 // edge filter + evaluation; device; 32-bit; 4-channel (RGB)
 void filterEdge(const iu::ImageGpu_32f_C4* src, iu::ImageGpu_32f_C4* dst, const IuRect& roi,
                     float alpha, float beta, float minval)
 {
-  IuStatus status = cuFilterEdge(src, dst, roi, alpha, beta, minval);
-  if (status != IU_SUCCESS) throw IuException("function returned with an error", __FILE__, __FUNCTION__, __LINE__);
+  cuFilterEdge(src, dst, roi, alpha, beta, minval);
 }
+
+
+/* ***************************************************************************/
+
+// device; 32-bit; 1-channel
+void cubicBSplinePrefilter(iu::ImageGpu_32f_C1* srcdst)
+{
+  cuCubicBSplinePrefilter_32f_C1I(srcdst);
+}
+
 
 } // namespace iuprivate

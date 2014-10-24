@@ -38,6 +38,13 @@ void addWeighted(const iu::ImageGpu_32f_C1* src1, const float& weight1,
                  iu::ImageGpu_32f_C1* dst, const IuRect& roi)
 {iuprivate::addWeighted(src1, weight1, src2, weight2, dst, roi);}
 
+// [host] weighted add; Not-in-place; 32-bit;
+void addWeighted(const iu::ImageCpu_32f_C1* src1, const float& weight1,
+                 const iu::ImageCpu_32f_C1* src2, const float& weight2,
+                 iu::ImageCpu_32f_C1* dst, const IuRect& roi)
+{iuprivate::addWeighted(src1, weight1, src2, weight2, dst, roi);}
+
+
 // [gpu] multiplication with factor; Not-in-place; 8-bit;
 void mulC(const iu::ImageGpu_8u_C1* src, const unsigned char& factor, iu::ImageGpu_8u_C1* dst, const IuRect& roi)
 {iuprivate::mulC(src, factor, dst, roi);}
@@ -90,8 +97,28 @@ void minMax(const ImageGpu_32f_C2* src, const IuRect& roi, float2& min, float2& 
 void minMax(const ImageGpu_32f_C4* src, const IuRect& roi, float4& min, float4& max)
 {iuprivate::minMax(src, roi, min, max);}
 
+// find min/max; host; 8-bit
+void minMax(const ImageCpu_8u_C1* src, const IuRect& roi, unsigned char& min, unsigned char& max)
+{iuprivate::minMax(src, roi, min, max);}
+void minMax(const ImageCpu_8u_C4* src, const IuRect& roi, uchar4& min, uchar4& max)
+{iuprivate::minMax(src, roi, min, max);}
+
+// find min/max; host; 32-bit
+void minMax(const iu::ImageCpu_32f_C1* src, const IuRect& roi, float& min, float& max)
+{iuprivate::minMax(src, roi, min, max);}
+void minMax(const ImageCpu_32f_C2* src, const IuRect& roi, float2& min, float2& max)
+{iuprivate::minMax(src, roi, min, max);}
+void minMax(const ImageCpu_32f_C4* src, const IuRect& roi, float4& min, float4& max)
+{iuprivate::minMax(src, roi, min, max);}
+
+
+
 // find min/max; volume; device; 32-bit
-void minMax(VolumeGpu_32f_C1* src, float& min, float& max)
+void minMax(const iu::VolumeGpu_32f_C1* src, float& min, float& max)
+{iuprivate::minMax(src, min, max);}
+
+// find min/max; volume; host; 32-bit
+void minMax(const iu::VolumeCpu_32f_C4* src, float4& min, float4& max)
 {iuprivate::minMax(src, min, max);}
 
 // find min value and its coordinates; 32-bit
@@ -108,8 +135,9 @@ void summation(const iu::ImageGpu_8u_C1* src, const IuRect& roi, long& sum)
 //void summation(iu::ImageGpu_8u_C4* src, const IuRect& roi, long sum[4]);
 
 // compute sum; device; 32-bit
-void summation(const iu::ImageGpu_32f_C1* src, const IuRect& roi, double& sum)
-{iuprivate::summation(src, roi, sum);}
+void summation(const iu::ImageGpu_32f_C1* src, const IuRect& roi, double& sum,
+               iu::LinearDeviceMemory_32f_C1* sum_temp)
+{iuprivate::summation(src, roi, sum, sum_temp);}
 //void summation(iu::ImageGpu_32f_C4* src, const IuRect& roi, double sum[4]);
 
 // compute sum; device; 3D; 32-bit

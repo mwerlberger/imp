@@ -25,7 +25,7 @@
 #define NPPGLWIDGET_CU
 
 #include <float.h>
-#include <helper_math.h>
+#include <cutil_math.h>
 #include <GL/glew.h>
 #include <cuda_gl_interop.h>
 

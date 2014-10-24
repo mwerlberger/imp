@@ -31,6 +31,9 @@ set( CMAKE_DEBUG_POSTFIX "d" )
 FILE(TO_CMAKE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake" OT_IU_CMAKE_MODULE_PATH)
 SET(CMAKE_MODULE_PATH ${OT_IU_CMAKE_MODULE_PATH})
 
+# convert env variable to internal path to circumvent win32 backslash problems
+FILE(TO_CMAKE_PATH "$ENV{VMLIBRARIES_ROOT}" FL_VMLIBRARIES_ROOT)
+
 ##-----------------------------------------------------------------------------
 ## Current version number:
 ##-----------------------------------------------------------------------------
@@ -58,14 +61,15 @@ endif()
 ## Flags if modules are used.
 ## The modules are included per default unless dependencies not found or omitted by the user.
 ## (the core module is always included!)
-OPTION(VMLIBRARIES_IU_USE_SPARSE "Including Sparse Matrix module." ON)
+OPTION(VMLIBRARIES_IU_USE_SPARSE "Including Sparse Matrix module." OFF)
 OPTION(VMLIBRARIES_IU_USE_IPP "Including IPP module." ON)
 OPTION(VMLIBRARIES_IU_USE_MATLAB "Including Matlab module." ON)
-OPTION(VMLIBRARIES_IU_USE_GUI "Including GUI module." ON)
+OPTION(VMLIBRARIES_IU_USE_GUI "Including GUI module." OFF)
 OPTION(VMLIBRARIES_IU_USE_IO "Including IO module." ON)
 OPTION(VMLIBRARIES_IU_USE_IOPGM "Including IOPGM module." ON)
-# OPTION(VMLIBRARIES_IU_USE_VIDEOCAPTURE "Including VideCapture IO module." OFF)
-# OPTION(VMLIBRARIES_IU_USE_PGRCAMERA "Including PointGray IO module." OFF)
+#OPTION(VMLIBRARIES_IU_USE_VIDEOCAPTURE "Including VideCapture IO module." ON)
+#OPTION(VMLIBRARIES_IU_USE_PGRCAMERA "Including PointGray IO module." ON)
+OPTION(VMLIBRARIES_IU_USE_VIDEOSOURCE "Including Videosource IO module." ON)
 
 
 ##-----------------------------------------------------------------------------
@@ -75,6 +79,7 @@ if(UNIX)
   add_definitions(-Wall)
   # and debug flags
   add_definitions(-g)
+  add_definitions(-Werror)
 
   add_definitions(-fPIC)
 endif()
@@ -93,8 +98,23 @@ endif(WIN32)
 # CUDA + SDK
 find_package(CUDA 3.1 REQUIRED)
 find_package(CUDASDK REQUIRED)
+if(CUDA_VERSION_MAJOR GREATER 4)
+  message("Using CUDA >= 5.0")
+  file(REMOVE "${FL_VMLIBRARIES_ROOT}/include/iu/helper_math.h")
+else()
+  message("Using CUDA < 5.0, copy old 'cutil_math.h' to new '${FL_VMLIBRARIES_ROOT}/include/helper_math.h'")
+  file(COPY ${CUDA_SDK_INCLUDE_DIR}/cutil_math.h DESTINATION "${FL_VMLIBRARIES_ROOT}/include")
+  file(RENAME "${FL_VMLIBRARIES_ROOT}/include/cutil_math.h" "${FL_VMLIBRARIES_ROOT}/include/helper_math.h")
+  cuda_include_directories("${FL_VMLIBRARIES_ROOT}/include/")
+  include_directories("${FL_VMLIBRARIES_ROOT}/include/")
+endif(CUDA_VERSION_MAJOR GREATER 4)
+
 cuda_include_directories(${CUDA_INCLUDE_DIRS} ${CUDA_SDK_INCLUDE_DIR})
 include_directories(${CUDA_INCLUDE_DIRS} ${CUDA_SDK_INCLUDE_DIR})
+message("Cuda include dirs: " ${CUDA_INCLUDE_DIRS})
+message("Cuda sdk dir: " ${CUDA_SDK_ROOT_DIR})
+message("Cuda sdk include dir: " ${CUDA_SDK_INCLUDE_DIR})
+message("Cuda toolkit: " ${CUDA_TOOLKIT_ROOT_DIR})
 set(IU_IUCORE_LIB_DEPENDENCIES ${IU_IUCORE_LIB_DEPENDENCIES} ${CUDA_LIBRARIES})
 
 # Checking cuda version
@@ -132,6 +152,9 @@ elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "2.0")
 elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "2.1")
   message(STATUS "IU: using SM 21")
   set(CUDA_NVCC_FLAGS -arch=sm_21)
+elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "3.0")
+  message(STATUS "IU: using SM 30")
+  set(CUDA_NVCC_FLAGS -arch=sm_30)
 else()
   message(STATUS "IU: using SM 11")
   set(CUDA_NVCC_FLAGS -arch=sm_11)
@@ -301,7 +324,7 @@ if(VMLIBRARIES_IU_USE_GUI AND QT4_FOUND)
   ## Qwt
   find_package(Qwt QUIET)
   if(QWT_FOUND)
-    message(STATUS "QWT found. Building GUI module with QWT support.")
+    message("  [+] Building GUI module with QWT support.")
     include_directories(${QWT_INCLUDE_DIR})
     add_definitions(-DUSE_QWT)
     set( IU_QWT_SOURCES
@@ -311,7 +334,7 @@ if(VMLIBRARIES_IU_USE_GUI AND QT4_FOUND)
       ${CMAKE_CURRENT_SOURCE_DIR}/iugui/plotgapwidget.h
       )
   else(QWT_FOUND)
-    message(STATUS "QWT not found. QWT support turned off")
+    message("  [-] No QWT, disable QWT support in GUI module")
   endif(QWT_FOUND)
 
   ## GLEW
@@ -380,7 +403,7 @@ if(VMLIBRARIES_IU_USE_GUI AND QT4_FOUND)
   # add resources
   qt4_add_resources(QTRC_SOURCES ${IU_GUI_RC_SOURCES})
 
-  message("QTRC_SOURCES = ${QTRC_SOURCES}")
+  message(STATUS "QTRC_SOURCES = ${QTRC_SOURCES}")
 
 else()
   message("[-] ImageUtilities omitting GUI module")
@@ -396,7 +419,7 @@ endif()
 
 ##-----------------------------------------------------------------------------
 ## IO MODULE: OpenCV for Image I/O
-find_package( OpenCV QUIET )
+find_package( OpenCV )
 # only include if IO module is used and OpenCV found.
 if(VMLIBRARIES_IU_USE_IO AND OpenCV_LIBS)
 
@@ -502,51 +525,127 @@ endif()
 ##-----------------------------------------------------------------------------
 ## IO MODULE: PointGray cameras (flycapture2);
 # NOTE: we need qt4 for that (threading, ...)
-find_package( FlyCapture2 QUIET )
-# only include if PGR specific stuff was found
-if(VMLIBRARIES_IU_USE_PGRCAMERA AND QT4_FOUND AND FLYCAPTURE2_FOUND)
+#find_package( FlyCapture2 )
+# only include if PGR specific stuff was foun
+#if(VMLIBRARIES_IU_USE_PGRCAMERA AND QT4_FOUND AND FLYCAPTURE2_FOUND)
+#
+#  message("[+] ImageUtilities include PGRCAMERA module")
+#  include(${QT_USE_FILE})
+#  include_directories(${FLYCAPTURE2_INCLUDE_DIR})
+#  message("FLYCAPTURE_INCLUDE_DIR=${FLYCAPTURE2_INCLUDE_DIR}")
+#
+#  set( IU_PUBLIC_HEADERS
+#    ${IU_PUBLIC_HEADERS}
+#    #${CMAKE_CURRENT_SOURCE_DIR}/iupgrcamera.h
+#    ${CMAKE_CURRENT_SOURCE_DIR}/iuvideosource.h
+#    )
+#
+#  install(FILES #${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcamera.h
+#	      ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videosource.h
+#	      ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrsource.h
+#	      ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videofilesource.h
+#    DESTINATION include/iu/iuio
+#    COMPONENT Headers)
+#
+#  set( IU_PGRCAMERA_HEADERS
+#    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcameradata.h
+#    #${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcameraimagegrabber.h
+#    #${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcamerathreaddata.h
+#    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videosource.h
+#    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrsource.h
+#    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videofilesource.h
+#    )
+#
+#  set( IU_PGRCAMERA_SOURCES
+#    #${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcamera.cpp
+#    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrsource.cpp
+#    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videofilesource.cpp
+#    #${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcameraimageconsumer.cpp
+#    )
+#
+#  set( IU_PGRCAMERA_MOC_HEADERS
+#    #${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcamera.h
+#    #${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcameraimageconsumer.h
+#    #${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcameraimagegrabber.h
+#    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videosource.h
+#    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrsource.h
+#    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videofilesource.h
+#    )
+#
+#  # compile moc headers
+#  QT4_WRAP_CPP (IU_PGRCAMERA_MOC_SOURCES ${IU_PGRCAMERA_MOC_HEADERS})
+#
+#else()
+#  message("[-] ImageUtilities omitting PGRCAMERA module")
+#  set(VMLIBRARIES_IU_USE_PGRCAMERA OFF CACHE PATH "IU: Omit PGRCAMERA module." FORCE)
+#
+#  # empty libraries
+#  set(FLYCAPTURE2_LIBRARIES "")
+#
+#endif()
 
-  message("[+] ImageUtilities include PGRCAMERA module")
+
+# include Videosource module
+# needs Flycapture2 lib for pointgrey and Qt for signals/slots
+find_package(FlyCapture2)
+if(VMLIBRARIES_IU_USE_VIDEOSOURCE AND QT4_FOUND AND FLYCAPTURE2_FOUND)
+  message("[+] ImageUtilities include Videosource module")
   include(${QT_USE_FILE})
   include_directories(${FLYCAPTURE2_INCLUDE_DIR})
-  message("FLYCAPTURE_INCLUDE_DIR=${FLYCAPTURE2_INCLUDE_DIR}")
 
   set( IU_PUBLIC_HEADERS
     ${IU_PUBLIC_HEADERS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/iupgrcamera.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuvideosource.h
     )
 
-  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcamera.h
+  install(FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videosource.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrsource.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videofilesource.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/iuio/opencvsource.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/iuio/1394source.h
     DESTINATION include/iu/iuio
     COMPONENT Headers)
 
-  set( IU_PGRCAMERA_HEADERS
+  set( IU_VIDEOSOURCE_HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videosource.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrsource.h
     ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcameradata.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcameraimagegrabber.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcamerathreaddata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videofilesource.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/opencvsource.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/1394source.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/1394camera.h
     )
 
-  set( IU_PGRCAMERA_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcamera.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcameraimageconsumer.cpp
+  set( IU_VIDEOSOURCE_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrsource.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videofilesource.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/opencvsource.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/1394source.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/1394camera.cpp
     )
 
-  set( IU_PGRCAMERA_MOC_HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcamera.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrcameraimageconsumer.h
+  set( IU_VIDEOSOURCE_MOC_HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videosource.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/pgrsource.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videofilesource.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/opencvsource.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/iuio/1394source.h
     )
 
   # compile moc headers
-  QT4_WRAP_CPP (IU_PGRCAMERA_MOC_SOURCES ${IU_PGRCAMERA_MOC_HEADERS})
+  QT4_WRAP_CPP (IU_VIDEOSOURCE_MOC_SOURCES ${IU_VIDEOSOURCE_MOC_HEADERS})
 
 else()
-  message("[-] ImageUtilities omitting PGRCAMERA module")
-  set(VMLIBRARIES_IU_USE_PGRCAMERA OFF CACHE PATH "IU: Omit PGRCAMERA module." FORCE)
+  message("[-] ImageUtilities omitting Videosource module")
+  set(VMLIBRARIES_IU_USE_VIDEOSOURCE OFF CACHE PATH "IU: Omit Videosource module." FORCE)
 
   # empty libraries
   set(FLYCAPTURE2_LIBRARIES "")
 
 endif()
+
+
 
 
 ##-----------------------------------------------------------------------------
@@ -709,9 +808,9 @@ set( IU_ALL_FILES
   # ${IU_VIDEOCAPTURE_HEADERS}
   # ${IU_VIDEOCAPTURE_SOURCES}
   # ${IU_VIDEOCAPTURE_MOC_SOURCES}
-  ${IU_PGRCAMERA_HEADERS}
-  ${IU_PGRCAMERA_SOURCES}
-  ${IU_PGRCAMERA_MOC_SOURCES}
+  #${IU_PGRCAMERA_HEADERS}
+  #${IU_PGRCAMERA_SOURCES}
+  #${IU_PGRCAMERA_MOC_SOURCES}
   )
 
 # IF(NOT WIN32)
@@ -837,25 +936,44 @@ endif(VMLIBRARIES_IU_USE_MATLAB)
 # endif(VMLIBRARIES_IU_USE_VIDEOCAPTURE)
 
 
-# ##-----------------------------------------------------------------------------
-# ## build pgrcamera library
-# set(IU_PGRCAMERA_LIB iupgrcamera)
-# if(VMLIBRARIES_IU_USE_PGRCAMERA)
-#   cuda_add_library( ${IU_PGRCAMERA_LIB} SHARED ${IU_PGRCAMERA_HEADERS} ${IU_PGRCAMERA_SOURCES} ${IU_PGRCAMERA_MOC_SOURCES})
-#   set_target_properties(${IU_PGRCAMERA_LIB} PROPERTIES
-#     DEFINE_SYMBOL IU_DLL_EXPORTS
-#     VERSION ${IMAGEUTILITIES_VERSION}
-#     SOVERSION ${IMAGEUTILITIES_SOVERSION}
-#     )
-#   target_link_libraries( ${IU_PGRCAMERA_LIB}
-#     ${CUDA_LIBRARIES}
-#     ${QT_LIBRARIES}
-#     ${FLYCAPTURE2_LIBRARIES}
-#     )
-#   set(IU_LIBS ${IU_LIBS} ${IU_PGRCAMERA_LIB})
+##-----------------------------------------------------------------------------
+## build pgrcamera library
+set(IU_PGRCAMERA_LIB iupgrcamera)
+if(VMLIBRARIES_IU_USE_PGRCAMERA)
+  cuda_add_library( ${IU_PGRCAMERA_LIB} SHARED ${IU_PGRCAMERA_HEADERS} ${IU_PGRCAMERA_SOURCES} ${IU_PGRCAMERA_MOC_SOURCES})
+  set_target_properties(${IU_PGRCAMERA_LIB} PROPERTIES
+    DEFINE_SYMBOL IU_DLL_EXPORTS
+    VERSION ${IMAGEUTILITIES_VERSION}
+    SOVERSION ${IMAGEUTILITIES_SOVERSION}
+    )
+  target_link_libraries( ${IU_PGRCAMERA_LIB}
+    ${CUDA_LIBRARIES}
+    ${QT_LIBRARIES}
+    ${FLYCAPTURE2_LIBRARIES}
+    )
+  set(IU_LIBS ${IU_LIBS} ${IU_PGRCAMERA_LIB})
 
-# endif(VMLIBRARIES_IU_USE_PGRCAMERA)
+endif(VMLIBRARIES_IU_USE_PGRCAMERA)
 
+
+##-----------------------------------------------------------------------------
+## build videosource library
+set(IU_VIDEOSOURCE_LIB iuvideosource)
+if(VMLIBRARIES_IU_USE_VIDEOSOURCE)
+  cuda_add_library( ${IU_VIDEOSOURCE_LIB} SHARED ${IU_VIDEOSOURCE_HEADERS} ${IU_VIDEOSOURCE_SOURCES} ${IU_VIDEOSOURCE_MOC_SOURCES})
+  set_target_properties(${IU_VIDEOSOURCE_LIB} PROPERTIES
+    DEFINE_SYMBOL IU_DLL_EXPORTS
+    VERSION ${IMAGEUTILITIES_VERSION}
+    SOVERSION ${IMAGEUTILITIES_SOVERSION}
+    )
+  target_link_libraries( ${IU_VIDEOSOURCE_LIB}
+    ${CUDA_LIBRARIES}
+    ${QT_LIBRARIES}
+    ${FLYCAPTURE2_LIBRARIES}
+    )
+  set(IU_LIBS ${IU_LIBS} ${IU_VIDEOSOURCE_LIB})
+
+endif(VMLIBRARIES_IU_USE_VIDEOSOURCE)
 
 ##-----------------------------------------------------------------------------
 ## Install target
@@ -868,7 +986,7 @@ OPTION(VMLIBRARIES_IU_INSTALL_LOCAL "Installation of the ImageUtilities binaries
 
 if(VMLIBRARIES_IU_INSTALL_LOCAL )
   if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX $ENV{VMLIBRARIES_ROOT} CACHE PATH "ImageUtilities install prefix" FORCE)
+    set(CMAKE_INSTALL_PREFIX ${FL_VMLIBRARIES_ROOT} CACHE PATH "ImageUtilities install prefix" FORCE)
   endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(VMLIBRARIES_IU_INSTALL_LOCAL)
 
@@ -890,6 +1008,7 @@ set( IU_CMAKE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindQwt.cmake
   ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindImageUtilities.cmake
   ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/UseImageUtilities.cmake
+  ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindFlyCapture2.cmake
   )
 
 # install the libraries

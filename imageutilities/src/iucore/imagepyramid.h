@@ -48,6 +48,8 @@ public:
   ImagePyramid(unsigned int& max_num_levels, const IuSize& size, const float& scale_factor,
                unsigned int size_bound=1);
 
+  ImagePyramid(unsigned int num_levels, const float* scale_factors );
+
   /** Destructor. */
   virtual ~ImagePyramid();
 
@@ -62,6 +64,8 @@ public:
   unsigned int init(unsigned int max_num_levels, const IuSize& size, const float& scale_factor,
                     unsigned int size_bound=1);
 
+  unsigned int init(unsigned int num_levels, const float* scale_factors );
+
   /** Resets the image pyramid. Deletes all the data.
    */
   void reset();
@@ -72,7 +76,8 @@ public:
    * @throw IuException
    */
   unsigned int setImage(iu::Image* image,
-                        IuInterpolationType interp_type = IU_INTERPOLATE_LINEAR);
+                        IuInterpolationType interp_type = IU_INTERPOLATE_LINEAR,
+                        cudaStream_t stream=0);
   //---------------------------------------------------------------------------
   // GETTERS / SETTERS
 
@@ -100,6 +105,8 @@ public:
 
 private:
   iu::Image** images_;      /**< Pointer to array of (level+1) layer images (pointers - dynamically allocated). */
+  iu::Image** temp_images_;      /**< Pointer to array of (level+1) layer images (pointers - dynamically allocated). */
+  iu::Image** temp_filter_images_;      /**< Pointer to array of (level+1) layer images (pointers - dynamically allocated). */
   IuPixelType pixel_type_;  /**< The images pixel type. */
   float* scale_factors_;    /**< Pointer to the array of (level+1) ratios of i-th levels to the zero level (rate-i). */
   unsigned int num_levels_; /**< Number of levels in the pyramid. */
@@ -107,6 +114,10 @@ private:
   unsigned int max_num_levels_; /**< Maximum number of levels set by the user. This is not necessary equal to num_levels_. */
   float scale_factor_;          /**< Scale factor from one level to the next. */
   unsigned int size_bound_;     /**< User set smaller side of coarsest level. */
+
+  bool adaptive_scale_;          /**< Does this pyramid use an adaptive scale factor? */
+
+  void alloc(const IuSize &sz, const IuPixelType &type);             /**< Allocate device memory */
 };
 
 } // namespace iu

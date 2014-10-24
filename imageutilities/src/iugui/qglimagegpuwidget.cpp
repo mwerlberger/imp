@@ -34,10 +34,10 @@
 #include "qglimagegpuwidget.h"
 
 namespace iuprivate {
-extern IuStatus cuCopyImageToPbo(iu::Image* image,
+extern void cuCopyImageToPbo(iu::Image* image,
                                  unsigned int num_channels, unsigned int bit_depth,
                                  uchar4 *dst, float min, float max);
-extern IuStatus cuCopyOverlayToPbo(iuprivate::Overlay* overlay, uchar4 *dst, IuSize size);
+extern void cuCopyOverlayToPbo(iuprivate::Overlay* overlay, uchar4 *dst, IuSize size);
 }
 
 namespace iu {
@@ -45,8 +45,8 @@ namespace iu {
 //-----------------------------------------------------------------------------
 QGLImageGpuWidget::QGLImageGpuWidget(QWidget *parent) :
   QGLWidget(parent),
-  gl_pbo_(NULL),
-  gl_tex_(NULL),
+  gl_pbo_(0),
+  gl_tex_(0),
   cuda_pbo_resource_(NULL),
   image_(0),
   num_channels_(0),
@@ -65,16 +65,15 @@ QGLImageGpuWidget::QGLImageGpuWidget(QWidget *parent) :
   //updateGL();/ // invoke OpenGL initialization
   this->initializeGL();
 
-  IuStatus status = iu::checkCudaErrorState();
-  if (status != IU_NO_ERROR)
-    fprintf(stderr,"QGLImageGpuWidget::QGLImageGpuWidget: error while init (widget + opengl).\n");
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 
-  button_ == Qt::NoButton;
+  button_ = Qt::NoButton;
 
   context_menu_ = new QMenu("Widget properties", this);
   this->createActions();
 
   this->setMouseTracking(true);
+  updateCuda_ = false;
 }
 
 //-----------------------------------------------------------------------------
@@ -610,7 +609,7 @@ void QGLImageGpuWidget::mouseMoveEvent(QMouseEvent * event)
   mouse_x_old_ = mouse_x_;
   mouse_y_old_ = mouse_y_;
 
-  if ((mouse_x_ > 0) && (mouse_y_>0) && (mouse_x_<image_->width()) && (mouse_y_<image_->height()))
+  if ((mouse_x_ > 0) && (mouse_y_>0) && (mouse_x_<static_cast<int>(image_->width())) && (mouse_y_<static_cast<int>(image_->height())))
   {
     QString text = "Pixel info: (";
     QString xpos;
@@ -782,7 +781,7 @@ void QGLImageGpuWidget::deleteTexture()
   if(gl_tex_)
   {
     glDeleteTextures(1, &gl_tex_);
-    gl_tex_ = NULL;
+    gl_tex_ = 0;
   }
 }
 
@@ -816,7 +815,7 @@ void QGLImageGpuWidget::deletePbo()
     // delete the PBO
     cudaGraphicsUnregisterResource(cuda_pbo_resource_);
     glDeleteBuffers( 1, &gl_pbo_ );
-    gl_pbo_=NULL;
+    gl_pbo_=0;
     cuda_pbo_resource_ = NULL;
   }
 }
@@ -829,19 +828,13 @@ bool QGLImageGpuWidget::init()
 
   this->createTexture();
 
-  if (iu::checkCudaErrorState() != IU_NO_ERROR)
-    fprintf(stderr, "error while initializing texture (gl)\n");
-  //  else
-  //    printf("  Texture created.\n");
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 
   this->createPbo();
 
-  if (iu::checkCudaErrorState() != IU_NO_ERROR)
-    fprintf(stderr, "error while initializing pbo (gl)\n");
-  //  else
-  //    printf("  PBO created.\n");
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 
-  return !iu::checkCudaErrorState();
+  return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -857,24 +850,35 @@ void QGLImageGpuWidget::resizeGL(int w, int h)
 }
 
 //-----------------------------------------------------------------------------
-void QGLImageGpuWidget::fillPbo(iu::ImageGpu_8u_C4* output)
+bool QGLImageGpuWidget::fillPbo(iu::ImageGpu_8u_C4* output)
 {
   // map GL <-> CUDA resource
   uchar4 *d_dst = NULL;
   size_t start;
-  cudaGraphicsMapResources(1, &cuda_pbo_resource_, 0);
-  cudaGraphicsResourceGetMappedPointer((void**)&d_dst, &start, cuda_pbo_resource_);
+
+
+  cudaError_t err = cudaGraphicsMapResources(1, &cuda_pbo_resource_);
+  if (err != cudaSuccess)
+  {
+    printf("Error: Can't map OpenGL resource to CUDA\n");
+    return false;
+  }
+
+  err = cudaGraphicsResourceGetMappedPointer((void**)&d_dst, &start, cuda_pbo_resource_);
+  if (err != cudaSuccess)
+  {
+    printf("Error: Can't get CUDA pointer from mapped GL resource\n");
+    return false;
+  }
 
   // get image data
   iuprivate::cuCopyImageToPbo(image_, num_channels_, bit_depth_, d_dst, min_, max_);
-  cudaThreadSynchronize();
 
   // get overlays
   iuprivate::OverlayList::iterator it;
   for ( it=overlay_list_.begin() ; it != overlay_list_.end(); it++ )
     if ((*it)->isActive())
       cuCopyOverlayToPbo((*it), d_dst, image_->size());
-  cudaThreadSynchronize();
 
   if (output != NULL)
   {
@@ -885,7 +889,8 @@ void QGLImageGpuWidget::fillPbo(iu::ImageGpu_8u_C4* output)
   }
 
   // unmap GL <-> CUDA resource
-  cudaGraphicsUnmapResources(1, &cuda_pbo_resource_, 0);
+  cudaGraphicsUnmapResources(1, &cuda_pbo_resource_);
+  return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -894,21 +899,45 @@ void QGLImageGpuWidget::paintGL()
   if(image_ == 0)
     return;
 
-  //  printf("QGLImageGpuWidget::paintGL()\n");
+//  printf("QGLImageGpuWidget::paintGL()\n");
 
-  if (!glewIsSupported( "GL_VERSION_1_5 GL_ARB_vertex_buffer_object GL_ARB_pixel_buffer_object" ))
-  {
-    printf("!!!!!!!!!!!! CALL GLEW INIT !!!!!!!!!!!!\n");
-    glewInit();
-    return;
-  }
+//  if (!glewIsSupported( "GL_VERSION_1_5 GL_ARB_vertex_buffer_object GL_ARB_pixel_buffer_object" ))
+//  {
+//    printf("!!!!!!!!!!!! CALL GLEW INIT !!!!!!!!!!!!\n");
+//    glewInit();
+//    return;
+//  }
+
+  // Separate CUDA stuff from paintGL. Qt calls update (and thus paintGL) for various reasons,
+  // e.g. mouse enters/leaves widget, move around etc. at a rate of 30Hz or more. We don't want to do
+  // cuda stuff at this rate (map/unmap GL buffers is costly) because it slows down dramatically
+  if (updateCuda_)
+    this->doCUDA();
+  else
+    printf("ImageGpuWidget: paintGL without CUDA. Use updateCUDA() method\n");
+
+
+  //  printf("QGLImageGpuWidget::paintGL() done\n");
+
+}
+
+
+
+
+void QGLImageGpuWidget::doCUDA()
+{
 
   // check for min/max values if normalization is activated
   if(normalize_)
     this->autoMinMax();
 
   // fill the picture buffer object
-  fillPbo();
+  if (!fillPbo())
+  {
+    printf("Something went wrong when filling the pbo, not displaying anything\n");
+    return;
+  }
+
 
   // common display code path
   {
@@ -918,6 +947,7 @@ void QGLImageGpuWidget::paintGL()
                     GL_RGBA, GL_UNSIGNED_BYTE, NULL );
 
     glMatrixMode(GL_PROJECTION);
+
     glPushMatrix();
     glLoadIdentity ();
     glOrtho (-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
@@ -938,11 +968,11 @@ void QGLImageGpuWidget::paintGL()
     glTexCoord2f( 0.0, 1.0); glVertex3f(-1.0, -1.0, 0.5);
     glEnd ();
 #endif
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
   }
-  glPopMatrix();
 
-  //  printf("QGLImageGpuWidget::paintGL() done\n");
-
+  updateCuda_ = false;
 }
 
 

@@ -26,9 +26,21 @@ PlotGapWidget::PlotGapWidget(QWidget* parent, bool x_log_scale, bool y_log_scale
 
   myPlot_->setCanvasBackground(QColor(255,255,255));
   if (x_log_scale)
-    myPlot_->setAxisScaleEngine(QwtPlot::xBottom, new QwtLog10ScaleEngine);
+  {
+#if QWT_VERSION > 0x060000
+    myPlot_->setAxisScaleEngine(QwtPlot::xBottom, new QwtLogScaleEngine);
+#else
+      myPlot_->setAxisScaleEngine(QwtPlot::xBottom, new QwtLog10ScaleEngine);
+#endif
+  }
   if (y_log_scale)
-    myPlot_->setAxisScaleEngine(QwtPlot::yLeft, new QwtLog10ScaleEngine);
+  {
+#if QWT_VERSION > 0x060000
+    myPlot_->setAxisScaleEngine(QwtPlot::yLeft, new QwtLogScaleEngine);
+#else
+      myPlot_->setAxisScaleEngine(QwtPlot::yLeft, new QwtLog10ScaleEngine);
+#endif
+  }
 
   QHBoxLayout* controlLayout = new QHBoxLayout(NULL);
 
@@ -137,8 +149,8 @@ void PlotGapWidget::addCurve(std::list<int> x_values, std::list<double> y_values
 
   addCurve(x_values_array, y_values_array, elements_list, name, color);
 
-  delete x_values_array;
-  delete y_values_array;
+  delete [] x_values_array;
+  delete [] y_values_array;
 }
 
 
@@ -183,8 +195,8 @@ void PlotGapWidget::addCurve(std::list<double> x_values, std::list<double> y_val
 
   addCurve(x_values_array, y_values_array, elements_list, name, color);
 
-  delete x_values_array;
-  delete y_values_array;
+  delete [] x_values_array;
+  delete [] y_values_array;
 }
 
 //-----------------------------------------------------------------------------
@@ -207,7 +219,13 @@ void PlotGapWidget::addCurve(double* x_values_array, double* y_values_array,
 
   myPlot_->replot();
 
-#if (QWT_VERSION >= 0x050200)
+
+#if (QWT_VERSION > 0x060000)
+  double xmin = myPlot_->axisScaleDiv(QwtPlot::xBottom).lowerBound();
+  double xmax = myPlot_->axisScaleDiv(QwtPlot::xBottom).upperBound();
+  double ymin = myPlot_->axisScaleDiv(QwtPlot::yLeft).lowerBound();
+  double ymax = myPlot_->axisScaleDiv(QwtPlot::yLeft).upperBound();
+#elif (QWT_VERSION >= 0x050200)
   double xmin = myPlot_->axisScaleDiv(QwtPlot::xBottom)->lowerBound();
   double xmax = myPlot_->axisScaleDiv(QwtPlot::xBottom)->upperBound();
   double ymin = myPlot_->axisScaleDiv(QwtPlot::yLeft)->lowerBound();
@@ -251,7 +269,11 @@ void PlotGapWidget::updateXMax(double value)
 void PlotGapWidget::updateXLog(bool value)
 {
   if (value)
-    myPlot_->setAxisScaleEngine(QwtPlot::xBottom, new QwtLog10ScaleEngine);
+#if QWT_VERSION > 0x060000
+    myPlot_->setAxisScaleEngine(QwtPlot::xBottom, new QwtLogScaleEngine);
+#else
+      myPlot_->setAxisScaleEngine(QwtPlot::xBottom, new QwtLog10ScaleEngine);
+#endif
   else
     myPlot_->setAxisScaleEngine(QwtPlot::xBottom, new QwtLinearScaleEngine);
   myPlot_->replot();
@@ -275,7 +297,11 @@ void PlotGapWidget::updateYMax(double value)
 void PlotGapWidget::updateYLog(bool value)
 {
   if (value)
-    myPlot_->setAxisScaleEngine(QwtPlot::yLeft, new QwtLog10ScaleEngine);
+#if QWT_VERSION > 0x060000
+    myPlot_->setAxisScaleEngine(QwtPlot::yLeft, new QwtLogScaleEngine);
+#else
+      myPlot_->setAxisScaleEngine(QwtPlot::yLeft, new QwtLog10ScaleEngine);
+#endif
   else
     myPlot_->setAxisScaleEngine(QwtPlot::yLeft, new QwtLinearScaleEngine);
   myPlot_->replot();
