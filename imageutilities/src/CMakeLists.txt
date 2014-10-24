@@ -1,23 +1,7 @@
-# Copyright (c) ICG. All rights reserved.
-#
-# Institute for Computer Graphics and Vision
-# Graz University of Technology / Austria
-#
-#
-# This software is distributed WITHOUT ANY WARRANTY; without even
-# the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-# PURPOSE.  See the above copyright notices for more information.
-#
-#
-# Project     : ImageUtilities
-# Module      : CMakeFile
-# Language    : CMake
-# Description : CMakeFile
-#
-# Author     : Manuel Werlberger
-# EMail      : werlberger@icg.tugraz.at
-
-project(imageutilities_lib CXX C)
+set(PROJECT_NAME ImageUtilities)
+set(TOLOWER $PROJECT_NAME PROJECT_NAME_LOWERCASE)
+#string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_VAR)
+project(${PROJECT_NAME} CXX C)
 #set(CMAKE_BUILD_TYPE Debug)
 cmake_minimum_required(VERSION 2.8.0)
 
@@ -32,44 +16,51 @@ FILE(TO_CMAKE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake" OT_IU_CMAKE_MODULE_PAT
 SET(CMAKE_MODULE_PATH ${OT_IU_CMAKE_MODULE_PATH})
 
 # convert env variable to internal path to circumvent win32 backslash problems
-FILE(TO_CMAKE_PATH "$ENV{VMLIBRARIES_ROOT}" FL_VMLIBRARIES_ROOT)
+#FILE(TO_CMAKE_PATH "$ENV{VMLIBRARIES_ROOT}" FL_VMLIBRARIES_ROOT)
 
 ##-----------------------------------------------------------------------------
 ## Current version number:
 ##-----------------------------------------------------------------------------
-set(IMAGEUTILITIES_VERSION "1.3.0")
+set(${PROJECT_NAME}_VERSION "1.3.0")
 
-string(REGEX MATCHALL "[0-9]" IMAGEUTILITIES_VERSION_PARTS "${IMAGEUTILITIES_VERSION}")
+string(REGEX MATCHALL "[0-9]" ${PROJECT_NAME}_VERSION_PARTS "${${PROJECT_NAME}_VERSION}")
 
-list(GET IMAGEUTILITIES_VERSION_PARTS 0 IMAGEUTILITIES_VERSION_MAJOR)
-list(GET IMAGEUTILITIES_VERSION_PARTS 1 IMAGEUTILITIES_VERSION_MINOR)
-list(GET IMAGEUTILITIES_VERSION_PARTS 2 IMAGEUTILITIES_VERSION_PATCH)
-set(IMAGEUTILITIES_SOVERSION "${IMAGEUTILITIES_VERSION_MAJOR}.${IMAGEUTILITIES_VERSION_MINOR}")
+list(GET ${PROJECT_NAME}_VERSION_PARTS 0 ${PROJECT_NAME}_VERSION_MAJOR)
+list(GET ${PROJECT_NAME}_VERSION_PARTS 1 ${PROJECT_NAME}_VERSION_MINOR)
+list(GET ${PROJECT_NAME}_VERSION_PARTS 2 ${PROJECT_NAME}_VERSION_PATCH)
+set(${PROJECT_NAME}_SOVERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}")
 
 if(WIN32)
     # Postfix of DLLs:
-    set(IMAGEUTILITIES_DLLVERSION "${IMAGEUTILITIES_VERSION_MAJOR}${IMAGEUTILITIES_VERSION_MINOR}${IMAGEUTILITIES_VERSION_PATCH}")
-    set(IMAGEUTILITIES_DEBUG_POSTFIX d)
+    set(${PROJECT_NAME}_DLLVERSION "${${PROJECT_NAME}_VERSION_MAJOR}${${PROJECT_NAME}_VERSION_MINOR}${${PROJECT_NAME}_VERSION_PATCH}")
+    set(${PROJECT_NAME}_DEBUG_POSTFIX d)
 else()
     # Postfix of so's:
-    #set(IMAGEUTILITIES_DLLVERSION "${IMAGEUTILITIES_VERSION_MAJOR}${IMAGEUTILITIES_VERSION_MINOR}${IMAGEUTILITIES_VERSION_PATCH}")
-    set(IMAGEUTILITIES_DLLVERSION "")
-    set(IMAGEUTILITIES_DEBUG_POSTFIX)
+    #set(${PROJECT_NAME}_DLLVERSION "${${PROJECT_NAME}_VERSION_MAJOR}${${PROJECT_NAME}_VERSION_MINOR}${${PROJECT_NAME}_VERSION_PATCH}")
+    set(${PROJECT_NAME}_DLLVERSION "")
+    set(${PROJECT_NAME}_DEBUG_POSTFIX)
 endif()
 
 ##-----------------------------------------------------------------------------
 ## Flags if modules are used.
 ## The modules are included per default unless dependencies not found or omitted by the user.
 ## (the core module is always included!)
-OPTION(VMLIBRARIES_IU_USE_SPARSE "Including Sparse Matrix module." OFF)
-OPTION(VMLIBRARIES_IU_USE_IPP "Including IPP module." ON)
-OPTION(VMLIBRARIES_IU_USE_MATLAB "Including Matlab module." ON)
-OPTION(VMLIBRARIES_IU_USE_GUI "Including GUI module." OFF)
-OPTION(VMLIBRARIES_IU_USE_IO "Including IO module." ON)
-OPTION(VMLIBRARIES_IU_USE_IOPGM "Including IOPGM module." ON)
-#OPTION(VMLIBRARIES_IU_USE_VIDEOCAPTURE "Including VideCapture IO module." ON)
-#OPTION(VMLIBRARIES_IU_USE_PGRCAMERA "Including PointGray IO module." ON)
-OPTION(VMLIBRARIES_IU_USE_VIDEOSOURCE "Including Videosource IO module." ON)
+OPTION(${PROJECT_NAME}_USE_FUNCTIONALITY "Just a test if vars work here to switch on/off." OFF)
+if(${PROJECT_NAME}_USE_FUNCTIONALITY)
+  message("[+] ${PROJECT_NAME} include test module")
+else()
+  message("[-] ${PROJECT_NAME} omitting test module")
+endif()
+
+OPTION(${PROJECT_NAME}_USE_SPARSE "Including Sparse Matrix module." OFF)
+OPTION(${PROJECT_NAME}_USE_IPP "Including IPP module." ON)
+OPTION(${PROJECT_NAME}_USE_MATLAB "Including Matlab module." ON)
+OPTION(${PROJECT_NAME}_USE_GUI "Including GUI module." OFF)
+OPTION(${PROJECT_NAME}_USE_IO "Including IO module." ON)
+OPTION(${PROJECT_NAME}_USE_IOPGM "Including IOPGM module." ON)
+#OPTION(${PROJECT_NAME}_USE_VIDEOCAPTURE "Including VideCapture IO module." ON)
+#OPTION(${PROJECT_NAME}_USE_PGRCAMERA "Including PointGray IO module." ON)
+OPTION(${PROJECT_NAME}_USE_VIDEOSOURCE "Including Videosource IO module." ON)
 
 
 ##-----------------------------------------------------------------------------
@@ -98,16 +89,17 @@ endif(WIN32)
 # CUDA + SDK
 find_package(CUDA 3.1 REQUIRED)
 find_package(CUDASDK REQUIRED)
-if(CUDA_VERSION_MAJOR GREATER 4)
-  message("Using CUDA >= 5.0")
-  file(REMOVE "${FL_VMLIBRARIES_ROOT}/include/iu/helper_math.h")
-else()
-  message("Using CUDA < 5.0, copy old 'cutil_math.h' to new '${FL_VMLIBRARIES_ROOT}/include/helper_math.h'")
-  file(COPY ${CUDA_SDK_INCLUDE_DIR}/cutil_math.h DESTINATION "${FL_VMLIBRARIES_ROOT}/include")
-  file(RENAME "${FL_VMLIBRARIES_ROOT}/include/cutil_math.h" "${FL_VMLIBRARIES_ROOT}/include/helper_math.h")
-  cuda_include_directories("${FL_VMLIBRARIES_ROOT}/include/")
-  include_directories("${FL_VMLIBRARIES_ROOT}/include/")
-endif(CUDA_VERSION_MAJOR GREATER 4)
+# TODO (MWE) do we wanna fix/keep this for old versions?
+# if(CUDA_VERSION_MAJOR GREATER 4)
+#   message("Using CUDA >= 5.0")
+#   file(REMOVE "${FL_VMLIBRARIES_ROOT}/include/iu/helper_math.h")
+# else()
+#   message("Using CUDA < 5.0, copy old 'cutil_math.h' to new '${FL_VMLIBRARIES_ROOT}/include/helper_math.h'")
+#   file(COPY ${CUDA_SDK_INCLUDE_DIR}/cutil_math.h DESTINATION "${FL_VMLIBRARIES_ROOT}/include")
+#   file(RENAME "${FL_VMLIBRARIES_ROOT}/include/cutil_math.h" "${FL_VMLIBRARIES_ROOT}/include/helper_math.h")
+#   cuda_include_directories("${FL_VMLIBRARIES_ROOT}/include/")
+#   include_directories("${FL_VMLIBRARIES_ROOT}/include/")
+# endif(CUDA_VERSION_MAJOR GREATER 4)
 
 cuda_include_directories(${CUDA_INCLUDE_DIRS} ${CUDA_SDK_INCLUDE_DIR})
 include_directories(${CUDA_INCLUDE_DIRS} ${CUDA_SDK_INCLUDE_DIR})
@@ -165,9 +157,9 @@ endif()
 ## CUDA SPARSE: Sparse Matrix operations using CUDA sparse library
 ## (currently included in iucore lib)
 find_package(CUDASparse QUIET)
-if(VMLIBRARIES_IU_USE_SPARSE AND CUDASparse_FOUND)
+if(${PROJECT_NAME}_USE_SPARSE AND CUDASparse_FOUND)
 
-  message("[+] ImageUtilities include SPARSE module")
+  message("[+] ${PROJECT_NAME} include SPARSE module")
 
   set( IU_SPARSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/iusparse/sparsesum.cpp
@@ -199,8 +191,8 @@ if(VMLIBRARIES_IU_USE_SPARSE AND CUDASparse_FOUND)
     )
 
 else()
-  message("[-] ImageUtilities omitting SPARSE module")
-  set(VMLIBRARIES_IU_USE_SPARSE OFF CACHE PATH "IU: Omit SPARSE module." FORCE)
+  message("[-] ${PROJECT_NAME} omitting SPARSE module")
+  set(${PROJECT_NAME}_USE_SPARSE OFF CACHE PATH "IU: Omit SPARSE module." FORCE)
   set(CUDA_SPARSE_LIBRARY "")
   set(IU_SPARSE_SOURCES "")
   set(IU_SPARSE_HEADERS "")
@@ -209,8 +201,8 @@ endif()
 ##-----------------------------------------------------------------------------
 ## Ipp
 find_package(IPP QUIET)
-if(VMLIBRARIES_IU_USE_IPP AND IPP_INCLUDE_DIR)
-  message("[+] ImageUtilities include IPP module")
+if(${PROJECT_NAME}_USE_IPP AND IPP_INCLUDE_DIR)
+  message("[+] ${PROJECT_NAME} include IPP module")
 
   include_directories(${IPP_INCLUDE_DIR})
 
@@ -240,8 +232,8 @@ if(VMLIBRARIES_IU_USE_IPP AND IPP_INCLUDE_DIR)
   )
 
 else()
-  message("[-] ImageUtilities omitting Ipp module.")
-  set(VMLIBRARIES_IU_USE_IPP OFF CACHE PATH "IU: Omit IPP module." FORCE)
+  message("[-] ${PROJECT_NAME} omitting Ipp module.")
+  set(${PROJECT_NAME}_USE_IPP OFF CACHE PATH "IU: Omit IPP module." FORCE)
 
   # empty libraries
   set(IPP_LIBRARIES "")
@@ -252,9 +244,9 @@ endif()
 ## MATLAB (CONNECTOR) MODULE(S): Matlab connector module(s)
 find_package(Matlab_ICG QUIET)
 
-if(VMLIBRARIES_IU_USE_MATLAB AND MATLAB_FOUND)
+if(${PROJECT_NAME}_USE_MATLAB AND MATLAB_FOUND)
 
-  message("[+] ImageUtilities include MATLAB module")
+  message("[+] ${PROJECT_NAME} include MATLAB module")
 
   include_directories(${MATLAB_INCLUDE_DIR})
 
@@ -274,7 +266,7 @@ if(VMLIBRARIES_IU_USE_MATLAB AND MATLAB_FOUND)
 
 
   # Matlab sparse connector (only if sparse module is included)
-  if(VMLIBRARIES_IU_USE_SPARSE)
+  if(${PROJECT_NAME}_USE_SPARSE)
     set( IU_PUBLIC_HEADERS
       ${IU_PUBLIC_HEADERS}
       ${CMAKE_CURRENT_SOURCE_DIR}/iumatlabsparseconnector.h
@@ -288,7 +280,7 @@ if(VMLIBRARIES_IU_USE_MATLAB AND MATLAB_FOUND)
       ${IU_MATLAB_SOURCES}
       ${CMAKE_CURRENT_SOURCE_DIR}/iumatlabsparseconnector.cpp
       )
-  endif(VMLIBRARIES_IU_USE_SPARSE)
+  endif(${PROJECT_NAME}_USE_SPARSE)
 
   # install specialized headers
   install(FILES ${IU_PUBLIC_MATLAB_HEADERS}
@@ -302,23 +294,23 @@ if(VMLIBRARIES_IU_USE_MATLAB AND MATLAB_FOUND)
     )
 
 
-else(VMLIBRARIES_IU_USE_MATLAB AND MATLAB_FOUND)
-  message("[-] ImageUtilities omitting MATLAB module.")
-  set(VMLIBRARIES_IU_USE_MATLAB OFF CACHE PATH "IU: Omit MATLAB module." FORCE)
+else(${PROJECT_NAME}_USE_MATLAB AND MATLAB_FOUND)
+  message("[-] ${PROJECT_NAME} omitting MATLAB module.")
+  set(${PROJECT_NAME}_USE_MATLAB OFF CACHE PATH "IU: Omit MATLAB module." FORCE)
 
   # empty libraries
   set(MATLAB_LIBRARIES "")
 
-endif(VMLIBRARIES_IU_USE_MATLAB AND MATLAB_FOUND)
+endif(${PROJECT_NAME}_USE_MATLAB AND MATLAB_FOUND)
 
 
 ##-----------------------------------------------------------------------------
 ## Qt
 find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL)
 # only include if GUI module is used and qt4 found.
-if(VMLIBRARIES_IU_USE_GUI AND QT4_FOUND)
+if(${PROJECT_NAME}_USE_GUI AND QT4_FOUND)
 
-  message("[+] ImageUtilities include GUI module")
+  message("[+] ${PROJECT_NAME} include GUI module")
   include(${QT_USE_FILE})
 
   ## Qwt
@@ -342,8 +334,8 @@ if(VMLIBRARIES_IU_USE_GUI AND QT4_FOUND)
   if(GLEW_INCLUDE_DIR)
     include_directories(${GLEW_INCLUDE_DIR})
   else(GLEW_INCLUDE_DIR)
-    message("[-] ImageUtilities omitting GUI module (due to missing GLEW module")
-    set(VMLIBRARIES_IU_USE_GUI OFF CACHE PATH "IU: GLEW module not found. Needed for GUI module to build." FORCE)
+    message("[-] ${PROJECT_NAME} omitting GUI module (due to missing GLEW module")
+    set(${PROJECT_NAME}_USE_GUI OFF CACHE PATH "IU: GLEW module not found. Needed for GUI module to build." FORCE)
   endif(GLEW_INCLUDE_DIR)
 
   ## OpenGL
@@ -351,8 +343,8 @@ if(VMLIBRARIES_IU_USE_GUI AND QT4_FOUND)
   if(OPENGL_gl_LIBRARY)
     include_directories(${OPENGL_INCLUDE_DIR})
   else(OPENGL_gl_LIBRARY)
-    message("[-] ImageUtilities omitting GUI module (due to missing OpenGL module")
-    set(VMLIBRARIES_IU_USE_GUI OFF CACHE PATH "IU: GLEW module not found. Needed for GUI module to build." FORCE)
+    message("[-] ${PROJECT_NAME} omitting GUI module (due to missing OpenGL module")
+    set(${PROJECT_NAME}_USE_GUI OFF CACHE PATH "IU: GLEW module not found. Needed for GUI module to build." FORCE)
   endif(OPENGL_gl_LIBRARY)
 
 
@@ -406,8 +398,8 @@ if(VMLIBRARIES_IU_USE_GUI AND QT4_FOUND)
   message(STATUS "QTRC_SOURCES = ${QTRC_SOURCES}")
 
 else()
-  message("[-] ImageUtilities omitting GUI module")
-  set(VMLIBRARIES_IU_USE_GUI OFF CACHE PATH "IU: Omit GUI module." FORCE)
+  message("[-] ${PROJECT_NAME} omitting GUI module")
+  set(${PROJECT_NAME}_USE_GUI OFF CACHE PATH "IU: Omit GUI module." FORCE)
 
   # empty libraries
   set(QT_LIBRARIES "")
@@ -421,9 +413,9 @@ endif()
 ## IO MODULE: OpenCV for Image I/O
 find_package( OpenCV )
 # only include if IO module is used and OpenCV found.
-if(VMLIBRARIES_IU_USE_IO AND OpenCV_LIBS)
+if(${PROJECT_NAME}_USE_IO AND OpenCV_LIBS)
 
-  message("[+] ImageUtilities include IO module")
+  message("[+] ${PROJECT_NAME} include IO module")
   include_directories(${OpenCV_INCLUDE_DIRS})
 
   set( IU_PUBLIC_HEADERS
@@ -444,8 +436,8 @@ if(VMLIBRARIES_IU_USE_IO AND OpenCV_LIBS)
     )
 
 else()
-  message("[-] ImageUtilities omitting IO module")
-  set(VMLIBRARIES_IU_USE_IO OFF CACHE PATH "IU: Omit IO module." FORCE)
+  message("[-] ${PROJECT_NAME} omitting IO module")
+  set(${PROJECT_NAME}_USE_IO OFF CACHE PATH "IU: Omit IO module." FORCE)
 
   # empty libraries
   set(OpenCV_LIBS "")
@@ -454,9 +446,9 @@ endif()
 
 ##-----------------------------------------------------------------------------
 ## IOPGM MODULE: Reads various kinds of pgm images. (no external dependencies)
-if(VMLIBRARIES_IU_USE_IOPGM)
+if(${PROJECT_NAME}_USE_IOPGM)
 
-  message("[+] ImageUtilities include IOPGM module")
+  message("[+] ${PROJECT_NAME} include IOPGM module")
 
   set( IU_PUBLIC_HEADERS
     ${IU_PUBLIC_HEADERS}
@@ -473,8 +465,8 @@ if(VMLIBRARIES_IU_USE_IOPGM)
     )
 
 else()
-  message("[-] ImageUtilities omitting IOPGM module")
-  set(VMLIBRARIES_IU_USE_IOPGM OFF CACHE PATH "IU: Omit IOPGM module." FORCE)
+  message("[-] ${PROJECT_NAME} omitting IOPGM module")
+  set(${PROJECT_NAME}_USE_IOPGM OFF CACHE PATH "IU: Omit IOPGM module." FORCE)
 
 endif()
 
@@ -483,9 +475,9 @@ endif()
 # ## CAMERA/Video IO MODULE: OpenCV IO with Qt threading
 # # NOTE: we need qt4 for that (threading, ...)
 # # only include if all dependencies were found
-# if(VMLIBRARIES_IU_USE_VIDEOCAPTURE AND QT4_FOUND AND OpenCV_INCLUDE_DIRS)
+# if(${PROJECT_NAME}_USE_VIDEOCAPTURE AND QT4_FOUND AND OpenCV_INCLUDE_DIRS)
 
-#   message("[+] ImageUtilities include video/camera module (OpenCV/Qt needed)")
+#   message("[+] ${PROJECT_NAME} include video/camera module (OpenCV/Qt needed)")
 #   include(${QT_USE_FILE})
 
 #   set( IU_PUBLIC_HEADERS
@@ -514,8 +506,8 @@ endif()
 #   QT4_WRAP_CPP (IU_VIDEOCAPTURE_MOC_SOURCES ${IU_VIDEOCAPTURE_MOC_HEADERS})
 
 # else()
-#   message("[-] ImageUtilities omitting VIDEOCAPTURE module")
-#   set(VMLIBRARIES_IU_USE_VIDEOCAPTURE OFF CACHE PATH "IU: Omit videocapture module." FORCE)
+#   message("[-] ${PROJECT_NAME} omitting VIDEOCAPTURE module")
+#   set(${PROJECT_NAME}_USE_VIDEOCAPTURE OFF CACHE PATH "IU: Omit videocapture module." FORCE)
 
 #   # empty libraries
 #   set(FLYCAPTURE2_LIBRARIES "")
@@ -527,9 +519,9 @@ endif()
 # NOTE: we need qt4 for that (threading, ...)
 #find_package( FlyCapture2 )
 # only include if PGR specific stuff was foun
-#if(VMLIBRARIES_IU_USE_PGRCAMERA AND QT4_FOUND AND FLYCAPTURE2_FOUND)
+#if(${PROJECT_NAME}_USE_PGRCAMERA AND QT4_FOUND AND FLYCAPTURE2_FOUND)
 #
-#  message("[+] ImageUtilities include PGRCAMERA module")
+#  message("[+] ${PROJECT_NAME} include PGRCAMERA module")
 #  include(${QT_USE_FILE})
 #  include_directories(${FLYCAPTURE2_INCLUDE_DIR})
 #  message("FLYCAPTURE_INCLUDE_DIR=${FLYCAPTURE2_INCLUDE_DIR}")
@@ -576,8 +568,8 @@ endif()
 #  QT4_WRAP_CPP (IU_PGRCAMERA_MOC_SOURCES ${IU_PGRCAMERA_MOC_HEADERS})
 #
 #else()
-#  message("[-] ImageUtilities omitting PGRCAMERA module")
-#  set(VMLIBRARIES_IU_USE_PGRCAMERA OFF CACHE PATH "IU: Omit PGRCAMERA module." FORCE)
+#  message("[-] ${PROJECT_NAME} omitting PGRCAMERA module")
+#  set(${PROJECT_NAME}_USE_PGRCAMERA OFF CACHE PATH "IU: Omit PGRCAMERA module." FORCE)
 #
 #  # empty libraries
 #  set(FLYCAPTURE2_LIBRARIES "")
@@ -588,8 +580,8 @@ endif()
 # include Videosource module
 # needs Flycapture2 lib for pointgrey and Qt for signals/slots
 find_package(FlyCapture2)
-if(VMLIBRARIES_IU_USE_VIDEOSOURCE AND QT4_FOUND AND FLYCAPTURE2_FOUND)
-  message("[+] ImageUtilities include Videosource module")
+if(${PROJECT_NAME}_USE_VIDEOSOURCE AND QT4_FOUND AND FLYCAPTURE2_FOUND)
+  message("[+] ${PROJECT_NAME} include Videosource module")
   include(${QT_USE_FILE})
   include_directories(${FLYCAPTURE2_INCLUDE_DIR})
 
@@ -637,8 +629,8 @@ if(VMLIBRARIES_IU_USE_VIDEOSOURCE AND QT4_FOUND AND FLYCAPTURE2_FOUND)
   QT4_WRAP_CPP (IU_VIDEOSOURCE_MOC_SOURCES ${IU_VIDEOSOURCE_MOC_HEADERS})
 
 else()
-  message("[-] ImageUtilities omitting Videosource module")
-  set(VMLIBRARIES_IU_USE_VIDEOSOURCE OFF CACHE PATH "IU: Omit Videosource module." FORCE)
+  message("[-] ${PROJECT_NAME} omitting Videosource module")
+  set(${PROJECT_NAME}_USE_VIDEOSOURCE OFF CACHE PATH "IU: Omit Videosource module." FORCE)
 
   # empty libraries
   set(FLYCAPTURE2_LIBRARIES "")
@@ -828,8 +820,8 @@ set(IU_CORE_LIB iucore)
 cuda_add_library( ${IU_CORE_LIB} SHARED ${IU_HEADERS} ${IU_SOURCES})
 set_target_properties(${IU_CORE_LIB} PROPERTIES
   DEFINE_SYMBOL IUCORE_DLL_EXPORTS
-  VERSION ${IMAGEUTILITIES_VERSION}
-  SOVERSION ${IMAGEUTILITIES_SOVERSION}
+  VERSION ${${PROJECT_NAME}_VERSION}
+  SOVERSION ${${PROJECT_NAME}_SOVERSION}
   PUBLIC_HEADER "${IU_PUBLIC_HEADERS}"
   )
 target_link_libraries( ${IU_CORE_LIB} ${CUDA_LIBRARIES} ${CUDA_SPARSE_LIBRARY})
@@ -838,60 +830,60 @@ set(IU_LIBS ${IU_LIBS} ${IU_CORE_LIB})
 ##-----------------------------------------------------------------------------
 ## build ipp-based part of library
 set(IU_IPP_LIB iuipp)
-if(VMLIBRARIES_IU_USE_IPP)
+if(${PROJECT_NAME}_USE_IPP)
   cuda_add_library( ${IU_IPP_LIB} SHARED ${IU_IPP_HEADERS} ${IU_IPP_SOURCES})
   set_target_properties(${IU_IPP_LIB} PROPERTIES
     DEFINE_SYMBOL IUIPP_DLL_EXPORTS
-    VERSION ${IMAGEUTILITIES_VERSION}
-    SOVERSION ${IMAGEUTILITIES_SOVERSION}
+    VERSION ${${PROJECT_NAME}_VERSION}
+    SOVERSION ${${PROJECT_NAME}_SOVERSION}
     )
   target_link_libraries( ${IU_IPP_LIB} ${IPP_LIBRARIES} )
   set(IU_LIBS ${IU_LIBS} ${IU_IPP_LIB})
 
-endif(VMLIBRARIES_IU_USE_IPP)
+endif(${PROJECT_NAME}_USE_IPP)
 
 ##-----------------------------------------------------------------------------
 ## build io library
 set(IU_IO_LIB iuio)
-if(VMLIBRARIES_IU_USE_IO)
+if(${PROJECT_NAME}_USE_IO)
   cuda_add_library( ${IU_IO_LIB} SHARED ${IU_IO_HEADERS} ${IU_IO_SOURCES} )
   set_target_properties(${IU_IO_LIB} PROPERTIES
     DEFINE_SYMBOL IUIO_DLL_EXPORTS
-    VERSION ${IMAGEUTILITIES_VERSION}
-    SOVERSION ${IMAGEUTILITIES_SOVERSION}
+    VERSION ${${PROJECT_NAME}_VERSION}
+    SOVERSION ${${PROJECT_NAME}_SOVERSION}
     )
   target_link_libraries( ${IU_IO_LIB}
     ${CUDA_LIBRARIES} ${OpenCV_LIBS}
     )
   set(IU_LIBS ${IU_LIBS} ${IU_IO_LIB})
-endif(VMLIBRARIES_IU_USE_IO)
+endif(${PROJECT_NAME}_USE_IO)
 
 ##-----------------------------------------------------------------------------
 ## build iopgm library
 set(IU_IOPGM_LIB iuiopgm)
-if(VMLIBRARIES_IU_USE_IOPGM)
+if(${PROJECT_NAME}_USE_IOPGM)
   cuda_add_library( ${IU_IOPGM_LIB} SHARED ${IU_IOPGM_HEADERS} ${IU_IOPGM_SOURCES} )
   set_target_properties(${IU_IOPGM_LIB} PROPERTIES
     DEFINE_SYMBOL IUPGM_DLL_EXPORTS
-    VERSION ${IMAGEUTILITIES_VERSION}
-    SOVERSION ${IMAGEUTILITIES_SOVERSION}
+    VERSION ${${PROJECT_NAME}_VERSION}
+    SOVERSION ${${PROJECT_NAME}_SOVERSION}
     )
   target_link_libraries( ${IU_IOPGM_LIB}
     ${CUDA_LIBRARIES}
     ${IU_CORE_LIB}
     )
   set(IU_LIBS ${IU_LIBS} ${IU_IOPGM_LIB})
-endif(VMLIBRARIES_IU_USE_IOPGM)
+endif(${PROJECT_NAME}_USE_IOPGM)
 
 ##-----------------------------------------------------------------------------
 ## build gui library
 set(IU_GUI_LIB iugui)
-if(VMLIBRARIES_IU_USE_GUI)
+if(${PROJECT_NAME}_USE_GUI)
   cuda_add_library( ${IU_GUI_LIB} SHARED ${IU_GUI_HEADERS} ${IU_GUI_SOURCES} ${IU_GUI_MOC_SOURCES} ${QTRC_SOURCES})
   set_target_properties(${IU_GUI_LIB} PROPERTIES
     DEFINE_SYMBOL IUGUI_DLL_EXPORTS
-    VERSION ${IMAGEUTILITIES_VERSION}
-    SOVERSION ${IMAGEUTILITIES_SOVERSION}
+    VERSION ${${PROJECT_NAME}_VERSION}
+    SOVERSION ${${PROJECT_NAME}_SOVERSION}
     )
   target_link_libraries( ${IU_GUI_LIB}
     ${IU_CORE_LIB} ${IU_IO_LIB} ${CUDA_LIBRARIES}
@@ -899,52 +891,52 @@ if(VMLIBRARIES_IU_USE_GUI)
     )
   set(IU_LIBS ${IU_LIBS} ${IU_GUI_LIB})
 
-endif(VMLIBRARIES_IU_USE_GUI)
+endif(${PROJECT_NAME}_USE_GUI)
 
 ##-----------------------------------------------------------------------------
 ## build matlab-based part of library
 set(IU_MATLAB_LIB iumatlab)
-if(VMLIBRARIES_IU_USE_MATLAB)
+if(${PROJECT_NAME}_USE_MATLAB)
   cuda_add_library( ${IU_MATLAB_LIB} SHARED ${IU_MATLAB_HEADERS} ${IU_MATLAB_SOURCES})
   set_target_properties(${IU_MATLAB_LIB} PROPERTIES
     DEFINE_SYMBOL IUMATLAB_DLL_EXPORTS
-    VERSION ${IMAGEUTILITIES_VERSION}
-    SOVERSION ${IMAGEUTILITIES_SOVERSION}
+    VERSION ${${PROJECT_NAME}_VERSION}
+    SOVERSION ${${PROJECT_NAME}_SOVERSION}
     )
   target_link_libraries( ${IU_MATLAB_LIB} ${MATLAB_LIBRARIES} ${CUDA_SPARSE_LIBRARY})
   set(IU_LIBS ${IU_LIBS} ${IU_MATLAB_LIB})
 
-endif(VMLIBRARIES_IU_USE_MATLAB)
+endif(${PROJECT_NAME}_USE_MATLAB)
 
 
 
 # ##-----------------------------------------------------------------------------
 # ## build VIDEOCAPTURE library
 # set(IU_VIDEOCAPTURE_LIB iuvideocapture)
-# if(VMLIBRARIES_IU_USE_VIDEOCAPTURE)
+# if(${PROJECT_NAME}_USE_VIDEOCAPTURE)
 #   cuda_add_library( ${IU_VIDEOCAPTURE_LIB} SHARED ${IU_VIDEOCAPTURE_HEADERS} ${IU_VIDEOCAPTURE_SOURCES} ${IU_VIDEOCAPTURE_MOC_SOURCES})
 #   set_target_properties(${IU_VIDEOCAPTURE_LIB} PROPERTIES
 #     DEFINE_SYMBOL IU_DLL_EXPORTS
-#     VERSION ${IMAGEUTILITIES_VERSION}
-#     SOVERSION ${IMAGEUTILITIES_SOVERSION}
+#     VERSION ${${PROJECT_NAME}_VERSION}
+#     SOVERSION ${${PROJECT_NAME}_SOVERSION}
 #     )
 #   target_link_libraries( ${IU_VIDEOCAPTURE_LIB}
 #     ${CUDA_LIBRARIES}
 #     ${QT_LIBRARIES}  ${OpenCV_LIBS}
 #     )
 #   set(IU_LIBS ${IU_LIBS} ${IU_VIDEOCAPTURE_LIB})
-# endif(VMLIBRARIES_IU_USE_VIDEOCAPTURE)
+# endif(${PROJECT_NAME}_USE_VIDEOCAPTURE)
 
 
 ##-----------------------------------------------------------------------------
 ## build pgrcamera library
 set(IU_PGRCAMERA_LIB iupgrcamera)
-if(VMLIBRARIES_IU_USE_PGRCAMERA)
+if(${PROJECT_NAME}_USE_PGRCAMERA)
   cuda_add_library( ${IU_PGRCAMERA_LIB} SHARED ${IU_PGRCAMERA_HEADERS} ${IU_PGRCAMERA_SOURCES} ${IU_PGRCAMERA_MOC_SOURCES})
   set_target_properties(${IU_PGRCAMERA_LIB} PROPERTIES
     DEFINE_SYMBOL IU_DLL_EXPORTS
-    VERSION ${IMAGEUTILITIES_VERSION}
-    SOVERSION ${IMAGEUTILITIES_SOVERSION}
+    VERSION ${${PROJECT_NAME}_VERSION}
+    SOVERSION ${${PROJECT_NAME}_SOVERSION}
     )
   target_link_libraries( ${IU_PGRCAMERA_LIB}
     ${CUDA_LIBRARIES}
@@ -953,18 +945,18 @@ if(VMLIBRARIES_IU_USE_PGRCAMERA)
     )
   set(IU_LIBS ${IU_LIBS} ${IU_PGRCAMERA_LIB})
 
-endif(VMLIBRARIES_IU_USE_PGRCAMERA)
+endif(${PROJECT_NAME}_USE_PGRCAMERA)
 
 
 ##-----------------------------------------------------------------------------
 ## build videosource library
 set(IU_VIDEOSOURCE_LIB iuvideosource)
-if(VMLIBRARIES_IU_USE_VIDEOSOURCE)
+if(${PROJECT_NAME}_USE_VIDEOSOURCE)
   cuda_add_library( ${IU_VIDEOSOURCE_LIB} SHARED ${IU_VIDEOSOURCE_HEADERS} ${IU_VIDEOSOURCE_SOURCES} ${IU_VIDEOSOURCE_MOC_SOURCES})
   set_target_properties(${IU_VIDEOSOURCE_LIB} PROPERTIES
     DEFINE_SYMBOL IU_DLL_EXPORTS
-    VERSION ${IMAGEUTILITIES_VERSION}
-    SOVERSION ${IMAGEUTILITIES_SOVERSION}
+    VERSION ${${PROJECT_NAME}_VERSION}
+    SOVERSION ${${PROJECT_NAME}_SOVERSION}
     )
   target_link_libraries( ${IU_VIDEOSOURCE_LIB}
     ${CUDA_LIBRARIES}
@@ -973,7 +965,7 @@ if(VMLIBRARIES_IU_USE_VIDEOSOURCE)
     )
   set(IU_LIBS ${IU_LIBS} ${IU_VIDEOSOURCE_LIB})
 
-endif(VMLIBRARIES_IU_USE_VIDEOSOURCE)
+endif(${PROJECT_NAME}_USE_VIDEOSOURCE)
 
 ##-----------------------------------------------------------------------------
 ## Install target
@@ -982,19 +974,19 @@ endif(VMLIBRARIES_IU_USE_VIDEOSOURCE)
 ## *) local: for developement (e.g. svn checkout -- currently the default)
 ## *) global: for usage only (care about mixing up the two -> the global one will be preffered!)
 
-OPTION(VMLIBRARIES_IU_INSTALL_LOCAL "Installation of the ImageUtilities binaries in the local vmlibraries tree." ON)
+OPTION(VMLIBRARIES_IU_INSTALL_LOCAL "Installation of the ${PROJECT_NAME} binaries in the local vmlibraries tree." ON)
 
 if(VMLIBRARIES_IU_INSTALL_LOCAL )
   if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX ${FL_VMLIBRARIES_ROOT} CACHE PATH "ImageUtilities install prefix" FORCE)
+    set(CMAKE_INSTALL_PREFIX ${FL_VMLIBRARIES_ROOT} CACHE PATH "${PROJECT_NAME} install prefix" FORCE)
   endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(VMLIBRARIES_IU_INSTALL_LOCAL)
 
 if(NOT VMLIBRARIES_IU_INSTALL_LOCAL OR NOT CMAKE_INSTALL_PREFIX)
   if(NOT UNIX)
-    set(CMAKE_INSTALL_PREFIX $ENV{ProgramFiles}/VMLibraries CACHE PATH "ImageUtilities install prefix" FORCE)
+    set(CMAKE_INSTALL_PREFIX $ENV{ProgramFiles}/VMLibraries CACHE PATH "${PROJECT_NAME} install prefix" FORCE)
   else(NOT UNIX)
-    set(CMAKE_INSTALL_PREFIX /usr/local CACHE PATH "ImageUtilities install prefix" FORCE)
+    set(CMAKE_INSTALL_PREFIX /usr/local CACHE PATH "${PROJECT_NAME} install prefix" FORCE)
   endif(NOT UNIX)
 endif(NOT VMLIBRARIES_IU_INSTALL_LOCAL OR NOT CMAKE_INSTALL_PREFIX)
 
@@ -1044,16 +1036,16 @@ install(FILES ${IU_CMAKE_FILES}
 ## CPACK configuration
 #INCLUDE(InstallRequiredSystemLibraries)
 
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ImageUtilities - Connecting the world of CPU and GPU.")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_NAME} - Connecting the world of CPU and GPU.")
 SET(CPACK_PACKAGE_VENDOR "Manuel Werlberger <werlberger@icg.tugraz.at>")
 SET(CPACK_PACKAGE_CONTACT "Manuel Werlberger <werlberger@icg.tugraz.at>")
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Manuel Werlberger <werlberger@icg.tugraz.at>")
 # SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
 # SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/Copyright.txt")
-SET(CPACK_PACKAGE_VERSION_MAJOR "${IMAGEUTILITIES_VERSION_MAJOR}")
-SET(CPACK_PACKAGE_VERSION_MINOR "${IMAGEUTILITIES_VERSION_MINOR}")
-SET(CPACK_PACKAGE_VERSION_PATCH "${IMAGEUTILITIES_VERSION_PATH}")
-SET(CPACK_PACKAGE_INSTALL_DIRECTORY "ImageUtilities ${IMAGEUTILITIES_VERSION_MAJOR}.${IMAGEUTILITIES_VERSION_MINOR}")
+SET(CPACK_PACKAGE_VERSION_MAJOR "${${PROJECT_NAME}_VERSION_MAJOR}")
+SET(CPACK_PACKAGE_VERSION_MINOR "${${PROJECT_NAME}_VERSION_MINOR}")
+SET(CPACK_PACKAGE_VERSION_PATCH "${${PROJECT_NAME}_VERSION_PATH}")
+SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${PROJECT_NAME} ${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}")
 
 # IF(WIN32 AND NOT UNIX)
 #   # There is a bug in NSI that does not handle full unix paths properly. Make
