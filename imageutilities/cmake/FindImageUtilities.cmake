@@ -39,7 +39,7 @@ endif(NOT VMLIBRARIES_DIR)
 set(IU_USE_FILE ${VMLIBRARIES_CMAKE_ROOT}/UseImageUtilities.cmake CACHE FILEPATH "USE file for including the correct headers and libs.")
 
 # set a variable for all possible modules
-set(IU_MODULES iucore iuipp iumatlab iugui iuio iuiopgm iuvideocapture iupgrcamera)
+set(IU_MODULES iucore iuipp iumatlab iugui iuio iuiopgm iuvideocapture iupgrcamera iuvideosource)
 
 ################################################################################
 #
@@ -65,6 +65,7 @@ else(IU_INCLUDE_DIRS AND IU_LIBRARY_DIR)
   ## TODO FIXME
 
   set(VMLIBRARIES_COMMON_INCLUDE_DIR "${VMLIBRARIES_DIR}/common/include" CACHE PATH "Common include dir of the vmlibraries project for small helper functions.")
+  set(VMLIBRARIES_EXTERN_INCLUDE_DIR "${VMLIBRARIES_DIR}/extern/include" "${VMLIBRARIES_DIR}/extern" CACHE PATH "Include dir for external libraries.")
 
   # library path
   set(POTENTIAL_LIBRARY_PATHS
@@ -166,11 +167,11 @@ else(IU_INCLUDE_DIRS AND IU_LIBRARY_DIR)
     string(REPLACE "/release" "" IU_LIBRARY_DIR ${IU_LIBRARY_DIR})
     string(REPLACE "/debug" "" IU_LIBRARY_DIR ${IU_LIBRARY_DIR})
 
-    if(NOT IU_FIND_QUIETLY)
+    if(NOT ImageUtilities_FIND_QUIETLY)
       message(STATUS "Found ImageUtilities (iu library):")
       message(STATUS "      IU_INCLUDE_DIRS = ${IU_INCLUDE_DIRS}")
       message(STATUS "      IU_LIBRARY_DIR = ${IU_LIBRARY_DIR}")
-    endif(NOT IU_FIND_QUIETLY)
+    endif(NOT ImageUtilities_FIND_QUIETLY)
 
   else(IU_IUCORE_FOUND)
     if(IU_FIND_REQUIRED)
@@ -194,6 +195,7 @@ else(IU_INCLUDE_DIRS AND IU_LIBRARY_DIR)
   set(IU_IUIOPGM_LIB_DEPENDENCIES "")
   set(IU_IUVIDEOCAPTURE_LIB_DEPENDENCIES "")
   set(IU_IUPGRCAMERA_LIB_DEPENDENCIES "")
+  set(IU_VIDEOSOURCE_LIB_DEPENDENCIES "")
 
   ## CORE module
   if(IU_IUCORE_FOUND)
@@ -201,8 +203,8 @@ else(IU_INCLUDE_DIRS AND IU_LIBRARY_DIR)
     find_package(CUDA 3.1 REQUIRED)
     find_package(CUDASDK REQUIRED)
     if(CUDA_FOUND AND CUDASDK_FOUND)
-      cuda_include_directories(${CUDA_INCLUDE_DIRS} ${CUDA_CUT_INCLUDE_DIR})
-      include_directories(${CUDA_INCLUDE_DIRS} ${CUDA_CUT_INCLUDE_DIR})
+      cuda_include_directories(${CUDA_INCLUDE_DIRS} ${CUDA_SDK_INCLUDE_DIR})
+      include_directories(${CUDA_INCLUDE_DIRS} ${CUDA_SDK_INCLUDE_DIR})
       set(IU_IUCORE_LIB_DEPENDENCIES ${IU_IUCORE_LIB_DEPENDENCIES} ${CUDA_LIBRARIES})
 
       # Checking cuda version
@@ -222,12 +224,12 @@ else(IU_INCLUDE_DIRS AND IU_LIBRARY_DIR)
       endif()
 
       # CUDA Sparse
-      find_package(CUDASparse QUIET)
-      if(CUDASparse_FOUND)
-        message("Cuda sparse lib found")
+      #find_package(CUDASparse QUIET)
+      #if(CUDASparse_FOUND)
+      #  message("Cuda sparse lib found")
         #include_directories(${CUDA_INCLUDE_DIRS})
-        set(IU_IUCORE_LIB_DEPENDENCIES ${IU_IUCORE_LIB_DEPENDENCIES} ${CUDA_SPARSE_LIBRARY})
-      endif(CUDASparse_FOUND)
+      #  set(IU_IUCORE_LIB_DEPENDENCIES ${IU_IUCORE_LIB_DEPENDENCIES} ${CUDA_SPARSE_LIBRARY})
+      #endif(CUDASparse_FOUND)
 
     endif(CUDA_FOUND AND CUDASDK_FOUND)
   endif(IU_IUCORE_FOUND)
@@ -339,6 +341,27 @@ else(IU_INCLUDE_DIRS AND IU_LIBRARY_DIR)
 
   endif(IU_IUPGRCAMERA_FOUND)
 
+
+  ## VIDEOSOURCE module
+  if(IU_VIDEOSOURCE_FOUND)
+    # Qt4 (if no gui module is used)
+    if(NOT QT4_FOUND)
+      find_package(Qt4 COMPONENTS QtCore)
+      if(QT4_FOUND)
+        include(${QT_USE_FILE})
+        set(IU_VIDEOSOURCE_LIB_DEPENDENCIES ${IU_VIDEOSOURCE_LIB_DEPENDENCIES} ${QT_LIBRARIES})
+      endif(QT4_FOUND)
+    endif(NOT QT4_FOUND)
+
+    # Flycapture2 (pointgrey stuff)
+    find_package( FLYCAPTURE2 QUIET )
+    if(FLYCAPTURE2_INCLUDE_DIRS)
+      include_directories(${FLYCAPTURE2_INCLUDE_DIRS})
+      set(IU_VIDEOSOURCE_LIB_DEPENDENCIES ${IU_VIDEOSOURCE_LIB_DEPENDENCIES} ${FLYCAPTURE2_LIBRARIES})
+    endif(FLYCAPTURE2_INCLUDE_DIRS)
+
+  endif(IU_VIDEOSOURCE_FOUND)
+
   mark_as_advanced(
     IU_IUCORE_LIB_DEPENDENCIES 
     IU_IUIPP_LIB_DEPENDENCIES 
@@ -348,9 +371,11 @@ else(IU_INCLUDE_DIRS AND IU_LIBRARY_DIR)
     IU_IUIOPGM_LIB_DEPENDENCIES
     IU_IUVIDEOCAPTURE_LIB_DEPENDENCIES
     IU_IUPGRCAMERA_LIB_DEPENDENCIES
+    IU_VIDEOSOURCE_LIB_DEPENDENCIES
     IU_INCLUDE_DIRS 
     IU_LIBRARY_DIR
     IU_DEFINITIONS
+    
     )
 
 endif(IU_INCLUDE_DIRS AND IU_LIBRARY_DIR)

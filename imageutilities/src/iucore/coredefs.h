@@ -120,6 +120,9 @@ typedef enum
   IU_16U_C2,
   IU_16U_C3,
   IU_16U_C4,
+  IU_32U_C1,
+  IU_32U_C2,
+  IU_32U_C4,
   IU_32S_C1,
   IU_32S_C2,
   IU_32S_C3,
@@ -197,6 +200,19 @@ struct IuSize
     this->height = from.height;
     this->depth = from.depth;
     return *this;
+  }
+  
+  
+  IuSize operator* (const double factor) const
+  {
+    return IuSize(static_cast<int>(this->width * factor + 0.5f), static_cast<int>(this->height * factor + 0.5f), static_cast<int>(this->depth * factor + 0.5f));
+  }
+  
+  IuSize operator/ (const double factor) const
+  {
+    IU_ASSERT(factor != 0);
+    double invFactor = 1 / factor;
+    return IuSize(this->width, this->height, this->depth) * invFactor;
   }
 
 };

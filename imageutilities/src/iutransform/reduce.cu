@@ -37,8 +37,8 @@ namespace iuprivate {
  * ***************************************************************************/
 
 //-----------------------------------------------------------------------------
-IuStatus cuReduce(iu::ImageGpu_32f_C1* src, iu::ImageGpu_32f_C1* dst,
-                  IuInterpolationType interpolation)
+void cuReduce(iu::ImageGpu_32f_C1* src, iu::ImageGpu_32f_C1* dst,
+                  IuInterpolationType interpolation, cudaStream_t stream)
 {
   IuSize src_roi = src->size();
   IuSize dst_roi = dst->size();
@@ -80,24 +80,24 @@ IuStatus cuReduce(iu::ImageGpu_32f_C1* src, iu::ImageGpu_32f_C1* dst,
   case IU_INTERPOLATE_NEAREST:
   case IU_INTERPOLATE_LINEAR: // fallthrough intended
     cuTransformKernel_32f_C1
-        <<< dimGridOut, dimBlock >>> (dst->data(), dst->stride(), dst->width(), dst->height(),
+        <<< dimGridOut, dimBlock, 0, stream >>> (dst->data(), dst->stride(), dst->width(), dst->height(),
                                       x_factor, y_factor);
     break;
   case IU_INTERPOLATE_CUBIC:
     cuTransformCubicKernel_32f_C1
-        <<< dimGridOut, dimBlock >>> (dst->data(), dst->stride(), dst->width(), dst->height(),
+        <<< dimGridOut, dimBlock, 0, stream >>> (dst->data(), dst->stride(), dst->width(), dst->height(),
                                       x_factor, y_factor);
     break;
   case IU_INTERPOLATE_CUBIC_SPLINE:
     cuTransformCubicSplineKernel_32f_C1
-        <<< dimGridOut, dimBlock >>> (dst->data(), dst->stride(), dst->width(), dst->height(),
+        <<< dimGridOut, dimBlock, 0, stream >>> (dst->data(), dst->stride(), dst->width(), dst->height(),
                                       x_factor, y_factor);
     break;
   }
 
   cudaUnbindTexture(&tex1_32f_C1__);
 
-  return iu::checkCudaErrorState();
+  //iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 } // namespace iuprivate

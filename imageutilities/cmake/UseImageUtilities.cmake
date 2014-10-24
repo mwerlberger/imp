@@ -20,11 +20,11 @@ set(IU_LIB_DEPENDENCIES "") # we start with no external dependencies
 include_directories(${IU_INCLUDE_DIRS})
 cuda_include_directories(${IU_INCLUDE_DIRS})
 
-include_directories(${VMLIBRARIES_COMMON_INCLUDE_DIR})
-cuda_include_directories(${VMLIBRARIES_COMMON_INCLUDE_DIR})
+include_directories(${VMLIBRARIES_COMMON_INCLUDE_DIR} ${VMLIBRARIES_EXTERN_INCLUDE_DIR})
+cuda_include_directories(${VMLIBRARIES_COMMON_INCLUDE_DIR} ${VMLIBRARIES_EXTERN_INCLUDE_DIR})
 
 # IU modules
-foreach (module IUCORE IUIPP IUMATLAB IUGUI IUIO IUIOPGM IUVIDEOCAPTURE IUPGRCAMERA)
+foreach (module IUCORE IUIPP IUMATLAB IUGUI IUIO IUIOPGM IUVIDEOCAPTURE IUPGRCAMERA  IUVIDEOSOURCE)
   if (IU_USE_${module} OR IU_USE_${module}_DEPENDS)
 
     if (IU_${module}_FOUND)
@@ -61,6 +61,8 @@ elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "2.0")
   set(IU_NVCC_FLAGS -arch=sm_20)
 elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "2.1")
   set(IU_NVCC_FLAGS -arch=sm_21)
+elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "3.0")
+  set(IU_NVCC_FLAGS -arch=sm_30)
 else()
   set(IU_NVCC_FLAGS -arch=sm_11)
 endif()

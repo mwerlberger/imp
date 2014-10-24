@@ -98,64 +98,81 @@ inline __host__ __device__ Type sqr(Type a) {return a*a;}
 
 #define IU_CUDACALL(err) iu::cudaCall(err, __FILE__, __LINE__ );
 
-#define IU_CUDA_CHECK() \
-{ \
-  do \
-  { \
-    cudaThreadSynchronize(); \
-    cudaError_t err = cudaGetLastError(); \
-    if (err != cudaSuccess) \
-      throw IuCudaException(err, "CUDA Error - ", __FILE__, __FUNCTION__, __LINE__); \
-  } while(false); \
-}
+/** Compile time conditional check for CUDA error (throws IuCudaException).
+    Define IU_CUDA_CHECK_ENABLED to enable it.
+ */
+#ifdef IU_CUDA_CHECK_ENABLED
+  #define IU_CUDA_CHECK() checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__)
+#else
+  #define IU_CUDA_CHECK() do{}while(0)
+#endif
 
 class IuCudaException : public IuException
 {
 public:
-  IuCudaException(const cudaError_t cudaErr, const std::string& msg="CUDA Error - ",
-                  const char* file=NULL, const char* function=NULL, int line=0) throw():
-    IuException(cudaGetErrorString(cudaErr), file, function, line),
+  IuCudaException(const cudaError_t cudaErr,
+                  const char* file=NULL, const char* function=NULL, int line=0) throw() :
+    IuException(std::string("CUDA Error: ") + cudaGetErrorString(cudaErr), file, function, line),
     cudaErr_( cudaErr )
   {
-//    std::ostringstream out_msg;
-
-//    out_msg << "IuException: ";
-//    out_msg << (msg_.empty() ? "unknown error" : msg_) << "\n";
-//    out_msg << "      where: ";
-//    out_msg << (file_.empty() ? "no filename available" : file_) << " | ";
-//    out_msg << (function_.empty() ? "unknown function" : function_) << ":" << line_;
-//    msg_ = out_msg.str();
   }
 
 protected:
   cudaError_t cudaErr_;
 };
 
+class IuCudaBadAllocException : public IuCudaException 
+{
+public:
+  IuCudaBadAllocException(const cudaError_t cudaErr,
+                  const char* file=NULL, const char* function=NULL, int line=0) throw() :
+    IuCudaException(cudaErr, file, function, line) {}
+};
 
-/** Print CUDA error. */
 namespace iu {
 
 
-
-static inline IuStatus checkCudaErrorState(bool print_error = true)
+/** Check for CUDA error (throws IuCudaException) */
+static inline void checkCudaErrorState( const char* file, const char* function, const int line )
 {
-  IuStatus status;
-  cudaThreadSynchronize();
-  if (cudaError_t err = cudaGetLastError())
-  {
-    fprintf(stderr,"\n\n CUDA Error: %s\n",cudaGetErrorString(err));
-    fprintf(stderr,"  file:       %s\n",__FILE__);
-    fprintf(stderr,"  function:   %s\n",__FUNCTION__);
-    fprintf(stderr,"  line:       %d\n\n",__LINE__);
-    status = IU_CUDA_ERROR;
-  }
-  else
-  {
-    status = IU_NO_ERROR;
-  }
-  return status;
+  cudaDeviceSynchronize();
+  cudaError_t err = cudaGetLastError();
+  if( err != cudaSuccess )
+    throw IuCudaException( err, file, function, line );
 }
+
+static inline float getTotalGPUMemory()
+{
+  size_t total = 0;
+  size_t free = 0;
+  cudaMemGetInfo(&free, &total);
+  return total/(1024.0f*1024.0f);   // return value in Megabytes
 }
+
+static inline float getFreeGPUMemory()
+{
+  size_t total = 0;
+  size_t free = 0;
+  cudaMemGetInfo(&free, &total);
+  return free/(1024.0f*1024.0f);   // return value in Megabytes
+}
+
+static inline void printGPUMemoryUsage()
+{
+  float total = iu::getTotalGPUMemory();
+  float free = iu::getFreeGPUMemory();
+
+  printf("GPU memory usage\n");
+  printf("----------------\n");
+  printf("   Total memory: %.2f MiB\n", total);
+  printf("   Used memory:  %.2f MiB\n", total-free);
+  printf("   Free memory:  %.2f MiB\n", free);
+}
+
+
+
+
+} //namespace iu
 
 #ifdef __CUDACC__ // only include this error check in cuda files (seen by nvcc)
 
@@ -171,7 +188,7 @@ static inline IuStatus checkCudaErrorState(bool print_error = true)
 #ifdef __IU_CHECK_FOR_CUDA_ERRORS_ENABLED__
 #define IU_CHECK_AND_RETURN_CUDA_ERRORS() \
 { \
-  cudaThreadSynchronize(); \
+  cudaDeviceSynchronize(); \
   if (cudaError_t err = cudaGetLastError()) \
   { \
     fprintf(stderr,"\n\nCUDA Error: %s\n",cudaGetErrorString(err)); \
@@ -186,7 +203,7 @@ static inline IuStatus checkCudaErrorState(bool print_error = true)
 
 #define IU_CHECK_CUDA_ERRORS() \
 { \
-  cudaThreadSynchronize(); \
+  cudaDeviceSynchronize(); \
   if (cudaError_t err = cudaGetLastError()) \
   { \
     fprintf(stderr,"\n\nCUDA Error: %s\n",cudaGetErrorString(err)); \
@@ -213,7 +230,7 @@ namespace iu {
 // getTime
 static inline double getTime()
 {
-  cudaThreadSynchronize();
+  cudaDeviceSynchronize();
 #ifdef WIN32
   LARGE_INTEGER current_time,frequency;
   QueryPerformanceCounter (&current_time);

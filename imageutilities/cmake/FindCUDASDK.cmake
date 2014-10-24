@@ -4,8 +4,7 @@
 ##############################################################################
 #  Note: Removed everything related to CUDA_SDK_ROOT_DIR and only left this as 
 #        a possible environment variable to set the SDK directory. 
-#        Include file will be: CUDA_CUT_INCLUDE_DIR
-#        Cutil library:        CUDA_CUT_LIBRARY
+#        Include file will be: CUDA_SDK_INCLUDE_DIR
 ##############################################################################
 # 
 #
@@ -88,9 +87,8 @@ set(CUDA_SDK_SEARCH_PATH
   "$ENV{HOME}/NVIDIA_GPU_Computing_SDK" 
   "/Developer/CUDA"
   "/opt/cuda/sdk"
-  "$ENV{CUDA_SDK_ROOT_DIR}"
+  "$ENV{CUDA_SDK_ROOT_DIR}"  
   "$ENV{NVSDKCOMPUTE_ROOT}"
-  "$ENV{CUDA_EXAMPLE_DIR}"
   )
 
 
@@ -99,7 +97,7 @@ set(CUDA_SDK_SEARCH_PATH
 
 find_path(CUDA_SDK_INCLUDE_DIR
   NAMES cutil.h helper_cuda.h
-  PATHS ${CUDA_SDK_SEARCH_PATH}  
+  PATHS ${CUDA_SDK_SEARCH_PATH}
   PATH_SUFFIXES "common/inc" "C/common/inc"
   DOC "Cuda SDK include directory"
   NO_DEFAULT_PATH
@@ -118,26 +116,25 @@ find_path(CUDA_SDK_INCLUDE_DIR NAMES cutil.h helper_cuda.h DOC "Cuda SDK include
 
 # New library might be called cutil_x86_64 !
 
-# if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-#   set(cuda_cutil_name cutil64)
-# else(CMAKE_SIZEOF_VOID_P EQUAL 8)
-#   set(cuda_cutil_name cutil32)
-# endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+#if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+#  set(cuda_cutil_name cutil64)
+#else(CMAKE_SIZEOF_VOID_P EQUAL 8)
+#  set(cuda_cutil_name cutil32)
+#endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
-find_library(CUDA_CUT_LIBRARY
-  NAMES ${cuda_cutil_name} cutil cutil_x86_64 cutil_i386
-  PATHS ${CUDA_SDK_SEARCH_PATH}
+#find_library(CUDA_CUT_LIBRARY
+#  NAMES ${cuda_cutil_name} cutil cutil_x86_64 cutil_i386
+#  PATHS ${CUDA_SDK_SEARCH_PATH}
   # The new version of the sdk shows up in common/lib, but the old one is in lib
   # The very newest installation Path of the SDK is in subdirectory 'C'. Please add this Path to the possible suffixes.
-  PATH_SUFFIXES "C/lib" "common/lib" "lib" "C/common/lib" "common/lib"
-  DOC "Location of cutil library"
-  NO_DEFAULT_PATH
-  )
+#  PATH_SUFFIXES "C/lib" "common/lib" "lib" "C/common/lib" "common/lib"
+#  DOC "Location of cutil library"
+#  NO_DEFAULT_PATH
+#  )
 # # Now search system paths
 # find_library(CUDA_CUT_LIBRARY NAMES cutil ${cuda_cutil_name} DOC "Location of cutil library")
-
-# mark_as_advanced(CUDA_CUT_LIBRARY)
-# set(CUDA_CUT_LIBRARIES ${CUDA_CUT_LIBRARY})
+#mark_as_advanced(CUDA_CUT_LIBRARY)
+#set(CUDA_CUT_LIBRARIES ${CUDA_CUT_LIBRARY})
 
 #############################
 # Check for required components

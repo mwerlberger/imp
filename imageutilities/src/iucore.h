@@ -33,6 +33,38 @@ namespace iu {
  *  TODO more detailed docu
  */
 
+
+class IuCudaTimer
+{
+public:
+  IuCudaTimer() {
+    cudaEventCreate(&start_);
+    cudaEventCreate(&stop_);
+  }
+
+  ~IuCudaTimer() {
+    cudaEventDestroy(start_);
+    cudaEventDestroy(stop_);
+  }
+
+  void start() {
+    cudaEventRecord(start_, 0);
+  }
+
+  float elapsed() {
+    cudaEventRecord(stop_);
+    cudaEventSynchronize(stop_);
+    float t = 0;
+    cudaEventElapsedTime(&t, start_, stop_);
+    return t;
+  }
+
+private:
+  cudaEvent_t start_;
+  cudaEvent_t stop_;
+};
+
+
 /* ***************************************************************************
      COPY
  * ***************************************************************************/
@@ -198,9 +230,19 @@ IUCORE_DLLAPI void copy(const ImageGpu_32f_C4* src, ImageCpu_32f_C4* dst);
 IUCORE_DLLAPI void copy(const VolumeCpu_8u_C1* src, VolumeCpu_8u_C1* dst);
 IUCORE_DLLAPI void copy(const VolumeCpu_8u_C2* src, VolumeCpu_8u_C2* dst);
 IUCORE_DLLAPI void copy(const VolumeCpu_8u_C4* src, VolumeCpu_8u_C4* dst);
+IUCORE_DLLAPI void copy(const VolumeCpu_16u_C1* src, VolumeCpu_16u_C1* dst);
 IUCORE_DLLAPI void copy(const VolumeCpu_32f_C1* src, VolumeCpu_32f_C1* dst);
 IUCORE_DLLAPI void copy(const VolumeCpu_32f_C2* src, VolumeCpu_32f_C2* dst);
+IUCORE_DLLAPI void copy(const VolumeCpu_32f_C3* src, VolumeCpu_32f_C3* dst);
 IUCORE_DLLAPI void copy(const VolumeCpu_32f_C4* src, VolumeCpu_32f_C4* dst);
+IUCORE_DLLAPI void copy(const VolumeCpu_32u_C1* src, VolumeCpu_32u_C1* dst);
+IUCORE_DLLAPI void copy(const VolumeCpu_32u_C2* src, VolumeCpu_32u_C2* dst);
+IUCORE_DLLAPI void copy(const VolumeCpu_32u_C4* src, VolumeCpu_32u_C4* dst);
+
+IUCORE_DLLAPI void copy(const VolumeCpu_32s_C1* src, VolumeCpu_32s_C1* dst);
+IUCORE_DLLAPI void copy(const VolumeCpu_32s_C2* src, VolumeCpu_32s_C2* dst);
+IUCORE_DLLAPI void copy(const VolumeCpu_32s_C4* src, VolumeCpu_32s_C4* dst);
+
 
 // 3D; copy device -> device;
 /** Copy methods for device to device 3D copy
@@ -210,9 +252,18 @@ IUCORE_DLLAPI void copy(const VolumeCpu_32f_C4* src, VolumeCpu_32f_C4* dst);
 IUCORE_DLLAPI void copy(const VolumeGpu_8u_C1* src, VolumeGpu_8u_C1* dst);
 IUCORE_DLLAPI void copy(const VolumeGpu_8u_C2* src, VolumeGpu_8u_C2* dst);
 IUCORE_DLLAPI void copy(const VolumeGpu_8u_C4* src, VolumeGpu_8u_C4* dst);
+IUCORE_DLLAPI void copy(const VolumeGpu_16u_C1* src, VolumeGpu_16u_C1* dst);
 IUCORE_DLLAPI void copy(const VolumeGpu_32f_C1* src, VolumeGpu_32f_C1* dst);
 IUCORE_DLLAPI void copy(const VolumeGpu_32f_C2* src, VolumeGpu_32f_C2* dst);
 IUCORE_DLLAPI void copy(const VolumeGpu_32f_C4* src, VolumeGpu_32f_C4* dst);
+IUCORE_DLLAPI void copy(const VolumeGpu_32u_C1* src, VolumeGpu_32u_C1* dst);
+IUCORE_DLLAPI void copy(const VolumeGpu_32u_C2* src, VolumeGpu_32u_C2* dst);
+IUCORE_DLLAPI void copy(const VolumeGpu_32u_C4* src, VolumeGpu_32u_C4* dst);
+
+IUCORE_DLLAPI void copy(const VolumeGpu_32s_C1* src, VolumeGpu_32s_C1* dst);
+IUCORE_DLLAPI void copy(const VolumeGpu_32s_C2* src, VolumeGpu_32s_C2* dst);
+IUCORE_DLLAPI void copy(const VolumeGpu_32s_C4* src, VolumeGpu_32s_C4* dst);
+
 
 // 3D; copy host -> device;
 /** Copy methods for host to device 3D copy
@@ -222,9 +273,18 @@ IUCORE_DLLAPI void copy(const VolumeGpu_32f_C4* src, VolumeGpu_32f_C4* dst);
 IUCORE_DLLAPI void copy(const VolumeCpu_8u_C1* src, VolumeGpu_8u_C1* dst);
 IUCORE_DLLAPI void copy(const VolumeCpu_8u_C2* src, VolumeGpu_8u_C2* dst);
 IUCORE_DLLAPI void copy(const VolumeCpu_8u_C4* src, VolumeGpu_8u_C4* dst);
+IUCORE_DLLAPI void copy(const VolumeCpu_16u_C1* src, VolumeGpu_16u_C1* dst);
 IUCORE_DLLAPI void copy(const VolumeCpu_32f_C1* src, VolumeGpu_32f_C1* dst);
 IUCORE_DLLAPI void copy(const VolumeCpu_32f_C2* src, VolumeGpu_32f_C2* dst);
+IUCORE_DLLAPI void copy(const VolumeCpu_32f_C3* src, VolumeGpu_32f_C3* dst);
 IUCORE_DLLAPI void copy(const VolumeCpu_32f_C4* src, VolumeGpu_32f_C4* dst);
+IUCORE_DLLAPI void copy(const VolumeCpu_32u_C1* src, VolumeGpu_32u_C1* dst);
+IUCORE_DLLAPI void copy(const VolumeCpu_32u_C2* src, VolumeGpu_32u_C2* dst);
+IUCORE_DLLAPI void copy(const VolumeCpu_32u_C4* src, VolumeGpu_32u_C4* dst);
+
+IUCORE_DLLAPI void copy(const VolumeCpu_32s_C1* src, VolumeGpu_32s_C1* dst);
+IUCORE_DLLAPI void copy(const VolumeCpu_32s_C2* src, VolumeGpu_32s_C2* dst);
+IUCORE_DLLAPI void copy(const VolumeCpu_32s_C4* src, VolumeGpu_32s_C4* dst);
 
 // 3D; copy device -> host;
 /** Copy methods for device to host 3D copy
@@ -234,9 +294,19 @@ IUCORE_DLLAPI void copy(const VolumeCpu_32f_C4* src, VolumeGpu_32f_C4* dst);
 IUCORE_DLLAPI void copy(const VolumeGpu_8u_C1* src, VolumeCpu_8u_C1* dst);
 IUCORE_DLLAPI void copy(const VolumeGpu_8u_C2* src, VolumeCpu_8u_C2* dst);
 IUCORE_DLLAPI void copy(const VolumeGpu_8u_C4* src, VolumeCpu_8u_C4* dst);
+IUCORE_DLLAPI void copy(const VolumeGpu_16u_C1* src, VolumeCpu_16u_C1* dst);
 IUCORE_DLLAPI void copy(const VolumeGpu_32f_C1* src, VolumeCpu_32f_C1* dst);
 IUCORE_DLLAPI void copy(const VolumeGpu_32f_C2* src, VolumeCpu_32f_C2* dst);
+IUCORE_DLLAPI void copy(const VolumeGpu_32f_C3* src, VolumeCpu_32f_C3* dst);
 IUCORE_DLLAPI void copy(const VolumeGpu_32f_C4* src, VolumeCpu_32f_C4* dst);
+IUCORE_DLLAPI void copy(const VolumeGpu_32u_C1* src, VolumeCpu_32u_C1* dst);
+IUCORE_DLLAPI void copy(const VolumeGpu_32u_C2* src, VolumeCpu_32u_C2* dst);
+IUCORE_DLLAPI void copy(const VolumeGpu_32u_C4* src, VolumeCpu_32u_C4* dst);
+
+IUCORE_DLLAPI void copy(const VolumeGpu_32s_C1* src, VolumeCpu_32s_C1* dst);
+IUCORE_DLLAPI void copy(const VolumeGpu_32s_C2* src, VolumeCpu_32s_C2* dst);
+IUCORE_DLLAPI void copy(const VolumeGpu_32s_C4* src, VolumeCpu_32s_C4* dst);
+
 
 /** \} */ // end of Copy3D
 
@@ -325,13 +395,29 @@ IUCORE_DLLAPI void setValue(const uchar4& value, VolumeCpu_8u_C4* srcdst, const 
 IUCORE_DLLAPI void setValue(const float& value, VolumeCpu_32f_C1* srcdst, const IuCube& roi);
 IUCORE_DLLAPI void setValue(const float2& value, VolumeCpu_32f_C2* srcdst, const IuCube& roi);
 IUCORE_DLLAPI void setValue(const float4& value, VolumeCpu_32f_C4* srcdst, const IuCube& roi);
+IUCORE_DLLAPI void setValue(const unsigned int& value, VolumeCpu_32u_C1* srcdst, const IuCube& roi);
+IUCORE_DLLAPI void setValue(const uint2& value, VolumeCpu_32u_C2* srcdst, const IuCube& roi);
+IUCORE_DLLAPI void setValue(const uint4& value, VolumeCpu_32u_C4* srcdst, const IuCube& roi);
+
+IUCORE_DLLAPI void setValue(const int& value, VolumeCpu_32s_C1* srcdst, const IuCube& roi);
+IUCORE_DLLAPI void setValue(const int2& value, VolumeCpu_32s_C2* srcdst, const IuCube& roi);
+IUCORE_DLLAPI void setValue(const int4& value, VolumeCpu_32s_C4* srcdst, const IuCube& roi);
+
 // device:
 IUCORE_DLLAPI void setValue(const unsigned char& value, VolumeGpu_8u_C1* srcdst, const IuCube& roi);
 IUCORE_DLLAPI void setValue(const uchar2& value, VolumeGpu_8u_C2* srcdst, const IuCube& roi);
 IUCORE_DLLAPI void setValue(const uchar4& value, VolumeGpu_8u_C4* srcdst, const IuCube& roi);
+IUCORE_DLLAPI void setValue(const unsigned short& value, VolumeGpu_16u_C1* srcdst, const IuCube& roi);
 IUCORE_DLLAPI void setValue(const float& value, VolumeGpu_32f_C1* srcdst, const IuCube& roi);
 IUCORE_DLLAPI void setValue(const float2& value, VolumeGpu_32f_C2* srcdst, const IuCube& roi);
 IUCORE_DLLAPI void setValue(const float4& value, VolumeGpu_32f_C4* srcdst, const IuCube& roi);
+IUCORE_DLLAPI void setValue(const unsigned int& value, VolumeGpu_32u_C1* srcdst, const IuCube& roi);
+IUCORE_DLLAPI void setValue(const uint2& value, VolumeGpu_32u_C2* srcdst, const IuCube& roi);
+IUCORE_DLLAPI void setValue(const uint4& value, VolumeGpu_32u_C4* srcdst, const IuCube& roi);
+
+IUCORE_DLLAPI void setValue(const int& value, VolumeGpu_32s_C1* srcdst, const IuCube& roi);
+IUCORE_DLLAPI void setValue(const int2& value, VolumeGpu_32s_C2* srcdst, const IuCube& roi);
+IUCORE_DLLAPI void setValue(const int4& value, VolumeGpu_32s_C4* srcdst, const IuCube& roi);
 
 /** \} */ // end of Set3D
 
@@ -376,65 +462,90 @@ IUCORE_DLLAPI void convert(const ImageGpu_32f_C3* src, const IuRect& src_roi, Im
 IUCORE_DLLAPI void convert(const ImageGpu_32f_C4* src, const IuRect& src_roi, ImageGpu_32f_C3* dst, const IuRect& dst_roi);
 
 /** Converts an 32-bit single-channel image to a 8-bit single-channel image.
- * \params src 1-channel source image [host].
- * \params dst 1-channel destination image [host].
- * \params mul_constant The optional scale factor.
- * \params add_constant The optional delta, added to the scaled values.
+ * \param src 1-channel source image [host].
+ * \param dst 1-channel destination image [host].
+ * \param mul_constant The optional scale factor.
+ * \param add_constant The optional delta, added to the scaled values.
  */
 IUCORE_DLLAPI void convert_32f8u_C1(const iu::ImageCpu_32f_C1* src, iu::ImageCpu_8u_C1* dst,
                                 float mul_constant=255.0f, float add_constant=0.0f);
 
 /** Converts an 32-bit single-channel image to a 8-bit single-channel image.
- * \params src 1-channel source image [device].
- * \params dst 1-channel destination image [device].
- * \params mul_constant The optional scale factor.
- * \params add_constant The optional delta, added to the scaled values.
+ * \param src 1-channel source image [device].
+ * \param dst 1-channel destination image [device].
+ * \param mul_constant The optional scale factor.
+ * \param add_constant The optional delta, added to the scaled values.
  */
 IUCORE_DLLAPI void convert_32f8u_C1(const iu::ImageGpu_32f_C1* src, const IuRect& src_roi, iu::ImageGpu_8u_C1* dst, const IuRect& dst_roi,
                                 float mul_constant=255.0f, unsigned char add_constant=0);
 
-/** Converts an 32-bit single-channel image to a 8-bit single-channel image.
- * \params src 4-channel source image [device].
- * \params dst 4-channel destination image [device].
- * \params mul_constant The optional scale factor.
- * \params add_constant The optional delta, added to the scaled values.
+/** Converts an 32-bit 4-channel image to a 8-bit 4-channel image.
+ * \param src 4-channel source image [device].
+ * \param dst 4-channel destination image [device].
+ * \param mul_constant The optional scale factor.
+ * \param add_constant The optional delta, added to the scaled values.
  */
 IUCORE_DLLAPI void convert_32f8u_C4(const iu::ImageGpu_32f_C4* src, const IuRect& src_roi, iu::ImageGpu_8u_C4* dst, const IuRect& dst_roi,
                                 float mul_constant=255.0f, unsigned char add_constant=0);
 
 /** Converts an 8-bit single-channel image to a 32-bit single-channel image.
- * \params src 1-channel source image [device].
- * \params dst 1-channel destination image [device].
- * \params mul_constant The optional scale factor.
- * \params add_constant The optional delta, added to the scaled values.
+ * \param src 1-channel source image [device].
+ * \param dst 1-channel destination image [device].
+ * \param mul_constant The optional scale factor.
+ * \param add_constant The optional delta, added to the scaled values.
  */
 IUCORE_DLLAPI void convert_8u32f_C1(const iu::ImageGpu_8u_C1* src, const IuRect& src_roi, iu::ImageGpu_32f_C1* dst, const IuRect& dst_roi,
                                 float mul_constant=1/255.0f, float add_constant=0.0f);
 
 
+/** Converts an 8-bit 3-channel image to a 32-bit 4-channel image.
+ * \param src 3-channel source image [device].
+ * \param dst 4-channel destination image [device].
+ * \param mul_constant The optional scale factor.
+ * \param add_constant The optional delta, added to the scaled values.
+ */
+IUCORE_DLLAPI void convert_8u32f_C3C4(const iu::ImageGpu_8u_C3* src, const IuRect& src_roi, iu::ImageGpu_32f_C4* dst, const IuRect& dst_roi,
+                                float mul_constant=1/255.0f, float add_constant=0.0f);
+
+
 /** Converts an 16-bit single-channel image to a 32-bit single-channel image.
- * \params src 1-channel source image [host].
- * \params dst 1-channel destination image [host].
- * \params mul_constant The optional scale factor.
- * \params add_constant The optional delta, added to the scaled values.
+ * \param src 1-channel source image [host].
+ * \param dst 1-channel destination image [host].
+ * \param mul_constant The optional scale factor.
+ * \param add_constant The optional delta, added to the scaled values.
  */
 IUCORE_DLLAPI void convert_16u32f_C1(const iu::ImageCpu_16u_C1* src, iu::ImageCpu_32f_C1 *dst,
                                  float mul_constant, float add_constant);
 
 
 /** Converts an RGB image to a HSV image.
- * \params src 4-channel source image [device].
- * \params dst 4-channel destination image [device].
- * \params normalize Normalizes all channels to [0, 1]
+ * \param src 4-channel source image [device].
+ * \param dst 4-channel destination image [device].
+ * \param normalize Normalizes all channels to [0, 1]
  */
 IUCORE_DLLAPI void convert_RgbHsv(const iu::ImageGpu_32f_C4* src, iu::ImageGpu_32f_C4* dst, bool normalize=false);
 
 /** Converts a HSV image to an RGB image.
- * \params src 4-channel source image [device].
- * \params dst 4-channel destination image [device].
- * \params normalize Normalizes all channels to [0, 1]
+ * \param src 4-channel source image [device].
+ * \param dst 4-channel destination image [device].
+ * \param normalize Normalizes all channels to [0, 1]
  */
 IUCORE_DLLAPI void convert_HsvRgb(const iu::ImageGpu_32f_C4* src, iu::ImageGpu_32f_C4* dst, bool denormalize=false);
+
+/** Converts a RGB image to a CIELAB image using D65 (=6500K) white point normalization.
+ * \param src 4-channel source image [device].
+ * \param dst 4-channel destination image [device].
+ * \param isNormalized flag indicating whether the values of src are normalized to [0, 1] or not. Not normalized images are assumed to have values in [0, 255].
+ */
+IUCORE_DLLAPI void convert_RgbLab(const iu::ImageGpu_32f_C4* src, iu::ImageGpu_32f_C4* dst, bool isNormalized=true);
+
+
+/** Converts a CIELAB image to a RGB image assuming D65 (=6500K) white point.
+ * \param src 4-channel source image [device].
+ * \param dst 4-channel destination image [device].
+ */
+IUCORE_DLLAPI void convert_LabRgb(const iu::ImageGpu_32f_C4* src, iu::ImageGpu_32f_C4* dst);
+
 
 /** \} */ // end of Conversions
 

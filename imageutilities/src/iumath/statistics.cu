@@ -31,8 +31,13 @@
 #include "statistics.cuh"
 
 
-#ifdef CUDA_NO_SM12_ATOMIC_INTRINSICS
-#error Compilation target does not support shared-memory atomics
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 200
+static __inline__ __device__ float atomicAdd(float* address, float value)
+{
+  float old = value;
+  while ((old = atomicExch(address, atomicExch(address, 0.0f)+old))!=0.0f);
+  return old;
+}
 #endif
 
 namespace iuprivate {
@@ -327,7 +332,7 @@ __global__ void cuMaxXKernel_32f_C1(float* max, float* max_col_idx,
 */
 
 // kernel; compute sum; 8u_C1
-__global__ void cuSumColKernel_8u_C1(unsigned char* sum, int xoff, int yoff, int width, int height)
+__global__ void cuSumColKernel_8u_C1(int* sum, int xoff, int yoff, int width, int height)
 {
   const int x = blockIdx.x*blockDim.x + threadIdx.x;
   const int y = blockIdx.y*blockDim.y + threadIdx.y;
@@ -335,7 +340,7 @@ __global__ void cuSumColKernel_8u_C1(unsigned char* sum, int xoff, int yoff, int
   float xx = x+xoff+0.5f;
   float yy = y+yoff+0.5f;
 
-  float cur_sum = 0.0f;
+  int cur_sum = 0;
 
   // compute sum of each column
   if (xx<width+0.5f)
@@ -465,7 +470,7 @@ __global__ void  cuNormDiffValueL2Kernel_32f_C1(float value, float* dst, size_t 
 */
 
 // wrapper: find min/max; 8u_C1
-IuStatus cuMinMax(const iu::ImageGpu_8u_C1 *src, const IuRect &roi,
+void cuMinMax(const iu::ImageGpu_8u_C1 *src, const IuRect &roi,
                   unsigned char& min_C1, unsigned char& max_C1)
 {
   // prepare and bind texture
@@ -513,11 +518,11 @@ IuStatus cuMinMax(const iu::ImageGpu_8u_C1 *src, const IuRect &roi,
 
   cudaUnbindTexture(&tex1_8u_C1__);
 //  printf("min/max=%d/%d\n", min_C1, max_C1);
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 // wrapper: find min/max; 8u_C4
-IuStatus cuMinMax(const iu::ImageGpu_8u_C4 *src, const IuRect &roi, uchar4& min_C4, uchar4& max_C4)
+void cuMinMax(const iu::ImageGpu_8u_C4 *src, const IuRect &roi, uchar4& min_C4, uchar4& max_C4)
 {
   // prepare and bind texture
   tex1_8u_C4__.filterMode = cudaFilterModePoint;
@@ -564,11 +569,11 @@ IuStatus cuMinMax(const iu::ImageGpu_8u_C4 *src, const IuRect &roi, uchar4& min_
   }
 
   cudaUnbindTexture(&tex1_8u_C4__);
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 // wrapper: find min/max; 32f_C1
-IuStatus cuMinMax(const iu::ImageGpu_32f_C1 *src, const IuRect &roi, float& min_C1, float& max_C1)
+void cuMinMax(const iu::ImageGpu_32f_C1 *src, const IuRect &roi, float& min_C1, float& max_C1)
 {
   // prepare and bind texture
   tex1_32f_C1__.filterMode = cudaFilterModePoint;
@@ -607,14 +612,14 @@ IuStatus cuMinMax(const iu::ImageGpu_32f_C1 *src, const IuRect &roi, float& min_
   }
 
   cudaUnbindTexture(&tex1_32f_C1__);
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 
 // kernel; find min/max; 32f_C1
 __global__ void cuMinMaxXYKernel_32f_C1(float* minim, float* maxim,
                                         int width, int height, int m_stride,
-                                        float* data, int depth, int d_stride,
+                                        const float* data, int depth, int d_stride,
                                         int d_slice_stride)
 {
   const int x = blockIdx.x*blockDim.x + threadIdx.x;
@@ -693,7 +698,7 @@ __global__ void cuMaxXKernel_32f_C1(float* maxim, int width, int height)
 
 
 // wrapper: find min/max; 32f_C1
-IuStatus cuMinMax(iu::VolumeGpu_32f_C1 *src, float& min_C1, float& max_C1)
+void cuMinMax(const iu::VolumeGpu_32f_C1 *src, float& min_C1, float& max_C1)
 {
   iu::ImageGpu_32f_C1 minim(src->width(), src->height());
   iu::ImageGpu_32f_C1 maxim(src->width(), src->height());
@@ -744,11 +749,11 @@ IuStatus cuMinMax(iu::VolumeGpu_32f_C1 *src, float& min_C1, float& max_C1)
     max_C1 = IUMAX(max_C1, *h_row_maxs.data(i));
   cudaUnbindTexture(&tex1_32f_C1__);
 
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 // wrapper: find min/max; 32f_C2
-IuStatus cuMinMax(const iu::ImageGpu_32f_C2 *src, const IuRect &roi, float2& min_C2, float2& max_C2)
+void cuMinMax(const iu::ImageGpu_32f_C2 *src, const IuRect &roi, float2& min_C2, float2& max_C2)
 {
   // prepare and bind texture
   tex1_32f_C2__.filterMode = cudaFilterModePoint;
@@ -791,11 +796,11 @@ IuStatus cuMinMax(const iu::ImageGpu_32f_C2 *src, const IuRect &roi, float2& min
   }
 
   cudaUnbindTexture(&tex1_32f_C2__);
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 // wrapper: find min/max; 32f_C4
-IuStatus cuMinMax(const iu::ImageGpu_32f_C4 *src, const IuRect &roi, float4& min_C4, float4& max_C4)
+void cuMinMax(const iu::ImageGpu_32f_C4 *src, const IuRect &roi, float4& min_C4, float4& max_C4)
 {
   // prepare and bind texture
   tex1_32f_C4__.filterMode = cudaFilterModePoint;
@@ -842,7 +847,7 @@ IuStatus cuMinMax(const iu::ImageGpu_32f_C4 *src, const IuRect &roi, float4& min
   }
 
   cudaUnbindTexture(&tex1_32f_C4__);
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 /*
@@ -850,7 +855,7 @@ IuStatus cuMinMax(const iu::ImageGpu_32f_C4 *src, const IuRect &roi, float4& min
 */
 
 // wrapper: find min + min idx; 32f_C1
-IuStatus cuMin(const iu::ImageGpu_32f_C1 *src, const IuRect &roi,
+void cuMin(const iu::ImageGpu_32f_C1 *src, const IuRect &roi,
                float& min, int& min_x, int& min_y)
 {
   // prepare and bind texture
@@ -896,7 +901,7 @@ IuStatus cuMin(const iu::ImageGpu_32f_C1 *src, const IuRect &roi,
   }
 
   cudaUnbindTexture(&tex1_32f_C1__);
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 /*
@@ -904,7 +909,7 @@ IuStatus cuMin(const iu::ImageGpu_32f_C1 *src, const IuRect &roi,
 */
 
 // wrapper: find max + max idx; 32f_C1
-IuStatus cuMax(const iu::ImageGpu_32f_C1 *src, const IuRect &roi,
+void cuMax(const iu::ImageGpu_32f_C1 *src, const IuRect &roi,
                float& max, int& max_x, int& max_y)
 {
   // prepare and bind texture
@@ -949,7 +954,7 @@ IuStatus cuMax(const iu::ImageGpu_32f_C1 *src, const IuRect &roi,
   }
 
   cudaUnbindTexture(&tex1_32f_C1__);
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 
@@ -958,9 +963,54 @@ IuStatus cuMax(const iu::ImageGpu_32f_C1 *src, const IuRect &roi,
   WRAPPERS FOR SUM
 */
 
-// wrapper: compute sum; 8u_C1
-IuStatus cuSummation(const iu::ImageGpu_8u_C1 *src, const IuRect &roi, long& sum)
+__global__ void cuSum_8u_kernel(unsigned char* data, int width, int height, int xoff, int yoff,
+                                int stride, int* sumData)
 {
+  const int x = blockIdx.x*blockDim.x + threadIdx.x;
+  const int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+  const int linId = threadIdx.x + threadIdx.y*blockDim.x;
+
+  extern volatile __shared__ int reductionSpace_32s[];
+  const int c = (y+yoff)*stride + (x+xoff);
+
+  if (x < width && y < height)
+  {
+    reductionSpace_32s[linId] = data[c];
+    if (x == 0 && y == 0)
+      *sumData = 0;
+  }
+  else
+    reductionSpace_32s[linId] = 0;
+
+  __syncthreads();
+
+
+  if (linId < 128) { reductionSpace_32s[linId] += reductionSpace_32s[linId+128]; }
+  __syncthreads();
+  if (linId < 64) { reductionSpace_32s[linId] += reductionSpace_32s[linId+64]; }
+  __syncthreads();
+
+  if (linId < 32)
+  {
+    reductionSpace_32s[linId] += reductionSpace_32s[linId+32];
+    reductionSpace_32s[linId] += reductionSpace_32s[linId+16];
+    reductionSpace_32s[linId] += reductionSpace_32s[linId+8];
+    reductionSpace_32s[linId] += reductionSpace_32s[linId+4];
+    reductionSpace_32s[linId] += reductionSpace_32s[linId+2];
+    reductionSpace_32s[linId] += reductionSpace_32s[linId+1];
+  }
+  __syncthreads();
+
+  if (linId == 0)
+    atomicAdd(sumData, reductionSpace_32s[0]);
+}
+
+
+// wrapper: compute sum; 8u_C1
+void cuSummation(const iu::ImageGpu_8u_C1 *src, const IuRect &roi, long& sum)
+{
+#if 1
   // prepare and bind texture
   tex1_8u_C1__.filterMode = cudaFilterModePoint;
   tex1_8u_C1__.addressMode[0] = cudaAddressModeClamp;
@@ -976,13 +1026,13 @@ IuStatus cuSummation(const iu::ImageGpu_8u_C1 *src, const IuRect &roi, long& sum
 
   // temporary memory for row sums on the host
   int num_col_sums = roi.width;
-  iu::LinearDeviceMemory_8u_C1 col_sums(num_col_sums);
+  iu::LinearDeviceMemory_32s_C1 col_sums(num_col_sums);
 
   cuSumColKernel_8u_C1 <<< dimGridX, dimBlock >>> (
                                                    col_sums.data(), roi.x, roi.y, roi.width, roi.height);
 
   // :TODO: 32f vs 32u?
-  iu::LinearHostMemory_8u_C1 h_col_sums(num_col_sums);
+  iu::LinearHostMemory_32s_C1 h_col_sums(num_col_sums);
   iuprivate::copy(&col_sums, &h_col_sums);
 
   sum = 0;
@@ -992,12 +1042,82 @@ IuStatus cuSummation(const iu::ImageGpu_8u_C1 *src, const IuRect &roi, long& sum
   }
 
   cudaUnbindTexture(&tex1_8u_C1__);
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
+#else
+
+  // fragmentation
+  dim3 dimBlock(16, 16, 1);
+  dim3 dimGrid(iu::divUp(roi.width, dimBlock.x), iu::divUp(roi.height, dimBlock.y));
+  int sm = dimBlock.y*dimBlock.x*sizeof(int);
+
+  iu::LinearDeviceMemory_32s_C1 sumData(1);
+  cuSum_8u_kernel <<< dimGrid, dimBlock, sm >>> (const_cast<iu::ImageGpu_8u_C1*>(src)->data(), roi.width, roi.height, roi.x, roi.y,
+                                                 src->stride(), sumData.data());
+  cudaDeviceSynchronize();
+
+  unsigned int t = 0;
+  cudaMemcpy(&t, sumData.data(), sizeof(int), cudaMemcpyDeviceToHost);
+  sum = t;
+#endif
 }
 
-// wrapper: compute sum; 32f_C1
-IuStatus cuSummation(const iu::ImageGpu_32f_C1 *src, const IuRect &roi, double& sum)
+
+
+// compute sum of the array data, the result is saved in data[0]
+// xoff/yoff can be used to specify an arbitrary ROI in the image
+// this kernel needs BLOCKSIZE_X*BLOCKSIZE_Y*sizeof(float) bytes of shared
+// memory allocated upon kernel invocation:
+// cuSum_kernel <<< dimGrid, dimBlock, sm >>> where sm is the size of shared memory in bytes
+__global__ void cuSum_32f_kernel(float* data, int width, int height, int xoff, int yoff, int stride,
+                                 float* sum)
 {
+  const int x = blockIdx.x*blockDim.x + threadIdx.x;
+  const int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+  const int linId = threadIdx.x + threadIdx.y*blockDim.x;
+
+  extern volatile __shared__ float reductionSpace[];
+  const int c = (y+yoff)*stride + (x+xoff);
+
+  if (x == 0 && y == 0)
+    *sum = 0;
+
+  if (x < width && y < height)
+    reductionSpace[linId] = data[c];
+  else
+    reductionSpace[linId] = 0;
+
+  __syncthreads();
+
+
+  if (linId < 128) { reductionSpace[linId] += reductionSpace[linId+128]; }
+  __syncthreads();
+  if (linId < 64) { reductionSpace[linId] += reductionSpace[linId+64]; }
+  __syncthreads();
+
+  if (linId < 32)
+  {
+    reductionSpace[linId] += reductionSpace[linId+32];
+    reductionSpace[linId] += reductionSpace[linId+16];
+    reductionSpace[linId] += reductionSpace[linId+8];
+    reductionSpace[linId] += reductionSpace[linId+4];
+    reductionSpace[linId] += reductionSpace[linId+2];
+    reductionSpace[linId] += reductionSpace[linId+1];
+  }
+  __syncthreads();
+
+  if (linId == 0)
+  {
+    atomicAdd(sum, reductionSpace[0]);
+  }
+}
+
+
+// wrapper: compute sum; 32f_C1
+void cuSummation(const iu::ImageGpu_32f_C1 *src, const IuRect &roi, double& sum,
+                 iu::LinearDeviceMemory_32f_C1 *sum_temp)
+{
+#if 0
   // prepare and bind texture
   tex1_32f_C1__.filterMode = cudaFilterModePoint;
   tex1_32f_C1__.addressMode[0] = cudaAddressModeClamp;
@@ -1028,7 +1148,35 @@ IuStatus cuSummation(const iu::ImageGpu_32f_C1 *src, const IuRect &roi, double& 
   }
 
   cudaUnbindTexture(&tex1_32f_C1__);
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
+
+#else
+
+  // fragmentation
+  dim3 dimBlock(16, 16, 1);
+  dim3 dimGrid(iu::divUp(roi.width, dimBlock.x), iu::divUp(roi.height, dimBlock.y));
+  int sm = dimBlock.y*dimBlock.x*sizeof(float);
+
+  bool delete_sum_temp = false;
+  if (!sum_temp)
+  {
+    sum_temp = new iu::LinearDeviceMemory_32f_C1(1);
+    delete_sum_temp = true;
+  }
+
+  //cudaMemset(sum_temp->data(), 0, sizeof(float));
+
+  cuSum_32f_kernel <<< dimGrid, dimBlock, sm >>> (const_cast<iu::ImageGpu_32f_C1*>(src)->data(), roi.width,
+                                                  roi.height, roi.x, roi.y, src->stride(), sum_temp->data());
+  //cudaDeviceSynchronize();
+
+  float t = 0;
+  cudaMemcpy(&t, sum_temp->data(), sizeof(float), cudaMemcpyDeviceToHost);
+  sum = static_cast<double>(t);
+
+  if (delete_sum_temp)
+    delete sum_temp;
+#endif
 }
 
 /*
@@ -1036,7 +1184,7 @@ IuStatus cuSummation(const iu::ImageGpu_32f_C1 *src, const IuRect &roi, double& 
 */
 
 // wrapper: compute L1 norm; |image1-image2|;
-IuStatus cuNormDiffL1(const iu::ImageGpu_32f_C1* src1, const iu::ImageGpu_32f_C1* src2, const IuRect& roi, double& norm)
+void cuNormDiffL1(const iu::ImageGpu_32f_C1* src1, const iu::ImageGpu_32f_C1* src2, const IuRect& roi, double& norm)
 {
   // prepare and bind texture
   tex1_32f_C1__.filterMode = cudaFilterModePoint;
@@ -1065,13 +1213,13 @@ IuStatus cuNormDiffL1(const iu::ImageGpu_32f_C1* src1, const iu::ImageGpu_32f_C1
 
   double sum_squared = 0.0;
   iuprivate::cuSummation(&squared_deviances, roi, sum_squared);
-  norm = sqrtf(sum_squared);
+  norm = sqrt(sum_squared);
 
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 // wrapper: compute L1 norm; |image1-value|;
-IuStatus cuNormDiffL1(const iu::ImageGpu_32f_C1* src, const float& value, const IuRect& roi, double& norm)
+void cuNormDiffL1(const iu::ImageGpu_32f_C1* src, const float& value, const IuRect& roi, double& norm)
 {
   // prepare and bind texture
   tex1_32f_C1__.filterMode = cudaFilterModePoint;
@@ -1094,13 +1242,13 @@ IuStatus cuNormDiffL1(const iu::ImageGpu_32f_C1* src, const float& value, const 
 
   double sum_squared = 0.0;
   iuprivate::cuSummation(&squared_deviances, roi, sum_squared);
-  norm = sqrtf(sum_squared);
+  norm = sqrt(sum_squared);
 
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 // wrapper: compute L2 norm; ||image1-image2||;
-IuStatus cuNormDiffL2(const iu::ImageGpu_32f_C1* src1, const iu::ImageGpu_32f_C1* src2, const IuRect& roi, double& norm)
+void cuNormDiffL2(const iu::ImageGpu_32f_C1* src1, const iu::ImageGpu_32f_C1* src2, const IuRect& roi, double& norm)
 {
   // prepare and bind texture
   tex1_32f_C1__.filterMode = cudaFilterModePoint;
@@ -1129,13 +1277,13 @@ IuStatus cuNormDiffL2(const iu::ImageGpu_32f_C1* src1, const iu::ImageGpu_32f_C1
 
   double sum_squared = 0.0;
   iuprivate::cuSummation(&squared_deviances, roi, sum_squared);
-  norm = sqrtf(sum_squared);
+  norm = sqrt(sum_squared);
 
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 // wrapper: compute L2 norm; ||image1-value||;
-IuStatus cuNormDiffL2(const iu::ImageGpu_32f_C1* src, const float& value, const IuRect& roi, double& norm)
+void cuNormDiffL2(const iu::ImageGpu_32f_C1* src, const float& value, const IuRect& roi, double& norm)
 {
   // prepare and bind texture
   tex1_32f_C1__.filterMode = cudaFilterModePoint;
@@ -1158,9 +1306,9 @@ IuStatus cuNormDiffL2(const iu::ImageGpu_32f_C1* src, const float& value, const 
 
   double sum_squared = 0.0;
   iuprivate::cuSummation(&squared_deviances, roi, sum_squared);
-  norm = sqrtf(sum_squared);
+  norm = sqrt(sum_squared);
 
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 /*
@@ -1184,7 +1332,7 @@ __global__ void cuMseKernel(float* dst, size_t stride, int xoff, int yoff, int w
 
 
 // wrapper: compute MSE
-IuStatus cuMse(const iu::ImageGpu_32f_C1* src, const iu::ImageGpu_32f_C1* reference, const IuRect& roi, double& mse)
+void cuMse(const iu::ImageGpu_32f_C1* src, const iu::ImageGpu_32f_C1* reference, const IuRect& roi, double& mse)
 {
   tex1_32f_C1__.addressMode[0] = cudaAddressModeClamp;
   tex1_32f_C1__.addressMode[1] = cudaAddressModeClamp;
@@ -1215,7 +1363,7 @@ IuStatus cuMse(const iu::ImageGpu_32f_C1* src, const iu::ImageGpu_32f_C1* refere
   cuSummation(&tmp, tmp.roi(), sum);
   mse = sum/(static_cast<float>(roi.width*roi.height));
 
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 
@@ -1273,7 +1421,7 @@ __global__ void cuSsimKernel(float c1, float c2, float* dst, size_t stride, int 
 }
 
 // wrapper: compute SSIM
-IuStatus cuSsim(const iu::ImageGpu_32f_C1* src, const iu::ImageGpu_32f_C1* reference, const IuRect& roi, double& ssim)
+void cuSsim(const iu::ImageGpu_32f_C1* src, const iu::ImageGpu_32f_C1* reference, const IuRect& roi, double& ssim)
 {
   tex1_32f_C1__.addressMode[0] = cudaAddressModeClamp;
   tex1_32f_C1__.addressMode[1] = cudaAddressModeClamp;
@@ -1310,7 +1458,7 @@ IuStatus cuSsim(const iu::ImageGpu_32f_C1* src, const iu::ImageGpu_32f_C1* refer
   cuSummation(&tmp, tmp.roi(), sum);
   ssim = ssim/(static_cast<float>(roi.width*roi.height));
 
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 
@@ -1337,7 +1485,7 @@ __global__ void  cuColorHistogramKernel(float* hist, int width, int height,
   #else
     #if !WIN32
       #warning Color Histograms will not work: >= sm_12 needed!
-	#endif
+  #endif
   #endif
 #endif
     }
@@ -1346,7 +1494,7 @@ __global__ void  cuColorHistogramKernel(float* hist, int width, int height,
 
 
 // wrapper: color histogram
-IuStatus cuColorHistogram(const iu::ImageGpu_8u_C4* binned_image, const iu::ImageGpu_8u_C1* mask,
+void cuColorHistogram(const iu::ImageGpu_8u_C4* binned_image, const iu::ImageGpu_8u_C1* mask,
                           iu::VolumeGpu_32f_C1* hist, unsigned char mask_val)
 {
   tex1_8u_C4__.addressMode[0] = cudaAddressModeClamp;
@@ -1377,7 +1525,7 @@ IuStatus cuColorHistogram(const iu::ImageGpu_8u_C4* binned_image, const iu::Imag
                                                binned_image->height(), hist->stride(),
                                                hist->slice_stride(), mask_val);
 
-  return iu::checkCudaErrorState();
+  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 
