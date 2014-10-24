@@ -24,7 +24,7 @@
 #ifndef IU_VECTORMATH_KERNELS_CUH
 #define IU_VECTORMATH_KERNELS_CUH
 
-#include <cutil_math.h>
+#include <helper_math.h>
 
 namespace iu {
 //

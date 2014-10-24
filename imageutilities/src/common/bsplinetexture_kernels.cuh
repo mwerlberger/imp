@@ -22,7 +22,7 @@
  */
 
 #include <cuda_runtime.h>
-#include <cutil_math.h>
+#include <helper_math.h>
 #include "vectormath_kernels.cuh"
 
 #ifndef IU_BSPLINETEXTURE_KERNELS_CUH

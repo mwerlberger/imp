@@ -24,7 +24,7 @@
 #ifndef IU_DERIVATIVE_KERNELS_CUH
 #define IU_DERIVATIVE_KERNELS_CUH
 
-#include <cutil_math.h>
+#include <helper_math.h>
 
 
 #ifdef __CUDACC__ // only include this in cuda files (seen by nvcc)
