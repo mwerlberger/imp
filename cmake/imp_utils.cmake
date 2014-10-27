@@ -1,0 +1,6 @@
+# function(_imp_append_private_includes target)
+#   if(DEFINED ${target}_PRIVATE_INCLUDE_DIRS)
+#     target_include_directories(${target} PRIVATE ${target}_PRIVATE_INCLUDE_DIRS)
+#     unset(${target}_PRIVATE_INCLUDE_DIRS CACHE)
+#   endif()
+# endfunction()
