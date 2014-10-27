@@ -24,8 +24,8 @@
 // system includes
 #include <iostream>
 #include <vector>
-#include <cuda_runtime.h>
-#include <iucore.h>
+//#include <cuda_runtime.h>
+#include <iu/iucore.h>
 #include <iu/iucutil.h>
 
 int main(int argc, char** argv)

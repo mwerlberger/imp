@@ -970,96 +970,99 @@ endif(${PROJECT_NAME}_USE_VIDEOSOURCE)
 ##-----------------------------------------------------------------------------
 ## Install target
 
+export(PACKAGE ImageUtilities)
+
+
 ## Two different types of installation supported:
 ## *) local: for developement (e.g. svn checkout -- currently the default)
 ## *) global: for usage only (care about mixing up the two -> the global one will be preffered!)
 
-OPTION(VMLIBRARIES_IU_INSTALL_LOCAL "Installation of the ${PROJECT_NAME} binaries in the local vmlibraries tree." ON)
+# OPTION(VMLIBRARIES_IU_INSTALL_LOCAL "Installation of the ${PROJECT_NAME} binaries in the local vmlibraries tree." ON)
 
-if(VMLIBRARIES_IU_INSTALL_LOCAL )
-  if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX ${FL_VMLIBRARIES_ROOT} CACHE PATH "${PROJECT_NAME} install prefix" FORCE)
-  endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-endif(VMLIBRARIES_IU_INSTALL_LOCAL)
+# if(VMLIBRARIES_IU_INSTALL_LOCAL )
+#   if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+#     set(CMAKE_INSTALL_PREFIX ${FL_VMLIBRARIES_ROOT} CACHE PATH "${PROJECT_NAME} install prefix" FORCE)
+#   endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+# endif(VMLIBRARIES_IU_INSTALL_LOCAL)
 
-if(NOT VMLIBRARIES_IU_INSTALL_LOCAL OR NOT CMAKE_INSTALL_PREFIX)
-  if(NOT UNIX)
-    set(CMAKE_INSTALL_PREFIX $ENV{ProgramFiles}/VMLibraries CACHE PATH "${PROJECT_NAME} install prefix" FORCE)
-  else(NOT UNIX)
-    set(CMAKE_INSTALL_PREFIX /usr/local CACHE PATH "${PROJECT_NAME} install prefix" FORCE)
-  endif(NOT UNIX)
-endif(NOT VMLIBRARIES_IU_INSTALL_LOCAL OR NOT CMAKE_INSTALL_PREFIX)
+# if(NOT VMLIBRARIES_IU_INSTALL_LOCAL OR NOT CMAKE_INSTALL_PREFIX)
+#   if(NOT UNIX)
+#     set(CMAKE_INSTALL_PREFIX $ENV{ProgramFiles}/VMLibraries CACHE PATH "${PROJECT_NAME} install prefix" FORCE)
+#   else(NOT UNIX)
+#     set(CMAKE_INSTALL_PREFIX /usr/local CACHE PATH "${PROJECT_NAME} install prefix" FORCE)
+#   endif(NOT UNIX)
+# endif(NOT VMLIBRARIES_IU_INSTALL_LOCAL OR NOT CMAKE_INSTALL_PREFIX)
 
-# set the cmake-files that should be installed with the package
-set( IU_CMAKE_FILES
-  ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindCUDASDK.cmake
-  ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindCUDASparse.cmake
-  ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindIPP.cmake
-  ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindMatlab_ICG.cmake
-  ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindGLEW.cmake
-  ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindQwt.cmake
-  ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindImageUtilities.cmake
-  ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/UseImageUtilities.cmake
-  ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindFlyCapture2.cmake
-  )
+# # set the cmake-files that should be installed with the package
+# set( IU_CMAKE_FILES
+#   ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindCUDASDK.cmake
+#   ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindCUDASparse.cmake
+#   ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindIPP.cmake
+#   ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindMatlab_ICG.cmake
+#   ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindGLEW.cmake
+#   ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindQwt.cmake
+#   ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindImageUtilities.cmake
+#   ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/UseImageUtilities.cmake
+#   ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/FindFlyCapture2.cmake
+#   )
 
-# install the libraries
-install( TARGETS ${IU_LIBS}
-  RUNTIME         DESTINATION   bin
-  ARCHIVE         DESTINATION   lib
-  LIBRARY         DESTINATION   lib
-  PUBLIC_HEADER   DESTINATION   include/iu
-  )
-# install header files
-install(FILES ${IU_PUBLIC_CORE_HEADERS}
-  DESTINATION include/iu/iucore
-  COMPONENT Headers
-  )
-install(FILES ${IU_PUBLIC_COMMON_HEADERS}
-  DESTINATION include/iu/common
-  COMPONENT Headers
-  )
-install(FILES ${IU_IPP_INSTALL_HEADERS}
-  DESTINATION include/iu/iuipp
-  COMPONENT Headers
-  )
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videocapture.h
-  DESTINATION include/iu/iuio
-  COMPONENT Headers
-)
-install(FILES ${IU_CMAKE_FILES}
-  DESTINATION cmake
-  )
+# # install the libraries
+# install( TARGETS ${IU_LIBS}
+#   RUNTIME         DESTINATION   bin
+#   ARCHIVE         DESTINATION   lib
+#   LIBRARY         DESTINATION   lib
+#   PUBLIC_HEADER   DESTINATION   include/iu
+#   )
+# # install header files
+# install(FILES ${IU_PUBLIC_CORE_HEADERS}
+#   DESTINATION include/iu/iucore
+#   COMPONENT Headers
+#   )
+# install(FILES ${IU_PUBLIC_COMMON_HEADERS}
+#   DESTINATION include/iu/common
+#   COMPONENT Headers
+#   )
+# install(FILES ${IU_IPP_INSTALL_HEADERS}
+#   DESTINATION include/iu/iuipp
+#   COMPONENT Headers
+#   )
+# install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/iuio/videocapture.h
+#   DESTINATION include/iu/iuio
+#   COMPONENT Headers
+# )
+# install(FILES ${IU_CMAKE_FILES}
+#   DESTINATION cmake
+#   )
 
 
-##-----------------------------------------------------------------------------
-## CPACK configuration
-#INCLUDE(InstallRequiredSystemLibraries)
+# ##-----------------------------------------------------------------------------
+# ## CPACK configuration
+# #INCLUDE(InstallRequiredSystemLibraries)
 
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_NAME} - Connecting the world of CPU and GPU.")
-SET(CPACK_PACKAGE_VENDOR "Manuel Werlberger <werlberger@icg.tugraz.at>")
-SET(CPACK_PACKAGE_CONTACT "Manuel Werlberger <werlberger@icg.tugraz.at>")
-SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Manuel Werlberger <werlberger@icg.tugraz.at>")
-# SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
-# SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/Copyright.txt")
-SET(CPACK_PACKAGE_VERSION_MAJOR "${${PROJECT_NAME}_VERSION_MAJOR}")
-SET(CPACK_PACKAGE_VERSION_MINOR "${${PROJECT_NAME}_VERSION_MINOR}")
-SET(CPACK_PACKAGE_VERSION_PATCH "${${PROJECT_NAME}_VERSION_PATH}")
-SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${PROJECT_NAME} ${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}")
+# SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_NAME} - Connecting the world of CPU and GPU.")
+# SET(CPACK_PACKAGE_VENDOR "Manuel Werlberger <werlberger@icg.tugraz.at>")
+# SET(CPACK_PACKAGE_CONTACT "Manuel Werlberger <werlberger@icg.tugraz.at>")
+# SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Manuel Werlberger <werlberger@icg.tugraz.at>")
+# # SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
+# # SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/Copyright.txt")
+# SET(CPACK_PACKAGE_VERSION_MAJOR "${${PROJECT_NAME}_VERSION_MAJOR}")
+# SET(CPACK_PACKAGE_VERSION_MINOR "${${PROJECT_NAME}_VERSION_MINOR}")
+# SET(CPACK_PACKAGE_VERSION_PATCH "${${PROJECT_NAME}_VERSION_PATH}")
+# SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${PROJECT_NAME} ${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}")
 
-# IF(WIN32 AND NOT UNIX)
-#   # There is a bug in NSI that does not handle full unix paths properly. Make
-#   # sure there is at least one set of four (4) backlasshes.
-#   SET(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
-#   SET(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\MyExecutable.exe")
-#   SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} My Famous Project")
-#   SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.my-project-home-page.org")
-#   SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.my-personal-home-page.com")
-#   SET(CPACK_NSIS_CONTACT "me@my-personal-home-page.com")
-#   SET(CPACK_NSIS_MODIFY_PATH ON)
-# ELSE(WIN32 AND NOT UNIX)
-#   SET(CPACK_STRIP_FILES "bin/MyExecutable")
-#   SET(CPACK_SOURCE_STRIP_FILES "")
-# ENDIF(WIN32 AND NOT UNIX)
-# SET(CPACK_PACKAGE_EXECUTABLES "MyExecutable" "My Executable")
-INCLUDE(CPack)
+# # IF(WIN32 AND NOT UNIX)
+# #   # There is a bug in NSI that does not handle full unix paths properly. Make
+# #   # sure there is at least one set of four (4) backlasshes.
+# #   SET(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
+# #   SET(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\MyExecutable.exe")
+# #   SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} My Famous Project")
+# #   SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.my-project-home-page.org")
+# #   SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.my-personal-home-page.com")
+# #   SET(CPACK_NSIS_CONTACT "me@my-personal-home-page.com")
+# #   SET(CPACK_NSIS_MODIFY_PATH ON)
+# # ELSE(WIN32 AND NOT UNIX)
+# #   SET(CPACK_STRIP_FILES "bin/MyExecutable")
+# #   SET(CPACK_SOURCE_STRIP_FILES "")
+# # ENDIF(WIN32 AND NOT UNIX)
+# # SET(CPACK_PACKAGE_EXECUTABLES "MyExecutable" "My Executable")
+# INCLUDE(CPack)
