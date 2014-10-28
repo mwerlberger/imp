@@ -1,5 +1,5 @@
 set(PROJECT_NAME IMP)
-set(TOLOWER $PROJECT_NAME PROJECT_NAME_LOWERCASE)
+set(TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWERCASE)
 #string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_VAR)
 project(${PROJECT_NAME} CXX C)
 #set(CMAKE_BUILD_TYPE Debug)
@@ -9,7 +9,9 @@ cmake_minimum_required(VERSION 2.8.0)
 #include(cmake/utils.cmake)
 include(cmake/imp_module.cmake)
 
-# # cleanup
+# cleanup
+set(IMP_MODULE_LIBRARIES_LOCATIONS "" CACHE INTERNAL "List of the absolute locations of all built module libraries")
+set(IMP_MODULE_INCLUDE_PATHS "" CACHE INTERNAL "List of all module's include paths")
 # set(${IU_PUBLIC_HEADERS} "")
 
 # # general settings
@@ -79,9 +81,36 @@ IF(WIN32)
   SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib")
 endif(WIN32)
 
+##-----------------------------------------------------------------------------
+## settings / options
+option(IMP_BUILD_SHARED_LIBS "Build shared libraries if ON (default) or static ones if OFF." ON)
+imp_debug_message("IMP_BUILD_SHARED_LIBS:" ${IMP_BUILD_SHARED_LIBS})
 
 ##-----------------------------------------------------------------------------
 ## include modules
 add_subdirectory(core)
 
+#
+#
+imp_debug_message("************************************************************")
+imp_debug_message("IMP BUILD SETUP:")
+imp_debug_message("")
+imp_debug_message("IMP_MODULE_LIBRARIES_LOCATIONS: ${IMP_MODULE_LIBRARIES_LOCATIONS}")
+imp_debug_message("IMP_MODULE_INCLUDE_PATHS: ${IMP_MODULE_INCLUDE_PATHS}")
+imp_debug_message("************************************************************")
 
+#
+#
+
+##-----------------------------------------------------------------------------
+## impConfig.cmake creation for finding IMP
+# Create the opengvConfig.cmake file for other cmake projects.
+#get_target_property(FULL_LIBRARY_NAME ${PROJECT_NAME} LOCATION)
+set(imp_LIBRARIES ${IMP_MODULE_LIBRARIES_LOCATIONS})
+set(imp_LIBRARY_DIR ${PROJECT_BINARY_DIR} )
+set(imp_INCLUDE_DIR ${IMP_MODULE_INCLUDE_PATHS})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/impConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/impConfig.cmake @ONLY IMMEDIATE)
+message(STATUS "PROJECT_NAME_LOWERCASE=${PROJECT_NAME_LOWERCASE}")
+export(PACKAGE imp)
+#export(PACKAGE ${PROJECT_NAME_LOWERCASE})

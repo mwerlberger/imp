@@ -8,16 +8,28 @@
 #pragma warning( disable : 4251 ) // disable the warning about exported template code from stl
 #pragma warning( disable : 4231 ) // disable the warning about nonstandard extension in e.g. istream
 
-// core module
-#ifdef IUCORE_USE_STATIC
-  #define IUCORE_DLLAPI
+
+// API exports (mainly for win dlls)
+#ifdef IMP_USE_STATIC
+  #define IMP_API_EXPORT
 #else
-  #ifdef IUCORE_DLL_EXPORTS
-    #define IUCORE_DLLAPI __declspec(dllexport)
+  #ifdef IMP_API_EXPORTS
+    #define IMP_API_EXPORT __declspec(dllexport)
   #else
-    #define IUCORE_DLLAPI __declspec(dllimport)
+    #define IMP_API_EXPORT __declspec(dllimport)
   #endif
 #endif
+
+//// core module
+//#ifdef IUCORE_USE_STATIC
+//  #define IUCORE_DLLAPI
+//#else
+//  #ifdef IUCORE_DLL_EXPORTS
+//    #define IUCORE_DLLAPI __declspec(dllexport)
+//  #else
+//    #define IUCORE_DLLAPI __declspec(dllimport)
+//  #endif
+//#endif
 
 //// io module
 //#ifdef IUIO_USE_STATIC
@@ -76,7 +88,7 @@
 
 
 #else
-  #define IUCORE_DLLAPI
+  #define IMP_API_EXPORT
 //  #define IUIO_DLLAPI
 //  #define IUIOPGM_DLLAPI
 //  #define IUGUI_DLLAPI
