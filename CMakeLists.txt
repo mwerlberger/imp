@@ -88,7 +88,7 @@ imp_debug_message("IMP_BUILD_SHARED_LIBS:" ${IMP_BUILD_SHARED_LIBS})
 
 ##-----------------------------------------------------------------------------
 ## include modules
-add_subdirectory(core)
+add_subdirectory(modules)
 
 #
 #
@@ -106,11 +106,16 @@ imp_debug_message("************************************************************"
 ## impConfig.cmake creation for finding IMP
 # Create the opengvConfig.cmake file for other cmake projects.
 #get_target_property(FULL_LIBRARY_NAME ${PROJECT_NAME} LOCATION)
-set(imp_LIBRARIES ${IMP_MODULE_LIBRARIES_LOCATIONS})
-set(imp_LIBRARY_DIR ${PROJECT_BINARY_DIR} )
-set(imp_INCLUDE_DIR ${IMP_MODULE_INCLUDE_PATHS})
+set(IMP_LIBRARIES ${IMP_MODULE_LIBRARIES_LOCATIONS})
+set(IMP_LIBRARY_DIR ${PROJECT_BINARY_DIR} )
+set(IMP_INCLUDE_DIR ${IMP_MODULE_INCLUDE_PATHS})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/impConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/impConfig.cmake @ONLY IMMEDIATE)
 message(STATUS "PROJECT_NAME=${PROJECT_NAME}")
 #export(PACKAGE imp)
 export(PACKAGE ${PROJECT_NAME})
+
+
+##-----------------------------------------------------------------------------
+## add tests
+add_subdirectory(tests)

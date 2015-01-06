@@ -1,17 +1,17 @@
 #######################################################
 # imp source dir
-set( imp_SOURCE_DIR "@CMAKE_CURRENT_SOURCE_DIR@")
+set( IMP_SOURCE_DIR "@CMAKE_CURRENT_SOURCE_DIR@")
 
 #######################################################
 # imp build dir
-set( imp_DIR "@CMAKE_CURRENT_BINARY_DIR@")
+set( IMP_DIR "@CMAKE_CURRENT_BINARY_DIR@")
 
 #######################################################
-set( imp_INCLUDE_DIR  "@imp_INCLUDE_DIR@" )
-set( imp_INCLUDE_DIRS "@imp_INCLUDE_DIR@" )
+set( IMP_INCLUDE_DIR  "@IMP_INCLUDE_DIR@" )
+set( IMP_INCLUDE_DIRS "@IMP_INCLUDE_DIR@" )
 
-set( imp_LIBRARIES    "@imp_LIBRARIES@" )
-set( imp_LIBRARY      "@imp_LIBRARIES@" )
+set( IMP_LIBRARIES    "@IMP_LIBRARIES@" )
+set( IMP_LIBRARY      "@IMP_LIBRARIES@" )
 
-set( imp_LIBRARY_DIR  "@imp_LIBRARY_DIR@" )
-set( imp_LIBRARY_DIRS "@imp_LIBRARY_DIR@" )
+set( IMP_LIBRARY_DIR  "@IMP_LIBRARY_DIR@" )
+set( IMP_LIBRARY_DIRS "@IMP_LIBRARY_DIR@" )

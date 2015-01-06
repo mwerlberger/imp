@@ -9,11 +9,13 @@ set(HEADERS
   include/imp/core/memorydefs.h
   include/imp/core/linearmemory.h
   include/imp/core/linearhostmemory.h
+  include/imp/core/setvalue.h
   include/imp/core/copy.h
   )
 
 set(SOURCES
   src/core.cpp
+  src/setvalue.cpp
   )
 
 

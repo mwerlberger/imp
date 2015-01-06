@@ -22,7 +22,7 @@ macro(imp_add_module _name)
   imp_debug_message("imp_add_module(" ${_name} ${ARGN} ")")
   string(TOLOWER "${_name}" name)
   set(module imp_${name})
-  
+
   # TODO (MW): do we want to have automated dependencies (two-pass?)
   # TODO (MW): dependency graph?
 
@@ -31,8 +31,8 @@ macro(imp_add_module _name)
     set(imp_module_description "IMP's ${name} module")
   endif()
   # sanity check if there is no init for the build option/switch
-  if(NOT DEFINED BUILD_${module}_MODULE_INIT)
-    set(BUILD_${module}_MODULE_INIT ON)
+  if(NOT DEFINED IMP_BUILD_${module}_MODULE_INIT)
+    set(IMP_BUILD_${module}_MODULE_INIT ON)
   endif()
 
   # module details (cached)
@@ -50,11 +50,11 @@ macro(imp_add_module _name)
   imp_debug_message("IMP_MODULE_${module}_LINKAGE:" ${IMP_MODULE_${module}_LINKAGE})
 
   # option to disable module
-  option(BUILD_${module}_MODULE "IMP built including the ${module} module" ${BUILD_${module}_MODULE_INIT})
+  option(IMP_BUILD_${module}_MODULE "IMP built including the ${module} module" ${IMP_BUILD_${module}_MODULE_INIT})
 
   # TODO (MW) parse dependencies and generate link string
 
-  
+
   project(${module})
 endmacro()
 
@@ -81,6 +81,7 @@ macro(imp_create_module)
   target_include_directories(${module} PUBLIC ${IMP_MODULE_${module}_INCLUDE_PATH})
   # TODO (MW): include dir private or public?
 
+  message(STATUS "TARGET_FILE: $<TARGET_FILE:${module}>")
   get_target_property(FULL_LIBRARY_NAME ${module} LOCATION)
   set(IMP_MODULE_LIBRARIES_LOCATIONS ${FULL_LIBRARY_NAME} CACHE INTERNAL "")
   set(IMP_MODULE_INCLUDE_PATHS ${IMP_MODULE_${module}_INCLUDE_PATH} CACHE INTERNAL "")

@@ -10,10 +10,11 @@
 // version without notice, or even be removed.
 //
 
+#include <cstring>
 #include "coredefs.h"
 #include "memorydefs.h"
 
-namespace imp {
+namespace imp_detail {
 //namespace detail {
 
 /* ****************************************************************************
@@ -26,7 +27,7 @@ namespace imp {
 template <typename PixelType>
 void copy(const imp::LinearHostMemory<PixelType> *src, imp::LinearHostMemory<PixelType> *dst)
 {
-  memcpy(dst->data(), src->data(), dst->length() * sizeof(PixelType));
+  std::memcpy(dst->data(), src->data(), dst->length() * sizeof(PixelType));
 }
 
 //// 1D; copy device -> device
@@ -164,6 +165,6 @@ void copy(const imp::LinearHostMemory<PixelType> *src, imp::LinearHostMemory<Pix
 
 
 //} // namespace detail
-} // namespace imp
+} // namespace imp_detail
 
 #endif // IMP_COPY_H

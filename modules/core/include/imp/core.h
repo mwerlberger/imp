@@ -290,23 +290,24 @@ IMP_API_EXPORT void copy(const LinearHostMemory_32f_C1* src, LinearHostMemory_32
 ///** \} */ // end of Copy3D
 
 
-///* ***************************************************************************
-//     SET
-// * ***************************************************************************/
-////////////////////////////////////////////////////////////////////////////////
-///** \defgroup Set1D 1D Memory Set
-// * \ingroup Core
-// * Set methods for 1D buffers.
-// * \{
-// */
+/* ***************************************************************************
+     SET
+ * ***************************************************************************/
 
-///** Sets all the pixels in the given buffer to a certain value.
-// * \param value The pixel value to be set.
-// * \param buffer Pointer to the buffer
-// */
-//IMP_API_EXPORT void setValue(const unsigned char& value, LinearHostMemory_8u_C1* srcdst);
-//IMP_API_EXPORT void setValue(const int& value, LinearHostMemory_32s_C1* srcdst);
-//IMP_API_EXPORT void setValue(const float& value, LinearHostMemory_32f_C1* srcdst);
+//////////////////////////////////////////////////////////////////////////////
+/** \defgroup Set1D 1D Memory Set
+ * \ingroup Core
+ * Set methods for 1D buffers.
+ * \{
+ */
+
+/** Sets all the pixels in the given buffer to a certain value.
+ * \param value The pixel value to be set.
+ * \param buffer Pointer to the buffer
+ */
+IMP_API_EXPORT void setValue(const unsigned char& value, LinearHostMemory_8u_C1* srcdst);
+IMP_API_EXPORT void setValue(const int& value, LinearHostMemory_32s_C1* srcdst);
+IMP_API_EXPORT void setValue(const float& value, LinearHostMemory_32f_C1* srcdst);
 //IMP_API_EXPORT void setValue(const unsigned char& value, LinearDeviceMemory_8u_C1* srcdst);
 //IMP_API_EXPORT void setValue(const int& value, LinearDeviceMemory_32s_C1* srcdst);
 //IMP_API_EXPORT void setValue(const float& value, LinearDeviceMemory_32f_C1* srcdst);
