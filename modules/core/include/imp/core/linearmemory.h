@@ -17,10 +17,10 @@ public:
   { }
 
   LinearMemory(const LinearMemory& from) :
-      length_(from.length_)
+    length_(from.length_)
   { }
 
-  LinearMemory(const unsigned int& length) :
+  LinearMemory(const size_t& length) :
     length_(length)
   { }
 
@@ -28,22 +28,23 @@ public:
   { }
 
   /** Returns the number of elements saved in the device buffer. (length of device buffer) */
-  unsigned int length() const
+  size_t length() const
   {
     return length_;
   }
 
+  //! @todo (MWE) don't we want to have these pure virtual?
   /** Returns the total amount of bytes saved in the data buffer. */
   virtual size_t bytes() const {return 0;}
 
   /** Returns the bit depth of the data pointer. */
-  virtual unsigned int bitDepth() const {return 0;}
+  virtual std::uint8_t bitDepth() const {return 0;}
 
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
   virtual bool onDevice() const {return false;}
 
 private:
-  unsigned int length_;
+  size_t length_;
 
 
 };

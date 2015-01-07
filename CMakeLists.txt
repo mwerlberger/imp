@@ -65,6 +65,7 @@ endif()
 ##-----------------------------------------------------------------------------
 ## Compiler Flags
 if(UNIX)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
   add_definitions(-Wall)
   add_definitions(-Werror)
   add_definitions(-g)

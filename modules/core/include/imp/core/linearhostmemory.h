@@ -14,109 +14,75 @@ template<typename PixelType>
 class LinearHostMemory : public LinearMemory
 {
 public:
-  LinearHostMemory() :
-    LinearMemory(),
-    data_(0), ext_data_pointer_(false)
-  {
-  }
-
+  LinearHostMemory();
   virtual ~LinearHostMemory()
   {
     if((!ext_data_pointer_) && (data_!=NULL))
     {
-      free(data_);
+      delete[](data_);
       data_ = 0;
     }
   }
 
-  LinearHostMemory(const unsigned int& length) :
-    LinearMemory(length),
-    data_(0), ext_data_pointer_(false)
-  {
-    data_ = (PixelType*)malloc(this->length()*sizeof(PixelType));
-    if (data_ == 0) throw std::bad_alloc();
-  }
+  LinearHostMemory(const size_t& length);
+  LinearHostMemory(const LinearHostMemory<PixelType>& from);
+  LinearHostMemory(PixelType* host_data, const size_t& length,
+                   bool use_ext_data_pointer = false);
 
-  LinearHostMemory(const LinearHostMemory<PixelType>& from) :
-    LinearMemory(from),
-    data_(0), ext_data_pointer_(false)
-  {
-    if (from.data_==0) throw IuException("input data not valid", __FILE__, __FUNCTION__, __LINE__);
-    data_ = (PixelType*)malloc(this->length()*sizeof(PixelType));
-    if (data_ == 0) throw std::bad_alloc();
-    memcpy(data_, from.data_, this->length() * sizeof(PixelType));
-  }
-
-  LinearHostMemory(PixelType* host_data, const unsigned int& length, bool ext_data_pointer = false) :
-    LinearMemory(length),
-    data_(0), ext_data_pointer_(ext_data_pointer)
-  {
-    if (host_data==0) throw IuException("input data not valid", __FILE__, __FUNCTION__, __LINE__);
-    if(ext_data_pointer_)
-    {
-      // This uses the external data pointer as internal data pointer.
-      data_ = host_data;
-    }
-    else
-    {
-      // allocates an internal data pointer and copies the external data onto it.
-      data_ = (PixelType*)malloc(this->length()*sizeof(PixelType));
-      if (data_ == 0) throw std::bad_alloc();
-      memcpy(data_, host_data, this->length() * sizeof(PixelType));
-    }
-  }
-
-  // :TODO: operator=
-
-  /** Returns a pointer to the device buffer.
-   * The pointer can be offset to position \a offset.
+  /**
+   * @brief Returns a pointer to the device buffer.
    * @param[in] offset Offset of the pointer array.
    * @return Pointer to the device buffer.
+   *
+   * @note The pointer can be offset to position \a offset.
+   *
    */
-  PixelType* data(int offset = 0)
-  {
-    if ((size_t)offset > this->length()) throw IuException("offset not in range", __FILE__, __FUNCTION__, __LINE__);
-    return &(data_[offset]);
-  }
+  PixelType* data(int offset = 0);
 
   /** Returns a const pointer to the device buffer.
-   * The pointer can be offset to position \a offset.
-   * @param[in] offset Offset of the pointer array.
+   * @param[in] offset Desired offset within the array.
    * @return Const pointer to the device buffer.
    */
-  const PixelType* data(int offset = 0) const
+  const PixelType* data(int offset = 0) const;
+
+  /** Sets a certain value to all pixels in the data vector.
+   */
+  void setValue(const PixelType& value);
+
+
+  // :TODO: operator=
+  LinearHostMemory<PixelType>& operator=(PixelType rhs)
   {
-    if ((size_t)offset > this->length()) throw IuException("offset not in range", __FILE__, __FUNCTION__, __LINE__);
-    return reinterpret_cast<const PixelType*>(&(data_[offset]));
+    this->setValue(rhs);
+    return *this;
   }
+
+
 
   /** Returns the total amount of bytes saved in the data buffer. */
-  virtual size_t bytes() const
-  {
-    return this->length()*sizeof(PixelType);
-  }
-
+  virtual size_t bytes() const { return this->length()*sizeof(PixelType); }
 
   /** Returns the bit depth of the data pointer. */
-  virtual unsigned int bitDepth() const
-  {
-    return 8*sizeof(PixelType);
-  }
+  virtual std::uint8_t bitDepth() const { return 8*sizeof(PixelType); }
 
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
-  virtual bool onDevice() const
-  {
-    return false;
-  }
+  virtual bool onDevice() const { return false; }
 
 protected:
 
-
 private:
   PixelType* data_; /**< Pointer to device buffer. */
-  bool ext_data_pointer_; /**< Flag if data pointer is handled outside the image class. */
+  bool ext_data_pointer_; /**< Flag for the ownership of the data pointer. */
 
 };
+
+// for explicit instantiation of the template class
+typedef LinearHostMemory<unsigned char> LinearHostMemory_8u_C1;
+typedef LinearHostMemory<unsigned short> LinearHostMemory_16u_C1;
+typedef LinearHostMemory<float> LinearHostMemory_32f_C1;
+typedef LinearHostMemory<int> LinearHostMemory_32s_C1;
+
+
 
 } // namespace imp
 

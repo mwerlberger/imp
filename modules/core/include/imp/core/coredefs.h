@@ -24,6 +24,7 @@
 #ifndef IU_COREDEFS_H
 #define IU_COREDEFS_H
 
+#include <cstdint>
 #include <stdio.h>
 #include <assert.h>
 #include <iostream>
@@ -201,13 +202,13 @@ struct IuSize
     this->depth = from.depth;
     return *this;
   }
-  
-  
+
+
   IuSize operator* (const double factor) const
   {
     return IuSize(static_cast<int>(this->width * factor + 0.5f), static_cast<int>(this->height * factor + 0.5f), static_cast<int>(this->depth * factor + 0.5f));
   }
-  
+
   IuSize operator/ (const double factor) const
   {
     IU_ASSERT(factor != 0);

@@ -14,6 +14,7 @@ set(HEADERS
   )
 
 set(SOURCES
+  src/linearhostmemory.cpp
   src/core.cpp
   src/setvalue.cpp
   )

@@ -22,8 +22,8 @@ int main(int argc, char** argv)
   float val_32f = 1.0f;
 
   // set host values
-  imp::setValue(val_8u, h_8u_C1);
-  imp::setValue(val_32f, h_32f_C1);
+  h_8u_C1->setValue(val_8u);
+  h_32f_C1->setValue(val_32f);
 
   // copy memory
   imp::copy(h_8u_C1, &check_8u_C1);
