@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <cstdlib>
+#include <memory>
 
 #include "linearmemory.h"
 
@@ -68,7 +69,31 @@ public:
 protected:
 
 private:
+
+  struct CustomDataDeleter
+  {
+    // Default custom deleter as if no custom deleter would be given
+    CustomDataDeleter()
+      : f( [](PixelType* p) { delete p;} )
+    {}
+
+    // allow us to define a custom deleter
+    explicit CustomDataDeleter(std::function< void(PixelType*)> const &f_ )
+      : f(f_)
+    {}
+
+    void operator()(PixelType* p) const
+    {
+      f(p);
+    }
+
+  private:
+    std::function< void(PixelType* )> f;
+  };
+
   PixelType* data_ = nullptr; /**< Pointer to device buffer. */
+  std::unique_ptr<PixelType, CustomDataDeleter> data2_;
+
   bool ext_data_pointer_ = false; /**< Flag for the ownership of the data pointer. */
 
 };

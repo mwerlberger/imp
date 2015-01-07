@@ -17,8 +17,19 @@ LinearHostMemory<PixelType>::LinearHostMemory()
 template<typename PixelType>
 LinearHostMemory<PixelType>::LinearHostMemory(const size_t& length)
   : LinearMemory(length)
-  , data_(new PixelType[this->length()])
+  //, data_(new PixelType[this->length()])
+  , data2_(new PixelType[this->length()], CustomDataDeleter([](PixelType*){}))
 {
+  //std::unique_ptr<PixelType, void(*)(PixelType*)> p;
+//  (
+//        new PixelType[this->length()],
+//      [](PixelType * p)
+//  {
+//    //delete(p);
+//  }
+//  );
+  std::cout << "data2_: " << (void*)data2_.get() << std::endl;
+  data_ = data2_.get();
 }
 
 //-----------------------------------------------------------------------------
@@ -60,7 +71,6 @@ LinearHostMemory<PixelType>::LinearHostMemory(PixelType* host_data,
     std::copy(host_data, host_data+length, data_);
   }
 }
-
 
 //-----------------------------------------------------------------------------
 template<typename PixelType>
