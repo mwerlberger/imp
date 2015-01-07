@@ -10,8 +10,6 @@ namespace imp {
 template<typename PixelType>
 LinearHostMemory<PixelType>::LinearHostMemory()
   : LinearMemory()
-  , data_(0)
-  , ext_data_pointer_(false)
 {
 }
 
@@ -19,18 +17,14 @@ LinearHostMemory<PixelType>::LinearHostMemory()
 template<typename PixelType>
 LinearHostMemory<PixelType>::LinearHostMemory(const size_t& length)
   : LinearMemory(length)
-  , data_(0)
-  , ext_data_pointer_(false)
+  , data_(new PixelType[this->length()])
 {
-  data_ = new PixelType[this->length()];
 }
 
 //-----------------------------------------------------------------------------
 template<typename PixelType>
 LinearHostMemory<PixelType>::LinearHostMemory(const LinearHostMemory<PixelType>& from)
   : LinearMemory(from)
-  , data_(0)
-  , ext_data_pointer_(false)
 {
   if (from.data_ == 0)
   {
@@ -46,8 +40,6 @@ LinearHostMemory<PixelType>::LinearHostMemory(PixelType* host_data,
                                               const size_t& length,
                                               bool use_ext_data_pointer)
   : LinearMemory(length)
-  , data_(0)
-  , ext_data_pointer_(use_ext_data_pointer)
 {
   if (host_data == 0)
   {

@@ -68,8 +68,8 @@ public:
 protected:
 
 private:
-  PixelType* data_; /**< Pointer to device buffer. */
-  bool ext_data_pointer_; /**< Flag for the ownership of the data pointer. */
+  PixelType* data_ = nullptr; /**< Pointer to device buffer. */
+  bool ext_data_pointer_ = false; /**< Flag for the ownership of the data pointer. */
 
 };
 
