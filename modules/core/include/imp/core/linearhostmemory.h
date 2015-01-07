@@ -49,15 +49,12 @@ public:
    */
   void setValue(const PixelType& value);
 
+  /** Copy data to another class instance.
+   */
+  void copyTo(LinearHostMemory<PixelType>& dst);
 
-  // :TODO: operator=
-  LinearHostMemory<PixelType>& operator=(PixelType rhs)
-  {
-    this->setValue(rhs);
-    return *this;
-  }
-
-
+  //! @todo (MWE) operator= for copyTo/copyFrom?
+  LinearHostMemory<PixelType>& operator=(PixelType rhs);
 
   /** Returns the total amount of bytes saved in the data buffer. */
   virtual size_t bytes() const { return this->length()*sizeof(PixelType); }
@@ -77,10 +74,10 @@ private:
 };
 
 // for explicit instantiation of the template class
-typedef LinearHostMemory<unsigned char> LinearHostMemory_8u_C1;
-typedef LinearHostMemory<unsigned short> LinearHostMemory_16u_C1;
+typedef LinearHostMemory<std::uint8_t> LinearHostMemory_8u_C1;
+typedef LinearHostMemory<std::uint16_t> LinearHostMemory_16u_C1;
+typedef LinearHostMemory<std::int32_t> LinearHostMemory_32s_C1;
 typedef LinearHostMemory<float> LinearHostMemory_32f_C1;
-typedef LinearHostMemory<int> LinearHostMemory_32s_C1;
 
 
 

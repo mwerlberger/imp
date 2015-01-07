@@ -97,15 +97,35 @@ const PixelType* LinearHostMemory<PixelType>::data(int offset) const
 template<typename PixelType>
 void LinearHostMemory<PixelType>::setValue(const PixelType& value)
 {
-  std::fill(data_, data_+length(), value);
+  std::fill(data_, data_+this->length(), value);
 }
+
+//-----------------------------------------------------------------------------
+template<typename PixelType>
+void LinearHostMemory<PixelType>::copyTo(LinearHostMemory<PixelType>& dst)
+{
+  if (this->length() != dst.length())
+  {
+    throw IuException("source and destination array are of different length", __FILE__, __FUNCTION__, __LINE__);
+  }
+  std::copy(data_, data_+this->length(), dst.data_);
+}
+
+
+//-----------------------------------------------------------------------------
+template<typename PixelType>
+LinearHostMemory<PixelType>& LinearHostMemory<PixelType>::operator=(PixelType rhs)
+{
+  this->setValue(rhs);
+  return *this;
+}
+
 
 //=============================================================================
 // Explicitely instantiate the desired classes
-template class LinearHostMemory<unsigned char>;
-template class LinearHostMemory<unsigned short>;
+template class LinearHostMemory<std::uint8_t>;
+template class LinearHostMemory<std::uint16_t>;
+template class LinearHostMemory<std::int32_t>;
 template class LinearHostMemory<float>;
-template class LinearHostMemory<int>;
-
 
 } // namespace imp
