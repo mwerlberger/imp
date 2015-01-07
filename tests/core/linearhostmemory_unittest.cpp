@@ -1,9 +1,7 @@
 // system includes
 #include <cstdint>
 #include <iostream>
-#include <imp/core.h>
-//#include <iu/iucore.h>
-//#include <iu/iucutil.h>
+#include <imp/core/linearhostmemory.h>
 
 
 int main(int argc, char** argv)
