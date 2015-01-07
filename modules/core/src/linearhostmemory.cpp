@@ -17,19 +17,8 @@ LinearHostMemory<PixelType>::LinearHostMemory()
 template<typename PixelType>
 LinearHostMemory<PixelType>::LinearHostMemory(const size_t& length)
   : LinearMemory(length)
-  //, data_(new PixelType[this->length()])
-  , data2_(new PixelType[this->length()], CustomDataDeleter([](PixelType*){}))
+  , data_(new PixelType[this->length()])
 {
-  //std::unique_ptr<PixelType, void(*)(PixelType*)> p;
-//  (
-//        new PixelType[this->length()],
-//      [](PixelType * p)
-//  {
-//    //delete(p);
-//  }
-//  );
-  std::cout << "data2_: " << (void*)data2_.get() << std::endl;
-  data_ = data2_.get();
 }
 
 //-----------------------------------------------------------------------------
@@ -41,8 +30,8 @@ LinearHostMemory<PixelType>::LinearHostMemory(const LinearHostMemory<PixelType>&
   {
     throw IuException("input data not valid", __FILE__, __FUNCTION__, __LINE__);
   }
-  data_ = new PixelType[this->length()];
-  std::copy(from.data_, from.data_+from.length(), data_);
+  data_.reset(new PixelType[this->length()]);
+  std::copy(from.data_.get(), from.data_.get()+from.length(), data_.get());
 }
 
 //-----------------------------------------------------------------------------
@@ -60,15 +49,15 @@ LinearHostMemory<PixelType>::LinearHostMemory(PixelType* host_data,
   if(ext_data_pointer_)
   {
     // This uses the external data pointer and stores it as a 'reference' -> memory won't be managed by us!
-    data_ = host_data;
+    auto no_delete_fcn = [](PixelType*) {};
+    data_ = std::unique_ptr<PixelType, CustomDataDeleter>(
+          host_data, CustomDataDeleter(no_delete_fcn));
   }
   else
   {
     // allocates an internal data pointer and copies the external data it.
-    data_ = (PixelType*)malloc(this->length()*sizeof(PixelType));
-    if (data_ == 0) throw std::bad_alloc();
-
-    std::copy(host_data, host_data+length, data_);
+    data_ = std::unique_ptr<PixelType, CustomDataDeleter>(new PixelType[this->length()]);
+    std::copy(host_data, host_data+length, data_.get());
   }
 }
 
@@ -81,7 +70,7 @@ PixelType* LinearHostMemory<PixelType>::data(int offset)
     throw IuException("offset not in range", __FILE__, __FUNCTION__, __LINE__);
   }
 
-  return &(data_[offset]);
+  return &(data_.get()[offset]);
 }
 
 //-----------------------------------------------------------------------------
@@ -92,14 +81,14 @@ const PixelType* LinearHostMemory<PixelType>::data(int offset) const
   {
     throw IuException("offset not in range", __FILE__, __FUNCTION__, __LINE__);
   }
-  return reinterpret_cast<const PixelType*>(&(data_[offset]));
+  return reinterpret_cast<const PixelType*>(&(data_.get()[offset]));
 }
 
 //-----------------------------------------------------------------------------
 template<typename PixelType>
 void LinearHostMemory<PixelType>::setValue(const PixelType& value)
 {
-  std::fill(data_, data_+this->length(), value);
+  std::fill(data_.get(), data_.get()+this->length(), value);
 }
 
 //-----------------------------------------------------------------------------
@@ -110,7 +99,7 @@ void LinearHostMemory<PixelType>::copyTo(LinearHostMemory<PixelType>& dst)
   {
     throw IuException("source and destination array are of different length", __FILE__, __FUNCTION__, __LINE__);
   }
-  std::copy(data_, data_+this->length(), dst.data_);
+  std::copy(data_.get(), data_.get()+this->length(), dst.data_.get());
 }
 
 

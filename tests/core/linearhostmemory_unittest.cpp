@@ -54,6 +54,21 @@ int main(int argc, char** argv)
       }
     }
 
+    //--------------------------------------------------------------------------
+    // ext data pointer test
+    {
+      imp::LinearHostMemory_8u_C1 check_8u_C1(h_8u_C1->data(), h_8u_C1->length(), true);
+      imp::LinearHostMemory_32f_C1 check_32f_C1(h_32f_C1->data(), h_32f_C1->length(), false);
+
+      for (size_t i = 0; i<length; ++i)
+      {
+        assert(*h_8u_C1->data(i) == val_8u);
+        assert(*h_32f_C1->data(i) == val_32f);
+        assert(*check_8u_C1.data(i) == val_8u);
+        assert(*check_32f_C1.data(i) == val_32f);
+      }
+    }
+
     //  cleanup
     delete(h_8u_C1);
     delete(h_32f_C1);

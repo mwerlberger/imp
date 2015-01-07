@@ -18,11 +18,12 @@ public:
   LinearHostMemory();
   virtual ~LinearHostMemory()
   {
-    if((!ext_data_pointer_) && (data_!=NULL))
-    {
-      delete[](data_);
-      data_ = 0;
-    }
+    // let's praise managed pointers (and their custom deleter functions ;) ).
+//    if((!ext_data_pointer_) && (data_!=NULL))
+//    {
+//      delete[](data_);
+//      data_ = 0;
+//    }
   }
 
   LinearHostMemory(const size_t& length);
@@ -70,11 +71,18 @@ protected:
 
 private:
 
+  /** Custom deleter for the unique_ptr housing the c-style data pointer.
+   * We do that in case we receive an external data pointer array but are not
+   * allowed to manage the memory. In this case it is possible to avoid the
+   * deletion of the array if the unique_ptr goes out of scope. Note that this is
+   * a bit hacky but the most comfy solution for us internally. If you have a better
+   * idea you can send me feedback on github (https://github.com/mwerlberger/imp).
+   */
   struct CustomDataDeleter
   {
-    // Default custom deleter as if no custom deleter would be given
+    // Default custom deleter assuming we use arrays (new PixelType[length])
     CustomDataDeleter()
-      : f( [](PixelType* p) { delete p;} )
+      : f( [](PixelType* p) { delete[] p;} )
     {}
 
     // allow us to define a custom deleter
@@ -91,9 +99,8 @@ private:
     std::function< void(PixelType* )> f;
   };
 
-  PixelType* data_ = nullptr; /**< Pointer to device buffer. */
-  std::unique_ptr<PixelType, CustomDataDeleter> data2_;
-
+  //PixelType* data_ = nullptr; /**< Pointer to device buffer. */
+  std::unique_ptr<PixelType, CustomDataDeleter> data_;
   bool ext_data_pointer_ = false; /**< Flag for the ownership of the data pointer. */
 
 };
