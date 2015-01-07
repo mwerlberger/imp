@@ -46,7 +46,6 @@ public:
 private:
   size_t length_;
 
-
 };
 
 } // namespace imp

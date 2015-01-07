@@ -57,13 +57,13 @@ public:
   LinearHostMemory<PixelType>& operator=(PixelType rhs);
 
   /** Returns the total amount of bytes saved in the data buffer. */
-  virtual size_t bytes() const { return this->length()*sizeof(PixelType); }
+  virtual size_t bytes() const override { return this->length()*sizeof(PixelType); }
 
   /** Returns the bit depth of the data pointer. */
-  virtual std::uint8_t bitDepth() const { return 8*sizeof(PixelType); }
+  virtual std::uint8_t bitDepth() const override { return 8*sizeof(PixelType); }
 
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
-  virtual bool onDevice() const { return false; }
+  virtual bool onDevice() const  override { return false; }
 
 protected:
 
