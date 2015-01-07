@@ -46,7 +46,7 @@ LinearHostMemory<PixelType>::LinearHostMemory(PixelType* host_data,
     throw IuException("input data not valid", __FILE__, __FUNCTION__, __LINE__);
   }
 
-  if(ext_data_pointer_)
+  if(use_ext_data_pointer)
   {
     // This uses the external data pointer and stores it as a 'reference' -> memory won't be managed by us!
     auto no_delete_fcn = [](PixelType*) {};
