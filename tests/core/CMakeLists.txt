@@ -1,2 +1,2 @@
-add_executable(linearhostmemory_unittest linearhostmemory_unittest.cpp)
-target_link_libraries(linearhostmemory_unittest ${IMP_LIBRARIES})
+add_executable(linearhostmemory_test linearhostmemory_test.cpp)
+target_link_libraries(linearhostmemory_test ${IMP_LIBRARIES})
