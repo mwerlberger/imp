@@ -1,6 +1,6 @@
 #include <imp/core.h>
-#include <imp/core/copy.h>
-#include <imp/core/setvalue.h>
+//#include <imp/core/copy.h>
+//#include <imp/core/setvalue.h>
 //#include <imp/core/clamp.h>
 //#include <imp/core/convert.h>
 
@@ -9,14 +9,6 @@ namespace imp {
 /* ***************************************************************************
  * 1D COPY
  * ***************************************************************************/
-
-// 1D copy host -> host;
-void copy(const LinearHostMemory_8u_C1* src, LinearHostMemory_8u_C1* dst)
-{ imp_detail::copy(src,dst); }
-void copy(const LinearHostMemory_16u_C1* src, LinearHostMemory_16u_C1* dst)
-{ imp_detail::copy(src,dst); }
-void copy(const LinearHostMemory_32f_C1* src, LinearHostMemory_32f_C1* dst)
-{ imp_detail::copy(src,dst); }
 
 /*
 // 1D copy device -> device;
@@ -200,13 +192,6 @@ void copy(const LinearDeviceMemory_32f_C4* src, LinearHostMemory_32f_C4* dst){ i
      SET
  * ***************************************************************************/
 
-// 1D set value; host; 8-bit
-void setValue(const unsigned char& value, LinearHostMemory_8u_C1* srcdst)
-{imp_detail::setValue(value, srcdst);}
-void setValue(const int& value, LinearHostMemory_32s_C1* srcdst)
-{imp_detail::setValue(value, srcdst);}
-void setValue(const float& value, LinearHostMemory_32f_C1* srcdst)
-{imp_detail::setValue(value, srcdst);}
 //void setValue(const unsigned char& value, LinearDeviceMemory_8u_C1* srcdst)
 //{imp::setValue(value, srcdst);}
 //void setValue(const int& value, LinearDeviceMemory_32s_C1* srcdst)

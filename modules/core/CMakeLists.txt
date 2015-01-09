@@ -6,17 +6,14 @@ set(HEADERS
   include/imp/core.h
   include/imp/core/globaldefs.h
   include/imp/core/coredefs.h
-  include/imp/core/memorydefs.h
+#  include/imp/core/memorydefs.h
   include/imp/core/linearmemory.h
   include/imp/core/linearhostmemory.h
-  include/imp/core/setvalue.h
-  include/imp/core/copy.h
   )
 
 set(SOURCES
   src/linearhostmemory.cpp
   src/core.cpp
-  src/setvalue.cpp
   )
 
 

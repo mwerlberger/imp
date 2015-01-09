@@ -3,7 +3,7 @@
 
 #include <imp/core/coredefs.h>
 #include <imp/core/globaldefs.h>
-#include <imp/core/memorydefs.h>
+//#include <imp/core/memorydefs.h>
 //#include <imp/core/containers.h>
 
 namespace imp {
@@ -54,15 +54,6 @@ namespace imp {
  *  TODO more detailed docu
  *  \{
  */
-
-// copy host -> host;
-/** Copy methods for host to host 1D copy methods for 8bit buffers.
- * \param src Source buffer [host]
- * \param dst Destination buffer [host]
- */
-IMP_API_EXPORT void copy(const LinearHostMemory_8u_C1* src, LinearHostMemory_8u_C1* dst);
-IMP_API_EXPORT void copy(const LinearHostMemory_16u_C1* src, LinearHostMemory_16u_C1* dst);
-IMP_API_EXPORT void copy(const LinearHostMemory_32f_C1* src, LinearHostMemory_32f_C1* dst);
 
 //// copy device -> device;
 ///** Copy methods for host to host 1D copy methods for 8bit buffers.
@@ -305,9 +296,6 @@ IMP_API_EXPORT void copy(const LinearHostMemory_32f_C1* src, LinearHostMemory_32
  * \param value The pixel value to be set.
  * \param buffer Pointer to the buffer
  */
-IMP_API_EXPORT void setValue(const unsigned char& value, LinearHostMemory_8u_C1* srcdst);
-IMP_API_EXPORT void setValue(const int& value, LinearHostMemory_32s_C1* srcdst);
-IMP_API_EXPORT void setValue(const float& value, LinearHostMemory_32f_C1* srcdst);
 //IMP_API_EXPORT void setValue(const unsigned char& value, LinearDeviceMemory_8u_C1* srcdst);
 //IMP_API_EXPORT void setValue(const int& value, LinearDeviceMemory_32s_C1* srcdst);
 //IMP_API_EXPORT void setValue(const float& value, LinearDeviceMemory_32f_C1* srcdst);
