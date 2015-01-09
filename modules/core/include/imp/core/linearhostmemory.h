@@ -65,7 +65,7 @@ public:
   virtual std::uint8_t bitDepth() const override { return 8*sizeof(PixelType); }
 
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
-  virtual bool onDevice() const  override { return false; }
+  virtual bool isGpuMemory() const  override { return false; }
 
 protected:
 

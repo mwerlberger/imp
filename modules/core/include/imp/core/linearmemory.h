@@ -35,13 +35,13 @@ public:
 
   //! @todo (MWE) don't we want to have these pure virtual?
   /** Returns the total amount of bytes saved in the data buffer. */
-  virtual size_t bytes() const {return 0;}
+  virtual size_t bytes() const = 0;
 
   /** Returns the bit depth of the data pointer. */
-  virtual std::uint8_t bitDepth() const {return 0;}
+  virtual std::uint8_t bitDepth() const = 0;
 
-  /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
-  virtual bool onDevice() const {return false;}
+  /** Returns flag if the image data resides on the GPU (TRUE) or CPU (FALSE) */
+  virtual bool isGpuMemory() const = 0;
 
 private:
   size_t length_;
