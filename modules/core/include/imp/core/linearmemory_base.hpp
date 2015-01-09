@@ -1,5 +1,5 @@
-#ifndef IMP_LINEARMEMORY_H
-#define IMP_LINEARMEMORY_H
+#ifndef IMP_LINEARMEMORY_HPP
+#define IMP_LINEARMEMORY_HPP
 
 #include "globaldefs.h"
 #include "coredefs.h"
@@ -10,7 +10,7 @@ namespace imp {
   */
 class LinearMemoryBase
 {
-public:
+protected:
   LinearMemoryBase() :
     length_(0)
   { }
@@ -23,6 +23,7 @@ public:
     length_(length)
   { }
 
+public:
   virtual ~LinearMemoryBase()
   { }
 
@@ -49,4 +50,4 @@ private:
 
 } // namespace imp
 
-#endif // IMP_LINEARMEMORY_H
+#endif // IMP_LINEARMEMORY_HPP

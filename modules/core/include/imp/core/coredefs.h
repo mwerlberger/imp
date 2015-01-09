@@ -52,40 +52,6 @@
 #define IU_ASSERT(C)
 #endif //DEBUG
 
-/** Assertion with additional error information
- */
-class IuException : public std::exception
-{
-public:
-  IuException(const std::string& msg, const char* file=NULL, const char* function=NULL, int line=0) throw():
-    msg_(msg),
-    file_(file),
-    function_(function),
-    line_(line)
-  {
-    std::ostringstream out_msg;
-
-    out_msg << "IuException: ";
-    out_msg << (msg_.empty() ? "unknown error" : msg_) << "\n";
-    out_msg << "      where: ";
-    out_msg << (file_.empty() ? "no filename available" : file_) << " | ";
-    out_msg << (function_.empty() ? "unknown function" : function_) << ":" << line_;
-    msg_ = out_msg.str();
-  }
-
-  virtual ~IuException() throw()
-  { }
-
-  virtual const char* what() const throw()
-  {
-    return msg_.c_str();
-  }
-
-  std::string msg_;
-  std::string file_;
-  std::string function_;
-  int line_;
-}; // class
 
 /** Error status codes.
  * Negative error codes represent an error.
