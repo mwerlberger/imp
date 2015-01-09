@@ -6,29 +6,24 @@
 #include <cstdlib>
 #include <memory>
 
-#include "linearmemory.h"
+#include "linearmemory_base.hpp"
 
 
 namespace imp {
 
 template<typename PixelType>
-class LinearHostMemory : public LinearMemory
+class LinearMemory : public LinearMemoryBase
 {
 public:
-  LinearHostMemory();
-  virtual ~LinearHostMemory()
+  LinearMemory();
+  virtual ~LinearMemory()
   {
     // let's praise managed pointers (and their custom deleter functions ;) ).
-//    if((!ext_data_pointer_) && (data_!=NULL))
-//    {
-//      delete[](data_);
-//      data_ = 0;
-//    }
   }
 
-  LinearHostMemory(const size_t& length);
-  LinearHostMemory(const LinearHostMemory<PixelType>& from);
-  LinearHostMemory(PixelType* host_data, const size_t& length,
+  LinearMemory(const size_t& length);
+  LinearMemory(const LinearMemory<PixelType>& from);
+  LinearMemory(PixelType* host_data, const size_t& length,
                    bool use_ext_data_pointer = false);
 
   /**
@@ -53,10 +48,10 @@ public:
 
   /** Copy data to another class instance.
    */
-  void copyTo(LinearHostMemory<PixelType>& dst);
+  void copyTo(LinearMemory<PixelType>& dst);
 
   //! @todo (MWE) operator= for copyTo/copyFrom?
-  LinearHostMemory<PixelType>& operator=(PixelType rhs);
+  LinearMemory<PixelType>& operator=(PixelType rhs);
 
   /** Returns the total amount of bytes saved in the data buffer. */
   virtual size_t bytes() const override { return this->length()*sizeof(PixelType); }
@@ -106,10 +101,10 @@ private:
 };
 
 // for explicit instantiation of the template class
-typedef LinearHostMemory<std::uint8_t> LinearHostMemory_8u_C1;
-typedef LinearHostMemory<std::uint16_t> LinearHostMemory_16u_C1;
-typedef LinearHostMemory<std::int32_t> LinearHostMemory_32s_C1;
-typedef LinearHostMemory<float> LinearHostMemory_32f_C1;
+typedef LinearMemory<std::uint8_t> LinearMemory_8u_C1;
+typedef LinearMemory<std::uint16_t> LinearMemory_16u_C1;
+typedef LinearMemory<std::int32_t> LinearMemory_32s_C1;
+typedef LinearMemory<float> LinearMemory_32f_C1;
 
 
 

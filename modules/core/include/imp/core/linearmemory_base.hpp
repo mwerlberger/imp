@@ -1,7 +1,6 @@
 #ifndef IMP_LINEARMEMORY_H
 #define IMP_LINEARMEMORY_H
 
-
 #include "globaldefs.h"
 #include "coredefs.h"
 
@@ -9,22 +8,22 @@ namespace imp {
 
 /** \brief LinearMemory Base class for linear memory classes.
   */
-class LinearMemory
+class LinearMemoryBase
 {
 public:
-  LinearMemory() :
+  LinearMemoryBase() :
     length_(0)
   { }
 
-  LinearMemory(const LinearMemory& from) :
+  LinearMemoryBase(const LinearMemoryBase& from) :
     length_(from.length_)
   { }
 
-  LinearMemory(const size_t& length) :
+  LinearMemoryBase(const size_t& length) :
     length_(length)
   { }
 
-  virtual ~LinearMemory()
+  virtual ~LinearMemoryBase()
   { }
 
   /** Returns the number of elements saved in the device buffer. (length of device buffer) */

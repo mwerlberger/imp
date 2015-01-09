@@ -7,12 +7,12 @@ set(HEADERS
   include/imp/core/globaldefs.h
   include/imp/core/coredefs.h
 #  include/imp/core/memorydefs.h
-  include/imp/core/linearmemory.h
-  include/imp/core/linearhostmemory.h
+  include/imp/core/linearmemory_base.hpp
+  include/imp/core/linearmemory.hpp
   )
 
 set(SOURCES
-  src/linearhostmemory.cpp
+  src/linearmemory.cpp
   src/core.cpp
   )
 

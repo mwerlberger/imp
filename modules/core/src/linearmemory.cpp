@@ -1,4 +1,4 @@
-#include <imp/core/linearhostmemory.h>
+#include <imp/core/linearmemory.hpp>
 
 #include <cstring>
 #include <algorithm>
@@ -8,23 +8,23 @@ namespace imp {
 
 //-----------------------------------------------------------------------------
 template<typename PixelType>
-LinearHostMemory<PixelType>::LinearHostMemory()
-  : LinearMemory()
+LinearMemory<PixelType>::LinearMemory()
+  : LinearMemoryBase()
 {
 }
 
 //-----------------------------------------------------------------------------
 template<typename PixelType>
-LinearHostMemory<PixelType>::LinearHostMemory(const size_t& length)
-  : LinearMemory(length)
+LinearMemory<PixelType>::LinearMemory(const size_t& length)
+  : LinearMemoryBase(length)
   , data_(new PixelType[this->length()])
 {
 }
 
 //-----------------------------------------------------------------------------
 template<typename PixelType>
-LinearHostMemory<PixelType>::LinearHostMemory(const LinearHostMemory<PixelType>& from)
-  : LinearMemory(from)
+LinearMemory<PixelType>::LinearMemory(const LinearMemory<PixelType>& from)
+  : LinearMemoryBase(from)
 {
   if (from.data_ == 0)
   {
@@ -36,10 +36,10 @@ LinearHostMemory<PixelType>::LinearHostMemory(const LinearHostMemory<PixelType>&
 
 //-----------------------------------------------------------------------------
 template<typename PixelType>
-LinearHostMemory<PixelType>::LinearHostMemory(PixelType* host_data,
+LinearMemory<PixelType>::LinearMemory(PixelType* host_data,
                                               const size_t& length,
                                               bool use_ext_data_pointer)
-  : LinearMemory(length)
+  : LinearMemoryBase(length)
 {
   if (host_data == 0)
   {
@@ -64,7 +64,7 @@ LinearHostMemory<PixelType>::LinearHostMemory(PixelType* host_data,
 
 //-----------------------------------------------------------------------------
 template<typename PixelType>
-PixelType* LinearHostMemory<PixelType>::data(int offset)
+PixelType* LinearMemory<PixelType>::data(int offset)
 {
   if ((size_t)offset > this->length())
   {
@@ -76,7 +76,7 @@ PixelType* LinearHostMemory<PixelType>::data(int offset)
 
 //-----------------------------------------------------------------------------
 template<typename PixelType>
-const PixelType* LinearHostMemory<PixelType>::data(int offset) const
+const PixelType* LinearMemory<PixelType>::data(int offset) const
 {
   if ((size_t)offset > this->length())
   {
@@ -87,14 +87,14 @@ const PixelType* LinearHostMemory<PixelType>::data(int offset) const
 
 //-----------------------------------------------------------------------------
 template<typename PixelType>
-void LinearHostMemory<PixelType>::setValue(const PixelType& value)
+void LinearMemory<PixelType>::setValue(const PixelType& value)
 {
   std::fill(data_.get(), data_.get()+this->length(), value);
 }
 
 //-----------------------------------------------------------------------------
 template<typename PixelType>
-void LinearHostMemory<PixelType>::copyTo(LinearHostMemory<PixelType>& dst)
+void LinearMemory<PixelType>::copyTo(LinearMemory<PixelType>& dst)
 {
   if (this->length() != dst.length())
   {
@@ -106,7 +106,7 @@ void LinearHostMemory<PixelType>::copyTo(LinearHostMemory<PixelType>& dst)
 
 //-----------------------------------------------------------------------------
 template<typename PixelType>
-LinearHostMemory<PixelType>& LinearHostMemory<PixelType>::operator=(PixelType rhs)
+LinearMemory<PixelType>& LinearMemory<PixelType>::operator=(PixelType rhs)
 {
   this->setValue(rhs);
   return *this;
@@ -115,9 +115,9 @@ LinearHostMemory<PixelType>& LinearHostMemory<PixelType>::operator=(PixelType rh
 
 //=============================================================================
 // Explicitely instantiate the desired classes
-template class LinearHostMemory<std::uint8_t>;
-template class LinearHostMemory<std::uint16_t>;
-template class LinearHostMemory<std::int32_t>;
-template class LinearHostMemory<float>;
+template class LinearMemory<std::uint8_t>;
+template class LinearMemory<std::uint16_t>;
+template class LinearMemory<std::int32_t>;
+template class LinearMemory<float>;
 
 } // namespace imp
