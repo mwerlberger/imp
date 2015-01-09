@@ -1,2 +1,6 @@
+add_executable(size_test size_test.cpp)
+target_link_libraries(size_test ${IMP_LIBRARIES})
+
 add_executable(linearhostmemory_test linearhostmemory_test.cpp)
 target_link_libraries(linearhostmemory_test ${IMP_LIBRARIES})
+

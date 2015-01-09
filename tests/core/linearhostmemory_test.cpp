@@ -1,4 +1,5 @@
 // system includes
+#include <assert.h>
 #include <cstdint>
 #include <iostream>
 #include <imp/core/linearmemory.hpp>

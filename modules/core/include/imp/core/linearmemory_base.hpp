@@ -2,7 +2,7 @@
 #define IMP_LINEARMEMORY_HPP
 
 #include "globaldefs.h"
-#include "coredefs.h"
+//#include "coredefs.h"
 
 namespace imp {
 
@@ -33,7 +33,6 @@ public:
     return length_;
   }
 
-  //! @todo (MWE) don't we want to have these pure virtual?
   /** Returns the total amount of bytes saved in the data buffer. */
   virtual size_t bytes() const = 0;
 

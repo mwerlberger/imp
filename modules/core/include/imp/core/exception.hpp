@@ -1,6 +1,8 @@
 #ifndef CORE_EXCEPTION_HPP
 #define CORE_EXCEPTION_HPP
 
+#include <sstream>
+
 namespace imp {
 
 /** Assertion with additional error information
