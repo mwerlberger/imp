@@ -48,7 +48,8 @@ LinearHostMemory<PixelType>::LinearHostMemory(PixelType* host_data,
 
   if(use_ext_data_pointer)
   {
-    // This uses the external data pointer and stores it as a 'reference' -> memory won't be managed by us!
+    // This uses the external data pointer and stores it as a 'reference':
+    // memory won't be managed by us!
     auto no_delete_fcn = [](PixelType*) {};
     data_ = std::unique_ptr<PixelType, CustomDataDeleter>(
           host_data, CustomDataDeleter(no_delete_fcn));

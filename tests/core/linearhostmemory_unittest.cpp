@@ -4,11 +4,11 @@
 #include <imp/core/linearhostmemory.h>
 
 
-int main(int argc, char** argv)
+int main(int /*argc*/, char** /*argv*/)
 {
   try
   {
-    size_t length = 1e7;
+    size_t length = 1e4;
 
     // create linar hostbuffer
     imp::LinearHostMemory_8u_C1* h_8u_C1 = new imp::LinearHostMemory_8u_C1(length);
@@ -58,7 +58,7 @@ int main(int argc, char** argv)
     // ext data pointer test
     {
       imp::LinearHostMemory_8u_C1 check_8u_C1(h_8u_C1->data(), h_8u_C1->length(), true);
-      imp::LinearHostMemory_32f_C1 check_32f_C1(h_32f_C1->data(), h_32f_C1->length(), false);
+      imp::LinearHostMemory_32f_C1 check_32f_C1(h_32f_C1->data(), h_32f_C1->length(), true);
 
       for (size_t i = 0; i<length; ++i)
       {
