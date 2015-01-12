@@ -4,6 +4,7 @@
 #include <iostream>
 #include <imp/core/linearmemory.hpp>
 
+#include "default_msg.h"
 
 int main(int /*argc*/, char** /*argv*/)
 {
@@ -74,11 +75,8 @@ int main(int /*argc*/, char** /*argv*/)
     delete(h_8u_C1);
     delete(h_32f_C1);
 
-    std::cout << std::endl;
-    std::cout << "**************************************************************************" << std::endl;
-    std::cout << "*  Everything seem to be ok. -- All assertions passed.                   *" << std::endl;
-    std::cout << "**************************************************************************" << std::endl;
-    std::cout << std::endl;
+    std::cout << imp::ok_msg << std::endl;
+
   }
   catch (std::exception& e)
   {
