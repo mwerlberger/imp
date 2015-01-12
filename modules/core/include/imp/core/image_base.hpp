@@ -21,27 +21,30 @@ protected:
   {
   }
 
-  ImageBase(const ImageBase &from)
-    : pixel_type_(from.pixelType())
-    , pixel_order_(from.pixelOrder())
-    , size_(from.size_)
-    , roi_(from.roi_)
-  {
-  }
-
   ImageBase(std::uint32_t width, std::uint32_t height,
             PixelType pixel_type,
             PixelOrder pixel_order = imp::PixelOrder::undefined)
     : pixel_type_(pixel_type)
     , pixel_order_(pixel_order)
     , size_(width, height)
-    , roi_(0, 0, width, height)
+    , roi_(size_)
   {
   }
 
-  ImageBase(PixelType pixel_type, const Size &size) :
-      pixel_type_(pixel_type), size_(size),
-      roi_(size)
+  ImageBase(const Size2u &size, PixelType pixel_type,
+            PixelOrder pixel_order = imp::PixelOrder::undefined)
+    : pixel_type_(pixel_type)
+    , pixel_order_(pixel_order)
+    , size_(size)
+    , roi_(size)
+  {
+  }
+
+  ImageBase(const ImageBase &from)
+    : pixel_type_(from.pixelType())
+    , pixel_order_(from.pixelOrder())
+    , size_(from.size_)
+    , roi_(from.roi_)
   {
   }
 
@@ -53,12 +56,13 @@ public:
   {
     // TODO == operator
     this->pixel_type_ = from.pixel_type_;
+    this->pixel_order_ = from.pixel_order_;
     this->size_ = from.size_;
     this->roi_ = from.roi_;
     return *this;
   }
 
-  void setRoi(const Rect& roi)
+  void setRoi(const imp::Roi& roi)
   {
     roi_ = roi;
   }
@@ -87,18 +91,18 @@ public:
 
   std::uint32_t width() const
   {
-    return size_.width;
+    return size_[0];
   }
 
   std::uint32_t height() const
   {
-    return size_.height;
+    return size_[1];
   }
 
   /** Returns the number of pixels in the image. */
   size_t numel() const
   {
-    return (size_.width * size_.height);
+    return (size_[0]*size_[1]);
   }
 
   /** Returns the total amount of bytes saved in the data buffer. */
