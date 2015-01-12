@@ -1,9 +1,6 @@
 #ifndef IMP_IMAGE_BASE_HPP
 #define IMP_IMAGE_BASE_HPP
 
-//#include "globaldefs.h"
-//#include "coredefs.h"
-
 #include <imp/core/pixel_enums.hpp>
 #include <imp/core/size.hpp>
 #include <imp/core/roi.hpp>
@@ -14,31 +11,43 @@ namespace imp {
 class ImageBase
 {
 protected:
-  ImageBase(PixelType pixel_type) :
-    pixel_type_(pixel_type), size_(0,0), roi_(0,0,0,0)
+  ImageBase() = delete;
+
+  ImageBase(PixelType pixel_type, PixelOrder pixel_order = imp::PixelOrder::undefined)
+    : pixel_type_(pixel_type)
+    , pixel_order_(pixel_order)
+    , size_(0,0)
+    , roi_(0,0,0,0)
   {
   }
 
-  ImageBase(const ImageBase &from) :
-    pixel_type_(from.pixelType()), size_(from.size_), roi_(from.roi_)
+  ImageBase(const ImageBase &from)
+    : pixel_type_(from.pixelType())
+    , pixel_order_(from.pixelOrder())
+    , size_(from.size_)
+    , roi_(from.roi_)
   {
   }
 
-  ImageBase(PixelType pixel_type, unsigned int width, unsigned int height) :
-      pixel_type_(pixel_type), size_(width, height), roi_(0, 0, width, height)
+  ImageBase(std::uint32_t width, std::uint32_t height,
+            PixelType pixel_type,
+            PixelOrder pixel_order = imp::PixelOrder::undefined)
+    : pixel_type_(pixel_type)
+    , pixel_order_(pixel_order)
+    , size_(width, height)
+    , roi_(0, 0, width, height)
   {
   }
 
   ImageBase(PixelType pixel_type, const Size &size) :
-      pixel_type_(pixel_type), size_(size), roi_(0, 0, size.width, size.height)
+      pixel_type_(pixel_type), size_(size),
+      roi_(size)
   {
   }
 
 public:
 
-  virtual ~ImageBase()
-  {
-  }
+  virtual ~ImageBase() = default;
 
   ImageBase& operator= (const ImageBase &from)
   {
@@ -60,22 +69,28 @@ public:
     return pixel_type_;
   }
 
-  Size size() const
+  /** Returns the pixel's channel order. */
+  PixelOrder pixelOrder() const
+  {
+    return pixel_order_;
+  }
+
+  Size2u size() const
   {
     return size_;
   }
 
-  Rect roi() const
+  Roi2u roi() const
   {
     return roi_;
   }
 
-  unsigned int width() const
+  std::uint32_t width() const
   {
     return size_.width;
   }
 
-  unsigned int height() const
+  std::uint32_t height() const
   {
     return size_.height;
   }
@@ -110,4 +125,4 @@ private:
 
 } // namespace iuprivate
 
-#endif // IMP_IMAGE_H
+#endif // IMP_IMAGE_BASE_HPP

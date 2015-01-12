@@ -9,25 +9,26 @@ namespace imp {
 enum class PixelType
 {
   undefined = -1,
-  8uC1,
-  8uC2,
-  8uC3,
-  8uC4,
-  16uC1,
-  16uC2,
-  16uC3,
-  16uC4,
-  32uC1,
-  32uC2,
-  32uC4,
-  32sC1,
-  32sC2,
-  32sC3,
-  32sC4,
-  32fC1,
-  32fC2,
-  32fC3,
-  32fC4
+  // interleaved pixel types (i prefix)
+  i8uC1,
+  i8uC2,
+  i8uC3,
+  i8uC4,
+  i16uC1,
+  i16uC2,
+  i16uC3,
+  i16uC4,
+  i32uC1,
+  i32uC2,
+  i32uC4,
+  i32sC1,
+  i32sC2,
+  i32sC3,
+  i32sC4,
+  i32fC1,
+  i32fC2,
+  i32fC3,
+  i32fC4
 };
 
 /**
@@ -36,6 +37,7 @@ enum class PixelType
 enum class PixelOrder
 {
   // interleaved (or single) channel pixel types
+  undefined = -1,
   gray,
   rgb,
   bgr,

@@ -36,6 +36,16 @@ struct RoiBase
   {
   }
 
+  /**
+   * @brief RoiBase initialized max size only. The top-left corner will be ZEROS
+   * @param sz The ROI's size in all dimensions.
+   */
+  RoiBase(const imp::Size<T,DIM>& sz)
+    : sz(sz)
+  {
+    std::fill(pt.begin(), pt.end(), 0);
+  }
+
   virtual ~RoiBase() = default;
 
   RoiBase(const RoiBase& from)
