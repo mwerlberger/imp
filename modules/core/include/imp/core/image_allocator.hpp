@@ -32,7 +32,7 @@ namespace iuprivate {
 
 //--------------------------------------------------------------------------
 template <typename PixelType>
-class ImageAllocatorCpu
+class ImageAllocator
 {
 public:
   static PixelType* alloc(unsigned int width, unsigned int height, size_t *pitch)

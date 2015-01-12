@@ -1,8 +1,8 @@
-#ifndef IMP_LINEARMEMORY_H
-#define IMP_LINEARMEMORY_H
+#ifndef IMP_LINEARMEMORY_HPP
+#define IMP_LINEARMEMORY_HPP
 
 #include "globaldefs.h"
-#include "coredefs.h"
+//#include "coredefs.h"
 
 namespace imp {
 
@@ -10,7 +10,7 @@ namespace imp {
   */
 class LinearMemoryBase
 {
-public:
+protected:
   LinearMemoryBase() :
     length_(0)
   { }
@@ -23,6 +23,7 @@ public:
     length_(length)
   { }
 
+public:
   virtual ~LinearMemoryBase()
   { }
 
@@ -32,7 +33,6 @@ public:
     return length_;
   }
 
-  //! @todo (MWE) don't we want to have these pure virtual?
   /** Returns the total amount of bytes saved in the data buffer. */
   virtual size_t bytes() const = 0;
 
@@ -49,4 +49,4 @@ private:
 
 } // namespace imp
 
-#endif // IMP_LINEARMEMORY_H
+#endif // IMP_LINEARMEMORY_HPP

@@ -1,130 +1,132 @@
-/*
- * Copyright (c) ICG. All rights reserved.
- *
- * Institute for Computer Graphics and Vision
- * Graz University of Technology / Austria
- *
- *
- * This software is distributed WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE.  See the above copyright notices for more information.
- *
- *
- * Project     : VMLibraries
- * Module      : Image base class
- * Class       : Image
- * Language    : C++
- * Description : Implementation of image base class
- *
- * Author     : Manuel Werlberger
- * EMail      : werlberger@icg.tugraz.at
+#ifndef IMP_IMAGE_BASE_HPP
+#define IMP_IMAGE_BASE_HPP
 
- *
- */
+#include <imp/core/pixel_enums.hpp>
+#include <imp/core/size.hpp>
+#include <imp/core/roi.hpp>
 
-#ifndef IUCORE_IMAGE_H
-#define IUCORE_IMAGE_H
-
-#include "globaldefs.h"
-#include "coredefs.h"
-
-namespace iu{
+namespace imp {
 
 //! \todo We maybe do not want to have the Image class in the public dll interface??
-class Image
+class ImageBase
 {
+protected:
+  ImageBase() = delete;
+
+  ImageBase(PixelType pixel_type, PixelOrder pixel_order = imp::PixelOrder::undefined)
+    : pixel_type_(pixel_type)
+    , pixel_order_(pixel_order)
+    , size_(0,0)
+    , roi_(0,0,0,0)
+  {
+  }
+
+  ImageBase(std::uint32_t width, std::uint32_t height,
+            PixelType pixel_type,
+            PixelOrder pixel_order = imp::PixelOrder::undefined)
+    : pixel_type_(pixel_type)
+    , pixel_order_(pixel_order)
+    , size_(width, height)
+    , roi_(size_)
+  {
+  }
+
+  ImageBase(const Size2u &size, PixelType pixel_type,
+            PixelOrder pixel_order = imp::PixelOrder::undefined)
+    : pixel_type_(pixel_type)
+    , pixel_order_(pixel_order)
+    , size_(size)
+    , roi_(size)
+  {
+  }
+
+  ImageBase(const ImageBase &from)
+    : pixel_type_(from.pixelType())
+    , pixel_order_(from.pixelOrder())
+    , size_(from.size_)
+    , roi_(from.roi_)
+  {
+  }
+
 public:
-  Image(IuPixelType pixel_type) :
-    pixel_type_(pixel_type), size_(0,0), roi_(0,0,0,0)
-  {
-  }
 
-  virtual ~Image()
-  {
-  }
+  virtual ~ImageBase() = default;
 
-  Image(const Image &from) :
-    pixel_type_(from.pixelType()), size_(from.size_), roi_(from.roi_)
-  {
-  }
-
-  Image(IuPixelType pixel_type, unsigned int width, unsigned int height) :
-      pixel_type_(pixel_type), size_(width, height), roi_(0, 0, width, height)
-  {
-  }
-
-  Image(IuPixelType pixel_type, const IuSize &size) :
-      pixel_type_(pixel_type), size_(size), roi_(0, 0, size.width, size.height)
-  {
-  }
-
-  Image& operator= (const Image &from)
+  ImageBase& operator= (const ImageBase &from)
   {
     // TODO == operator
     this->pixel_type_ = from.pixel_type_;
+    this->pixel_order_ = from.pixel_order_;
     this->size_ = from.size_;
     this->roi_ = from.roi_;
     return *this;
   }
 
-  void setRoi(const IuRect& roi)
+  void setRoi(const imp::Roi& roi)
   {
     roi_ = roi;
   }
 
   /** Returns the element types. */
-  IuPixelType pixelType() const
+  PixelType pixelType() const
   {
     return pixel_type_;
   }
 
-  IuSize size() const
+  /** Returns the pixel's channel order. */
+  PixelOrder pixelOrder() const
+  {
+    return pixel_order_;
+  }
+
+  Size2u size() const
   {
     return size_;
   }
 
-  IuRect roi() const
+  Roi2u roi() const
   {
     return roi_;
   }
 
-  unsigned int width() const
+  std::uint32_t width() const
   {
-    return size_.width;
+    return size_[0];
   }
 
-  unsigned int height() const
+  std::uint32_t height() const
   {
-    return size_.height;
+    return size_[1];
   }
 
   /** Returns the number of pixels in the image. */
   size_t numel() const
   {
-    return (size_.width * size_.height);
+    return (size_[0]*size_[1]);
   }
 
   /** Returns the total amount of bytes saved in the data buffer. */
-  virtual size_t bytes() const {return 0;};
+  virtual size_t bytes() const = 0;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
-  virtual size_t pitch() const {return 0;};
+  virtual std::uint32_t pitch() const = 0;
 
   /** Returns the distnace in pixels between starts of consecutive rows. */
-  virtual size_t stride() const {return 0;};
+  virtual std::uint32_t stride() const = 0;
 
   /** Returns the bit depth of the data pointer. */
-  virtual unsigned int bitDepth() const {return 0;};
+  virtual std::uint8_t bitDepth() const = 0;
 
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
-  virtual bool onDevice() const {return false;};
+  virtual bool isGpuMemory() const = 0;
 
 private:
-  IuPixelType pixel_type_;
-  IuSize size_;
-  IuRect roi_;
+  PixelType pixel_type_;
+  PixelOrder pixel_order_;
+  Size2u size_;
+  Roi2u roi_;
 };
 
 } // namespace iuprivate
 
-#endif // IUCORE_IMAGE_H
+#endif // IMP_IMAGE_BASE_HPP

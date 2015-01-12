@@ -12,7 +12,7 @@
  *
  * Project     : ImageUtilities
  * Module      : Core
- * Class       : ImageCpu
+ * Class       : Image
  * Language    : C++
  * Description : Definition of image class for Ipp
  *
@@ -21,74 +21,38 @@
  *
  */
 
-#ifndef IMAGE_CPU_H
-#define IMAGE_CPU_H
+#ifndef IMP_IMAGE_HPP
+#define IMP_IMAGE_HPP
 
-#include "image.h"
-#include "image_allocator_cpu.h"
+#include <imp/core/image_base.hpp>
 
-namespace iu {
+namespace imp {
 
-template<typename PixelType, class Allocator, IuPixelType _pixel_type>
-class ImageCpu : public Image
+template<typename _PixelStorageType, imp::PixelType pixel_type>
+class Image : public ImageBase
 {
+  typedef _PixelStorageType pixel_storage_t;
+  typedef pixel_storage_t* pixel_container_t;
+
+protected:
+  Image(imp::PixelOrder pixel_order = imp::PixelOrder::undefined)
+    : ImageBase(pixel_type, pixel_order)
+  { ; }
+
+  Image(std::uint32_t width, std::uint32_t height,
+        PixelOrder pixel_order = imp::PixelOrder::undefined)
+    : ImageBase(width, height, pixel_type, pixel_order)
+  { ; }
+
+  Image(const imp::Size2u &size,
+        imp::PixelOrder pixel_order = imp::PixelOrder::undefined)
+    : ImageBase(size, pixel_type, pixel_order)
+  { ; }
+
+  Image(const Image& from) = default;
+
 public:
-  ImageCpu() :
-    Image(_pixel_type),
-    data_(0), pitch_(0), ext_data_pointer_(false)
-  {
-  }
-
-  virtual ~ImageCpu()
-  {
-    if(!ext_data_pointer_)
-    {
-      // do not delete externally handeled data pointers.
-      Allocator::free(data_);
-      data_ = 0;
-    }
-    pitch_ = 0;
-  }
-
-  ImageCpu(unsigned int _width, unsigned int _height) :
-    Image(_pixel_type, _width, _height), data_(0), pitch_(0),
-    ext_data_pointer_(false)
-  {
-    data_ = Allocator::alloc(_width, _height, &pitch_);
-  }
-
-  ImageCpu(const IuSize& size) :
-    Image(_pixel_type, size.width, size.height), data_(0), pitch_(0),
-    ext_data_pointer_(false)
-  {
-    data_ = Allocator::alloc(size.width, size.height, &pitch_);
-  }
-
-  ImageCpu(const ImageCpu<PixelType, Allocator, _pixel_type>& from) :
-    Image(from), data_(0), pitch_(0),
-    ext_data_pointer_(false)
-  {
-    data_ = Allocator::alloc(width(), height(), &pitch_);
-    Allocator::copy(from.data(), from.pitch(), data_, pitch_, this->size());
-  }
-
-  ImageCpu(PixelType* _data, unsigned int _width, unsigned int _height,
-           size_t _pitch, bool ext_data_pointer = false) :
-    Image(_pixel_type, _width, _height), data_(0), pitch_(0),
-    ext_data_pointer_(ext_data_pointer)
-  {
-    if(ext_data_pointer_)
-    {
-      // This uses the external data pointer as internal data pointer.
-      data_ = _data;
-      pitch_ = _pitch;
-    }
-    else
-    {
-      data_ = Allocator::alloc(width(), height(), &pitch_);
-      Allocator::copy(_data, _pitch, data_, pitch_, this->size());
-    }
-  }
+  virtual ~Image() = default;
 
   /** Returns a pointer to the pixel data.
    * The pointer can be offset to position \a (ox/oy).
@@ -96,18 +60,11 @@ public:
    * @param[in] oy Vertical offset of the pointer array.
    * @return Pointer to the pixel array.
    */
-  PixelType* data(int ox = 0, int oy = 0)
-  {
-    return &data_[oy * stride() + ox];
-  }
-  const PixelType* data(int ox = 0, int oy = 0) const
-  {
-    return reinterpret_cast<const PixelType*>(
-          &data_[oy * stride() + ox]);
-  }
+  pixel_container_t* data(std::uint32_t ox = 0, std::uint32_t oy = 0) = 0;
+  const pixel_container_t* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const = 0;
 
   /** Get Pixel value at position x,y. */
-  PixelType getPixel(unsigned int x, unsigned int y)
+  pixel_storage_t pixel(std::uint32_t x, std::uint32_t y)
   {
     return *data(x, y);
   }
@@ -115,51 +72,33 @@ public:
   /** Get Pointer to beginning of row \a row (y index).
    * This enables the usage of [y][x] operator.
    */
-  PixelType* operator[](unsigned int row)
+  pixel_container_t operator[] (std::uint32_t y)
   {
-    return data_+row*stride();
+    return data_(0,y);
   }
 
-  // :TODO:
-  //ImageCpu& operator= (const ImageCpu<PixelType, Allocator>& from);
-
-  /** Returns the total amount of bytes saved in the data buffer. */
-  virtual size_t bytes() const
-  {
-    return height()*pitch_;
-  }
-
-  /** Returns the distance in bytes between starts of consecutive rows. */
-  virtual size_t pitch() const
-  {
-    return pitch_;
-  }
+  //! @todo (MWE)
+  //Image& operator= (const Image<PixelType, Allocator>& from);
 
   /** Returns the distnace in pixels between starts of consecutive rows. */
-  virtual size_t stride() const
+  virtual size_t stride() const override
   {
-    return pitch_/sizeof(PixelType);
+    return pitch_/sizeof(pixel_storage_t);
   }
 
   /** Returns the bit depth of the data pointer. */
-  virtual unsigned int bitDepth() const
+  virtual unsigned int bitDepth() const override
   {
-    return 8*sizeof(PixelType);
+    return 8*sizeof(pixel_storage_t);
   }
-
-  /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
-  virtual bool onDevice() const
-  {
-    return false;
-  }
-
-protected:
-  PixelType* data_;
-  size_t pitch_;
-  bool ext_data_pointer_; /**< Flag if data pointer is handled outside the image class. */
 };
 
-} // namespace iuprivate
+//-----------------------------------------------------------------------------
+// convenience typedefs
+typedef Image<std::uint8_t, imp::PixelType::i8uC1> Image8uC1;
+typedef Image<float, imp::PixelType::i32fC1> Image32fC1;
+
+} // namespace imp
 
 
-#endif // IMAGE_CPU_H
+#endif // IMP_IMAGE_HPP

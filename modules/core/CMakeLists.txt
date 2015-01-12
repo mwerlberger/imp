@@ -3,17 +3,24 @@ imp_add_module(core)
 
 
 set(HEADERS
-  include/imp/core.h
+#  include/imp/core.h
   include/imp/core/globaldefs.h
   include/imp/core/coredefs.h
 #  include/imp/core/memorydefs.h
+  include/imp/core/exception.hpp
+  include/imp/core/size.hpp
+  include/imp/core/roi.hpp
+  include/imp/core/pixel_enums.hpp
   include/imp/core/linearmemory_base.hpp
   include/imp/core/linearmemory.hpp
+  include/imp/core/image_base.hpp
+  include/imp/core/image_allocator.hpp
+  include/imp/core/image.hpp
   )
 
 set(SOURCES
   src/linearmemory.cpp
-  src/core.cpp
+#  src/core.cpp
   )
 
 
