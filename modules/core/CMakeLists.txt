@@ -8,6 +8,8 @@ set(HEADERS
   include/imp/core/coredefs.h
 #  include/imp/core/memorydefs.h
   include/imp/core/exception.hpp
+  include/imp/core/size.hpp
+  include/imp/core/roi.hpp
   include/imp/core/linearmemory_base.hpp
   include/imp/core/linearmemory.hpp
   )

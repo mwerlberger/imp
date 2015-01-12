@@ -12,30 +12,49 @@ namespace imp {
  * @brief The class SizeBase defines the templated base class of any size utilizing the CRTP pattern.
  */
 template<typename T, std::uint8_t DIM, typename Derived>
-class SizeBase
+struct SizeBase
 {
-public:
+  typedef std::size_t size_type;
+
+  std::array<T, DIM> sz; //!< internal data storage for all dimensions' sizes
+
   SizeBase()
   {
-    std::fill(sz_.begin(), sz_.end(), 0);
+    std::fill(sz.begin(), sz.end(), 0);
   }
 
   SizeBase(const std::array<T,DIM>& arr)
-    : sz_ (arr)
+    : sz(arr)
   {
   }
 
   virtual ~SizeBase() = default;
 
   SizeBase(const SizeBase& from)
-    : sz_(from.sz_)
+    : sz(from.sz)
   {
   }
 
   SizeBase& operator= (const SizeBase& from)
   {
-    this->sz_ = from.sz_;
+    this->sz = from.sz;
   }
+
+  /**
+   * @brief operator [] returns the reference to the element storing the size
+   *        of the \a n-the dimension
+   * @param n dimension index
+   * @return Reference to size element of the n-th dimension
+   */
+  T& operator[] (std::uint8_t n) noexcept {return sz[n];}
+
+  /**
+   * @brief operator [] returns the reference to the element storing the size
+   *        of the \a n-the dimension
+   * @param n dimension index
+   * @return Reference to size element of the n-th dimension
+   */
+  const T& operator[] (std::uint8_t n) const noexcept { return sz[n]; }
 
   /**
    * @brief dim Returns the dimension of the size object.
@@ -43,29 +62,27 @@ public:
    */
   std::uint8_t dim() const {return DIM;}
 
+
   /**
    * @brief data gives access to the underlying (raw) data storage
    * @return Pointer address to the buffer of the underlying data storage.
    */
-  T* data() {return sz_.data();}
+  T* data() {return sz.data();}
 
   /**
    * @brief data gives access to the underlying (raw) const data storage
    * @return Pointer address to the buffer of the underlying data storage.
    */
-  const T* data() const {return reinterpret_cast<const T*>(sz_.data());}
+  const T* data() const {return reinterpret_cast<const T*>(sz.data());}
 
   /**
    * @brief array returns a reference to the internal array used for storing the data
    */
-  std::array<T, DIM>& array() {return sz_;}
+  std::array<T, DIM>& array() {return sz;}
   /**
    * @brief array returns a const reference to the internal array used for storing the data
    */
-  const std::array<T, DIM>& array() const {return reinterpret_cast<const std::array<T, DIM>&>(sz_);}
-
-protected:
-  std::array<T, DIM> sz_;
+  const std::array<T, DIM>& array() const {return reinterpret_cast<const std::array<T, DIM>&>(sz);}
 };
 
 //------------------------------------------------------------------------------
@@ -122,16 +139,12 @@ inline bool operator!=(const SizeBase<T, DIM, Derived>& lhs,
  * @brief The class Size defines a generic size implementation for \a DIM dimensions
  */
 template<typename T, std::uint8_t DIM>
-class Size
+struct Size
     : public SizeBase<T, DIM, Size<T, DIM> >
 {
-private:
   typedef SizeBase<T, DIM, Size<T, DIM> > Base;
-
-public:
   using Base::SizeBase;
   virtual ~Size() = default;
-
 };
 
 //------------------------------------------------------------------------------
@@ -139,13 +152,11 @@ public:
  * @brief The Size<T, 2> is a special size for a 2D shape defining its width and height
  */
 template<typename T>
-class Size<T, 2>
+struct Size<T, 2>
     : public SizeBase<T, 2, Size<T, 2> >
 {
-private:
   typedef SizeBase<T, 2, Size<T, 2> > Base;
 
-public:
   using Base::SizeBase;
   virtual ~Size() = default;
 
@@ -157,13 +168,13 @@ public:
   /**
    * @brief width returns the width of the 2d size
    */
-  T width() {return this->sz_[0];}
+  T width() const {return this->sz[0];}
 
   /**
    * @brief height returns the length of the second dimension of the 2d size
    * @return
    */
-  T height() {return this->sz_[1];}
+  T height() const {return this->sz[1];}
 };
 
 //------------------------------------------------------------------------------
@@ -171,13 +182,11 @@ public:
  * @brief The Size<T, 3> is a special size for a 3D shape defining its width, height and depth
  */
 template<typename T>
-class Size<T, 3>
+struct Size<T, 3>
     : public SizeBase<T, 3, Size<T, 3> >
 {
-private:
   typedef SizeBase<T, 3, Size<T, 3> > Base;
 
-public:
   using Base::SizeBase;
   virtual ~Size() = default;
 
@@ -189,17 +198,17 @@ public:
   /**
    * @brief width returns the width of the 3d size
    */
-  T width() {return this->sz_[0];}
+  T width() const {return this->sz[0];}
 
   /**
    * @brief height returns the length of the second dimension of the 3d size
    */
-  T height() {return this->sz_[1];}
+  T height() const {return this->sz[1];}
 
   /**
    * @brief depth returns the length of the third dimension of the 3d size
    */
-  T depth() {return this->sz_[2];}
+  T depth() const {return this->sz[2];}
 };
 
 //------------------------------------------------------------------------------

@@ -1,71 +1,180 @@
 #ifndef IMP_ROI_HPP
 #define IMP_ROI_HPP
 
+#include <cstdint>
+#include <array>
+#include <algorithm>
+
 #include <imp/core/size.hpp>
 
 namespace imp {
 
-class Roi
+//------------------------------------------------------------------------------
+/**
+ * @brief The class RoiBase defines the templated base class of an \a DIM-dimensional
+ *        region-of-interest utilizing the CRTP pattern.
+ */
+template<typename T, std::uint8_t DIM, typename Derived>
+struct RoiBase
 {
-public:
-  Roi() :
-      x(0), y(0), z(0), width(0), height(0), depth(0)
+  std::array<T, DIM> pt; //!< internal data storage for all dimensions' 'left-upper' corner
+  imp::Size<T, DIM> sz; //!< size of the given roi
+
+  RoiBase()
+  {
+    std::fill(pt.begin(), pt.end(), 0);
+  }
+
+  /**
+   * @brief RoiBase Constructor given the lef-upper corner and the ROI's size
+   * @param lu array of the left-upper corner of the format {a1, a2, a3, ...., aN}
+   * @param sz Size of the \a DIM-dimensional ROI
+   */
+  RoiBase(const std::array<T,DIM>& lu, const imp::Size<T,DIM>& sz)
+    : pt(lu)
+    , sz(sz)
   {
   }
 
-  Roi(int _x, int _y, int _z, unsigned int _width, unsigned int _height, unsigned int _depth) :
-      x(_x), y(_y), z(_z), width(_width), height(_height), depth(_depth)
+  virtual ~RoiBase() = default;
+
+  RoiBase(const RoiBase& from)
+    : pt(from.pt)
+    , sz(from.sz)
   {
   }
 
-  Roi(const Roi& from) :
-      x(from.x), y(from.y), z(from.z), width(from.width), height(from.height), depth(from.depth)
+  RoiBase& operator= (const RoiBase& from)
   {
+    this->sz = from.sz;
+    this->pt = from.pt;
   }
 
-  Roi& operator= (const Roi& from)
-  {
-//    if (from == *this)
-//      return *this;
+  /**
+   * @brief dim Returns the dimension of the Roi object.
+   * @return Dimension.
+   */
+  std::uint8_t dim() const {return DIM;}
 
-    this->x = from.x;
-    this->y = from.y;
-    this->z = from.z;
-    this->width = from.width;
-    this->height = from.height;
-    this->depth = from.depth;
+  /**
+   * @brief data gives access to the underlying (raw) data storage
+   * @return Pointer address to the buffer of the underlying data storage.
+   */
+  T* luRaw() {return pt.data();}
 
-    return *this;
-  }
+  /**
+   * @brief data gives access to the underlying (raw) const data storage
+   * @return Pointer address to the buffer of the underlying data storage.
+   */
+  const T* luRaw() const {return reinterpret_cast<const T*>(pt.data());}
 
-  Roi(const IuSize& from) :
-      x(0), y(0), z(0), width(from.width), height(from.height), depth(from.depth)
-  {
-  }
+  /**
+   * @brief array with the internal data storing the values for the left-upper corner
+   */
+  std::array<T, DIM>& lu() {return pt;}
+  /**
+   * @brief const array with the internal data storing the values for the left-upper corner
+   */
+  const std::array<T, DIM>& lu() const {return reinterpret_cast<const std::array<T, DIM>&>(pt);}
 
-  Roi& operator= (const IuSize& from)
-  {
-    this->x = 0;
-    this->y = 0;
-    this->z = 0;
-    this->width = from.width;
-    this->height = from.height;
-    this->depth = from.depth;
-
-    return *this;
-  }
-
-public:
-  int x;       //!< x-coord of the upper left corner
-  int y;       //!< y-coord of the upper left corner
-  int z;       //!< z-coord of the upper left corner
-  unsigned int width;   //!< width of the rectangle
-  unsigned int height;  //!< height of the rectangle
-  unsigned int depth;  //!< depth of the rectangle
-
+  /**
+   * @brief size of the ROI
+   */
+  imp::Size<T, DIM>& size() {return sz;}
+  /**
+   * @brief size of the ROI (const)
+   */
+  const imp::Size<T, DIM>& size() const {return reinterpret_cast<const imp::Size<T, DIM>&>(sz);}
 };
 
+//------------------------------------------------------------------------------
+// relational operators
+
+template<typename T, std::uint8_t DIM, typename Derived>
+inline bool operator==(const RoiBase<T, DIM, Derived>& lhs,
+                       const RoiBase<T, DIM, Derived>& rhs)
+{
+  return ( (lhs.pt() == rhs.pt()) && (lhs.sz() == rhs.sz()) );
 }
 
-#endif // imp_ROI_HPP
+template<typename T, std::uint8_t DIM, typename Derived>
+inline bool operator!=(const RoiBase<T, DIM, Derived>& lhs,
+                       const RoiBase<T, DIM, Derived>& rhs)
+{
+  return ( (lhs.pt() != rhs.pt()) || (lhs.sz() != rhs.sz()) );
+}
+
+//------------------------------------------------------------------------------
+/**
+ * @brief The class Roi defines region of interest for \a DIM dimensions
+ */
+template<typename T, std::uint8_t DIM>
+struct Roi
+    : public RoiBase<T, DIM, Roi<T, DIM> >
+{
+  typedef RoiBase<T, DIM, Roi<T, DIM> > Base;
+
+  using Base::RoiBase;
+  virtual ~Roi() = default;
+};
+
+//------------------------------------------------------------------------------
+/**
+ * @brief The Roi<T, 2> is a special Roi for a 2D shape defining its width and height
+ */
+template<typename T>
+struct Roi<T, 2>
+    : public RoiBase<T, 2, Roi<T, 2> >
+{
+  typedef RoiBase<T, 2, Roi<T, 2> > Base;
+
+  using Base::RoiBase;
+  virtual ~Roi() = default;
+
+  Roi(const T& x, const T& y, const T& width, const T& height)
+    : Base({x,y}, {width, height})
+  {
+  }
+
+  /**
+   * @brief x returns the ROI's x coordinate of the left-upper corner
+   */
+  T x() const {return this->pt[0];}
+
+  /**
+   * @brief y returns the ROI's y coordinate of the left-upper corner
+   */
+  T y() const {return this->pt[1];}
+
+  /**
+   * @brief width returns the width of the 2d Roi
+   */
+  T width() const {return this->sz[0];}
+
+  /**
+   * @brief height returns the length of the second dimension of the 2d Roi
+   * @return
+   */
+  T height() const {return this->sz[1];}
+};
+
+
+//------------------------------------------------------------------------------
+// some convencience typedefs
+
+// 2D
+typedef Roi<std::uint32_t, 2> Roi2u;
+typedef Roi<std::int32_t, 2> Roi2i;
+typedef Roi<float, 2> Roi2f;
+typedef Roi<float, 2> Roi2d;
+//3D
+typedef Roi<std::uint32_t, 3> Roi3u;
+typedef Roi<std::int32_t, 3> Roi3i;
+typedef Roi<float, 3> Roi3f;
+typedef Roi<float, 3> Roi3d;
+
+
+} // namespace imp
+
+#endif // IMP_ROI_HPP
 
