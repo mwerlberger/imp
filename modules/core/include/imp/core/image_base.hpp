@@ -6,6 +6,7 @@
 
 #include <imp/core/pixel_enums.hpp>
 #include <imp/core/size.hpp>
+#include <imp/core/roi.hpp>
 
 namespace imp {
 
@@ -103,8 +104,8 @@ public:
 private:
   PixelType pixel_type_;
   PixelOrder pixel_order_;
-  Size size_;
-  Rect roi_;
+  Size2u size_;
+  Roi2u roi_;
 };
 
 } // namespace iuprivate
