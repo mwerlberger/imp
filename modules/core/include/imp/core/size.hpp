@@ -38,6 +38,7 @@ struct SizeBase
   SizeBase& operator= (const SizeBase& from)
   {
     this->sz = from.sz;
+    return *this;
   }
 
   /**

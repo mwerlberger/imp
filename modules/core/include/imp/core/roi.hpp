@@ -58,6 +58,7 @@ struct RoiBase
   {
     this->sz = from.sz;
     this->pt = from.pt;
+    return *this;
   }
 
   /**

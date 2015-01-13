@@ -43,7 +43,7 @@ LinearMemory<PixelType>::LinearMemory(PixelType* host_data,
                                               bool use_ext_data_pointer)
   : LinearMemoryBase(length)
 {
-  if (host_data == 0)
+  if (host_data == nullptr)
   {
     throw imp::Exception("input data not valid", __FILE__, __FUNCTION__, __LINE__);
   }

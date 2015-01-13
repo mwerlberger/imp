@@ -1,72 +1,102 @@
 #ifndef IMAGE_HPP
 #define IMAGE_HPP
 
+#include <memory>
+#include <algorithm>
+
 #include <imp/core/image.hpp>
 #include <imp/core/image_allocator.hpp>
 
 namespace imp {
 
-template<typename _PixelStorageType, imp::PixelType pixel_type>
-class ImageRaw : public imp::Image<_PixelStorageType, pixel_type>
+template<typename PixelStorageType, imp::PixelType pixel_type>
+class ImageRaw : public imp::Image<PixelStorageType, pixel_type>
 {
 public:
-  typedef _PixelStorageType pixel_storage_t;
+  typedef Image<PixelStorageType, pixel_type> Base;
+  typedef ImageRaw<PixelStorageType, pixel_type> ImRaw;
+  typedef imp::ImageMemoryStorage<PixelStorageType> Memory;
+  typedef imp::ImageMemoryDeallocator<PixelStorageType> Deallocator;
+
+  typedef PixelStorageType pixel_storage_t;
   typedef pixel_storage_t* pixel_container_t;
 
-  ImageRaw() :
-    Image(_pixel_type),
-    data_(0), pitch_(0), ext_data_pointer_(false)
+  ImageRaw()
+    : Base(pixel_type)
+  { ; }
+
+  virtual ~ImageRaw() = default;
+
+  ImageRaw(std::uint32_t width, std::uint32_t height)
+    : Base(width, height)
   {
+    data_.reset(Memory::alignedAlloc(width, height, &pitch_));
   }
 
-  virtual ~ImageRaw()
+  ImageRaw(const imp::Size2u& size)
+    : Base(size)
   {
-    if(!ext_data_pointer_)
+    data_.reset(Memory::alignedAlloc(size, &pitch_));
+  }
+
+  ImageRaw(const ImageRaw& from)
+    : Base(from)
+  {
+    data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
+    if (this->bytes() == from.bytes())
     {
-      // do not delete externally handeled data pointers.
-      Allocator::free(data_);
-      data_ = 0;
-    }
-    pitch_ = 0;
-  }
-
-  ImageRaw(unsigned int _width, unsigned int _height) :
-    Image(_pixel_type, _width, _height), data_(0), pitch_(0),
-    ext_data_pointer_(false)
-  {
-    data_ = Allocator::alloc(_width, _height, &pitch_);
-  }
-
-  ImageRaw(const IuSize& size) :
-    Image(_pixel_type, size.width, size.height), data_(0), pitch_(0),
-    ext_data_pointer_(false)
-  {
-    data_ = Allocator::alloc(size.width, size.height, &pitch_);
-  }
-
-  ImageRaw(const ImageRaw<pixel_storage_type_t, Allocator, _pixel_type>& from) :
-    Image(from), data_(0), pitch_(0),
-    ext_data_pointer_(false)
-  {
-    data_ = Allocator::alloc(width(), height(), &pitch_);
-    Allocator::copy(from.data(), from.pitch(), data_, pitch_, this->size());
-  }
-
-  ImageRaw(pixel_container_t _data, unsigned int _width, unsigned int _height,
-           size_t _pitch, bool ext_data_pointer = false) :
-    Image(_pixel_type, _width, _height), data_(0), pitch_(0),
-    ext_data_pointer_(ext_data_pointer)
-  {
-    if(ext_data_pointer_)
-    {
-      // This uses the external data pointer as internal data pointer.
-      data_ = _data;
-      pitch_ = _pitch;
+      std::cout << "using std::copy" << std::cout;
+      std::copy(from.data_.get(), from.data_.get()+from.stride()*from.height(), data_.get());
     }
     else
     {
-      data_ = Allocator::alloc(width(), height(), &pitch_);
-      Allocator::copy(_data, _pitch, data_, pitch_, this->size());
+      std::cout << "pixel-wise copy" << std::cout;
+      for (std::uint32_t y=0; y<this->height(); ++y)
+      {
+        for (std::uint32_t x=0; x<this->width(); ++x)
+        {
+          data_.get()[y*this->stride()+x] = from[y][x];
+        }
+      }
+    }
+  }
+
+  ImageRaw(pixel_container_t data, std::uint32_t width, std::uint32_t height,
+           size_type pitch, bool use_ext_data_pointer = false)
+    : Base(width, height)
+  {
+    if (data == nullptr)
+    {
+      throw imp::Exception("input data not valid", __FILE__, __FUNCTION__, __LINE__);
+    }
+
+    if(use_ext_data_pointer)
+    {
+      // This uses the external data pointer as internal data pointer.
+      auto dealloc_nop = [](pixel_container_t p) { ; };
+      data_ = std::unique_ptr<pixel_storage_t, Deallocator>(
+            data, Deallocator(dealloc_nop));
+      pitch_ = pitch;
+    }
+    else
+    {
+      data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
+      size_type stride = pitch / sizeof(pixel_storage_t);
+
+      if (this->bytes() == pitch*height)
+      {
+        std::copy(data, data+stride*height, data_.get());
+      }
+      else
+      {
+        for (std::uint32_t y=0; y<height; ++y)
+        {
+          for (std::uint32_t x=0; x<width; ++x)
+          {
+            data_.get()[y*this->stride()+x] = data[y*stride + x];
+          }
+        }
+      }
     }
   }
 
@@ -76,58 +106,77 @@ public:
    * @param[in] oy Vertical offset of the pointer array.
    * @return Pointer to the pixel array.
    */
-  pixel_container_t data(int ox = 0, int oy = 0)
+  virtual pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) override
   {
-    return &data_[oy * stride() + ox];
+    if (ox > this->width() || oy > this->height())
+    {
+      throw imp::Exception("Request starting offset is outside of the image.", __FILE__, __FUNCTION__, __LINE__);
+    }
+
+    return &data_.get()[oy*this->stride() + ox];
   }
-  const pixel_container_t data(int ox = 0, int oy = 0) const
+  virtual const pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override
   {
-    return reinterpret_cast<const pixel_container_t>(
-          &data_[oy * stride() + ox]);
+    return reinterpret_cast<const pixel_container_t>(this->data(ox,oy));
   }
 
-  /** Get Pixel value at position x,y. */
-  pixel_storage_type_t getPixel(unsigned int x, unsigned int y)
+  void copyTo(Base& dst)
   {
-    return *data(x, y);
-  }
+    if (this->width() != dst.width() || this->height() != dst.height())
+    {
+      //! @todo (MWE) if width/height is the same but alignment is different we can copy manually!
+      throw imp::Exception("Image size and/or memory alignment is different.", __FILE__, __FUNCTION__, __LINE__);
+    }
 
-  /** Get Pointer to beginning of row \a row (y index).
-   * This enables the usage of [y][x] operator.
-   */
-  pixel_container_t operator[](unsigned int row)
-  {
-    return data_+row*stride();
+    if (this->bytes() == dst.bytes())
+    {
+      std::cout << "using std::copy" << std::endl;
+      std::copy(data_.get(), data_.get()+this->stride()*this->height(), dst.data());
+    }
+    else
+    {
+      std::cout << "pixel-wise copy" << std::endl;
+      for (std::uint32_t y=0; y<this->height(); ++y)
+      {
+        for (std::uint32_t x=0; x<this->width(); ++x)
+        {
+          dst[y][x] = data_.get()[y*this->stride() + x];
+        }
+      }
+    }
   }
 
   // :TODO:
   //ImageCpu& operator= (const ImageCpu<pixel_storage_type_t, Allocator>& from);
 
-  /** Returns the total amount of bytes saved in the data buffer. */
-  virtual size_t bytes() const
+  /** Returns the (guaranteed) total amount of bytes saved in the data buffer. */
+  virtual size_type bytes() const override
   {
-    return height()*pitch_;
+    return this->height()*pitch_;
   }
 
   /** Returns the distance in bytes between starts of consecutive rows. */
-  virtual size_t pitch() const
+  virtual size_type pitch() const override
   {
     return pitch_;
   }
 
-
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
-  virtual bool onDevice() const
+  virtual bool isGpuMemory() const override
   {
     return false;
   }
 
 protected:
-  std::unique_ptr<pixel_storage_t, > data_;
-  pixel_container_t data_;
-  size_t pitch_;
-  bool ext_data_pointer_; /**< Flag if data pointer is handled outside the image class. */
+
+  std::unique_ptr<pixel_storage_t, Deallocator > data_; //!< the actual image data
+  size_type pitch_ = 0; //!< Row alignment in bytes.
 };
+
+typedef ImageRaw<std::uint8_t, imp::PixelType::i8uC1> ImageRaw8uC1;
+typedef ImageRaw<std::uint16_t, imp::PixelType::i8uC1> ImageRaw16uC1;
+typedef ImageRaw<std::int32_t, imp::PixelType::i8uC1> ImageRaw32sC1;
+typedef ImageRaw<float, imp::PixelType::i8uC1> ImageRaw32fC1;
 
 } // namespace imp
 

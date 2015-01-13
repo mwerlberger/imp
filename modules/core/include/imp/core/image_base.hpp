@@ -4,6 +4,7 @@
 #include <imp/core/pixel_enums.hpp>
 #include <imp/core/size.hpp>
 #include <imp/core/roi.hpp>
+#include <imp/core/types.hpp>
 
 namespace imp {
 
@@ -49,7 +50,6 @@ protected:
   }
 
 public:
-
   virtual ~ImageBase() = default;
 
   ImageBase& operator= (const ImageBase &from)
@@ -62,7 +62,7 @@ public:
     return *this;
   }
 
-  void setRoi(const imp::Roi& roi)
+  void setRoi(const imp::Roi2u& roi)
   {
     roi_ = roi;
   }
@@ -100,19 +100,19 @@ public:
   }
 
   /** Returns the number of pixels in the image. */
-  size_t numel() const
+  size_type numel() const
   {
     return (size_[0]*size_[1]);
   }
 
   /** Returns the total amount of bytes saved in the data buffer. */
-  virtual size_t bytes() const = 0;
+  virtual size_type bytes() const = 0;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
-  virtual std::uint32_t pitch() const = 0;
+  virtual size_type pitch() const = 0;
 
   /** Returns the distnace in pixels between starts of consecutive rows. */
-  virtual std::uint32_t stride() const = 0;
+  virtual size_type stride() const = 0;
 
   /** Returns the bit depth of the data pointer. */
   virtual std::uint8_t bitDepth() const = 0;

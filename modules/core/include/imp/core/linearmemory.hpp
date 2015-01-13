@@ -16,10 +16,7 @@ class LinearMemory : public LinearMemoryBase
 {
 public:
   LinearMemory();
-  virtual ~LinearMemory()
-  {
-    // let's praise managed pointers (and their custom deleter functions ;) ).
-  }
+  virtual ~LinearMemory() = default;
 
   LinearMemory(const size_t& length);
   LinearMemory(const LinearMemory<PixelType>& from);
@@ -65,7 +62,6 @@ public:
 protected:
 
 private:
-
   /** Custom deleter for the unique_ptr housing the c-style data pointer.
    * We do that in case we receive an external data pointer array but are not
    * allowed to manage the memory. In this case it is possible to avoid the
@@ -94,17 +90,17 @@ private:
     std::function< void(PixelType* )> f;
   };
 
-  //PixelType* data_ = nullptr; /**< Pointer to device buffer. */
+private:
   std::unique_ptr<PixelType, CustomDataDeleter> data_;
-  bool ext_data_pointer_ = false; /**< Flag for the ownership of the data pointer. */
+  //bool ext_data_pointer_ = false; /**< Flag for the ownership of the data pointer. */
 
 };
 
 // for explicit instantiation of the template class
-typedef LinearMemory<std::uint8_t> LinearMemory_8u_C1;
-typedef LinearMemory<std::uint16_t> LinearMemory_16u_C1;
-typedef LinearMemory<std::int32_t> LinearMemory_32s_C1;
-typedef LinearMemory<float> LinearMemory_32f_C1;
+typedef LinearMemory<std::uint8_t> LinearMemory8uC1;
+typedef LinearMemory<std::uint16_t> LinearMemory16uC1;
+typedef LinearMemory<std::int32_t> LinearMemory32sC1;
+typedef LinearMemory<float> LinearMemory32fC1;
 
 
 

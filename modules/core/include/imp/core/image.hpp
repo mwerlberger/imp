@@ -37,8 +37,8 @@ public:
    * @param[in] oy Vertical offset of the pointer array.
    * @return Pointer to the pixel array.
    */
-  pixel_container_t* data(std::uint32_t ox = 0, std::uint32_t oy = 0) = 0;
-  const pixel_container_t* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const = 0;
+  virtual pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) = 0;
+  virtual const pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) const = 0;
 
   /** Get Pixel value at position x,y. */
   pixel_storage_t pixel(std::uint32_t x, std::uint32_t y)
@@ -49,22 +49,25 @@ public:
   /** Get Pointer to beginning of row \a row (y index).
    * This enables the usage of [y][x] operator.
    */
-  pixel_container_t operator[] (std::uint32_t y)
+  pixel_container_t operator[] (std::uint32_t row)
   {
-    return data_(0,y);
+    return data(0,row);
   }
-
+  const pixel_container_t operator[] (std::uint32_t row) const
+  {
+    return data(0,row);
+  }
   //! @todo (MWE)
   //Image& operator= (const Image<PixelType, Allocator>& from);
 
   /** Returns the distnace in pixels between starts of consecutive rows. */
-  virtual size_t stride() const override
+  virtual size_type stride() const override
   {
-    return pitch_/sizeof(pixel_storage_t);
+    return this->pitch()/sizeof(pixel_storage_t);
   }
 
   /** Returns the bit depth of the data pointer. */
-  virtual unsigned int bitDepth() const override
+  virtual std::uint8_t bitDepth() const override
   {
     return 8*sizeof(pixel_storage_t);
   }
