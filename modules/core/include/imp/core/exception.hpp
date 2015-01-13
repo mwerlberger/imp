@@ -7,10 +7,10 @@ namespace imp {
 
 /** Assertion with additional error information
  */
-class exception : public std::exception
+class Exception : public std::exception
 {
 public:
-  exception(const std::string& msg,
+  Exception(const std::string& msg,
             const char* file=NULL, const char* function=NULL, int line=0) throw():
     msg_(msg),
     file_(file),
@@ -27,7 +27,7 @@ public:
     msg_ = out_msg.str();
   }
 
-  virtual ~exception() throw()
+  virtual ~Exception() throw()
   { }
 
   virtual const char* what() const throw()

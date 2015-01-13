@@ -1,32 +1,10 @@
-/*
- * Copyright (c) ICG. All rights reserved.
- *
- * Institute for Computer Graphics and Vision
- * Graz University of Technology / Austria
- *
- *
- * This software is distributed WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE.  See the above copyright notices for more information.
- *
- *
- * Project     : ImageUtilities
- * Module      : Core
- * Class       : ImageAllocatorCpu
- * Language    : C++
- * Description : Image allocation functions for Cpu images.
- *
- * Author     : Manuel Werlberger
- * EMail      : werlberger@icg.tugraz.at
- *
- */
+#ifndef IMP_IMAGE_ALLOCATOR_HPP
+#define IMP_IMAGE_ALLOCATOR_HPP
 
-#ifndef IMAGE_ALLOCATOR_CPU_H
-#define IMAGE_ALLOCATOR_CPU_H
-
-#include <cstring>
+//#include <cstring>
 #include <math.h>
-#include "coredefs.h"
+
+#include <imp/core/exception.hpp>
 
 namespace iuprivate {
 
@@ -77,6 +55,27 @@ public:
     }
   }
 };
+
+//--------------------------------------------------------------------------
+template <typename _PixelStorageType, int memaddr_align=32, bool align_rows=true>
+class ImageMemoryStorage
+{
+public:
+  ImageMemoryStorage() = default;
+  virtual ~ImageMemoryStorage() = default;
+
+  alloc(size_t num_elements)
+  {
+    if (num_elements == 0)
+    {
+      throw imp::Exception()
+    }
+  }
+
+private:
+
+};
+
 
 } // namespace iuprivate
 

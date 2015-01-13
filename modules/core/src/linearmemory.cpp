@@ -30,7 +30,7 @@ LinearMemory<PixelType>::LinearMemory(const LinearMemory<PixelType>& from)
 {
   if (from.data_ == 0)
   {
-    throw imp::exception("input data not valid", __FILE__, __FUNCTION__, __LINE__);
+    throw imp::Exception("input data not valid", __FILE__, __FUNCTION__, __LINE__);
   }
   data_.reset(new PixelType[this->length()]);
   std::copy(from.data_.get(), from.data_.get()+from.length(), data_.get());
@@ -45,7 +45,7 @@ LinearMemory<PixelType>::LinearMemory(PixelType* host_data,
 {
   if (host_data == 0)
   {
-    throw imp::exception("input data not valid", __FILE__, __FUNCTION__, __LINE__);
+    throw imp::Exception("input data not valid", __FILE__, __FUNCTION__, __LINE__);
   }
 
   if(use_ext_data_pointer)
@@ -70,7 +70,7 @@ PixelType* LinearMemory<PixelType>::data(int offset)
 {
   if ((size_t)offset > this->length())
   {
-    throw imp::exception("offset not in range", __FILE__, __FUNCTION__, __LINE__);
+    throw imp::Exception("offset not in range", __FILE__, __FUNCTION__, __LINE__);
   }
 
   return &(data_.get()[offset]);
@@ -82,7 +82,7 @@ const PixelType* LinearMemory<PixelType>::data(int offset) const
 {
   if ((size_t)offset > this->length())
   {
-    throw imp::exception("offset not in range", __FILE__, __FUNCTION__, __LINE__);
+    throw imp::Exception("offset not in range", __FILE__, __FUNCTION__, __LINE__);
   }
   return reinterpret_cast<const PixelType*>(&(data_.get()[offset]));
 }
@@ -100,7 +100,7 @@ void LinearMemory<PixelType>::copyTo(LinearMemory<PixelType>& dst)
 {
   if (this->length() != dst.length())
   {
-    throw imp::exception("source and destination array are of different length", __FILE__, __FUNCTION__, __LINE__);
+    throw imp::Exception("source and destination array are of different length", __FILE__, __FUNCTION__, __LINE__);
   }
   std::copy(data_.get(), data_.get()+this->length(), dst.data_.get());
 }
