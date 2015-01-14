@@ -3,10 +3,6 @@ imp_add_module(core)
 
 
 set(HEADERS
-#  include/imp/core.h
-  include/imp/core/globaldefs.h
-  include/imp/core/coredefs.h
-#  include/imp/core/memorydefs.h
   include/imp/core/types.hpp
   include/imp/core/exception.hpp
   include/imp/core/size.hpp
@@ -23,9 +19,7 @@ set(HEADERS
 set(SOURCES
   src/linearmemory.cpp
   src/image_raw.cpp
-#  src/core.cpp
   )
-
 
 #imp_module_include_directories(${module})
 imp_create_module(${SOURCES} ${HEADERS})
