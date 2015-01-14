@@ -1,5 +1,5 @@
-#ifndef IMAGE_HPP
-#define IMAGE_HPP
+#ifndef IMAGE_RAW_HPP
+#define IMAGE_RAW_HPP
 
 #include <memory>
 #include <algorithm>
@@ -9,6 +9,9 @@
 
 namespace imp {
 
+/**
+ * @brief The ImageRaw class
+ */
 template<typename PixelStorageType, imp::PixelType pixel_type>
 class ImageRaw : public imp::Image<PixelStorageType, pixel_type>
 {
@@ -21,13 +24,14 @@ public:
   typedef PixelStorageType pixel_storage_t;
   typedef pixel_storage_t* pixel_container_t;
 
+public:
   ImageRaw() = default;
   virtual ~ImageRaw() = default;
 
   ImageRaw(std::uint32_t width, std::uint32_t height);
   ImageRaw(const imp::Size2u& size);
   ImageRaw(const ImageRaw& from);
-
+  ImageRaw(const Base& from);
   ImageRaw(pixel_container_t data, std::uint32_t width, std::uint32_t height,
            size_type pitch, bool use_ext_data_pointer = false);
 
@@ -38,68 +42,18 @@ public:
    * @return Pointer to the pixel array.
    */
   virtual pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
-//  {
-//    if (ox > this->width() || oy > this->height())
-//    {
-//      throw imp::Exception("Request starting offset is outside of the image.", __FILE__, __FUNCTION__, __LINE__);
-//    }
-
-//    return &data_.get()[oy*this->stride() + ox];
-//  }
-  virtual const pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override
-  {
-    return reinterpret_cast<const pixel_container_t>(this->data(ox,oy));
-  }
-
-  void copyTo(Base& dst);
-//  {
-//    if (this->width() != dst.width() || this->height() != dst.height())
-//    {
-//      //! @todo (MWE) if width/height is the same but alignment is different we can copy manually!
-//      throw imp::Exception("Image size and/or memory alignment is different.", __FILE__, __FUNCTION__, __LINE__);
-//    }
-
-//    if (this->bytes() == dst.bytes())
-//    {
-//      std::cout << "using std::copy" << std::endl;
-//      std::copy(data_.get(), data_.get()+this->stride()*this->height(), dst.data());
-//    }
-//    else
-//    {
-//      std::cout << "pixel-wise copy" << std::endl;
-//      for (std::uint32_t y=0; y<this->height(); ++y)
-//      {
-//        for (std::uint32_t x=0; x<this->width(); ++x)
-//        {
-//          dst[y][x] = data_.get()[y*this->stride() + x];
-//        }
-//      }
-//    }
-//  }
-
-  // :TODO:
-  //ImageCpu& operator= (const ImageCpu<pixel_storage_type_t, Allocator>& from);
+  virtual const PixelStorageType* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
 
   /** Returns the (guaranteed) total amount of bytes saved in the data buffer. */
-  virtual size_type bytes() const override
-  {
-    return this->height()*pitch_;
-  }
+  virtual size_type bytes() const override { return this->height()*pitch_; }
 
   /** Returns the distance in bytes between starts of consecutive rows. */
-  virtual size_type pitch() const override
-  {
-    return pitch_;
-  }
+  virtual size_type pitch() const override { return pitch_; }
 
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
-  virtual bool isGpuMemory() const override
-  {
-    return false;
-  }
+  virtual bool isGpuMemory() const override { return false; }
 
 protected:
-
   std::unique_ptr<pixel_storage_t, Deallocator > data_; //!< the actual image data
   size_type pitch_ = 0; //!< Row alignment in bytes.
 };
@@ -114,4 +68,4 @@ typedef ImageRaw<float, imp::PixelType::i8uC1> ImageRaw32fC1;
 } // namespace imp
 
 
-#endif // IMAGE_HPP
+#endif // IMAGE_RAW_HPP

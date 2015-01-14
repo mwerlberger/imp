@@ -1,14 +1,17 @@
 #ifndef IMP_IMAGE_HPP
 #define IMP_IMAGE_HPP
 
+#include <cstdint>
+
 #include <imp/core/image_base.hpp>
+#include <imp/core/exception.hpp>
 
 namespace imp {
 
-template<typename _PixelStorageType, imp::PixelType pixel_type>
+template<typename PixelStorageType, imp::PixelType pixel_type>
 class Image : public ImageBase
 {
-  typedef _PixelStorageType pixel_storage_t;
+  typedef PixelStorageType pixel_storage_t;
   typedef pixel_storage_t* pixel_container_t;
 
 protected:
@@ -38,10 +41,10 @@ public:
    * @return Pointer to the pixel array.
    */
   virtual pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) = 0;
-  virtual const pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) const = 0;
+  virtual const PixelStorageType* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const = 0;
 
   /** Get Pixel value at position x,y. */
-  pixel_storage_t pixel(std::uint32_t x, std::uint32_t y)
+  pixel_storage_t pixel(std::uint32_t x, std::uint32_t y) const
   {
     return *data(x, y);
   }
@@ -57,8 +60,34 @@ public:
   {
     return data(0,row);
   }
-  //! @todo (MWE)
-  //Image& operator= (const Image<PixelType, Allocator>& from);
+
+  /**
+   * @brief copyTo copies the internal image data to another class instance
+   * @param dst Image class that will receive this image's data.
+   */
+  virtual void copyTo(Image& dst) const
+  {
+    if (this->width() != dst.width() || this->height() != dst.height())
+    {
+      throw imp::Exception("Copying failed: Image size differs.", __FILE__, __FUNCTION__, __LINE__);
+    }
+
+    if (this->bytes() == dst.bytes())
+    {
+      std::copy(this->data(), this->data()+this->stride()*this->height(), dst.data());
+    }
+    else
+    {
+      for (std::uint32_t y=0; y<this->height(); ++y)
+      {
+        for (std::uint32_t x=0; x<this->width(); ++x)
+        {
+          dst[y][x] = this->pixel(x,y);
+        }
+      }
+    }
+  }
+
 
   /** Returns the distnace in pixels between starts of consecutive rows. */
   virtual size_type stride() const override

@@ -29,29 +29,23 @@ ImageRaw<PixelStorageType, pixel_type>::ImageRaw(const ImageRaw& from)
   : Base(from)
 {
   data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
-  if (this->bytes() == from.bytes())
-  {
-    std::cout << "using std::copy" << std::cout;
-    std::copy(from.data_.get(), from.data_.get()+from.stride()*from.height(), data_.get());
-  }
-  else
-  {
-    std::cout << "pixel-wise copy" << std::cout;
-    for (std::uint32_t y=0; y<this->height(); ++y)
-    {
-      for (std::uint32_t x=0; x<this->width(); ++x)
-      {
-        data_.get()[y*this->stride()+x] = from[y][x];
-      }
-    }
-  }
+  from.copyTo(*this);
 }
 
 //-----------------------------------------------------------------------------
 template<typename PixelStorageType, imp::PixelType pixel_type>
-ImageRaw<PixelStorageType, pixel_type>::ImageRaw(
-    pixel_container_t data, std::uint32_t width, std::uint32_t height,
-    size_type pitch, bool use_ext_data_pointer)
+ImageRaw<PixelStorageType, pixel_type>::ImageRaw(const Image<PixelStorageType, pixel_type>& from)
+  : Base(from)
+{
+  data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
+  from.copyTo(*this);
+}
+
+//-----------------------------------------------------------------------------
+template<typename PixelStorageType, imp::PixelType pixel_type>
+ImageRaw<PixelStorageType, pixel_type>
+::ImageRaw(pixel_container_t data, std::uint32_t width, std::uint32_t height,
+           size_type pitch, bool use_ext_data_pointer)
   : Base(width, height)
 {
   if (data == nullptr)
@@ -104,48 +98,16 @@ PixelStorageType* ImageRaw<PixelStorageType, pixel_type>::data(
 
 //-----------------------------------------------------------------------------
 template<typename PixelStorageType, imp::PixelType pixel_type>
-void ImageRaw<PixelStorageType, pixel_type>::copyTo(Base& dst)
+const PixelStorageType* ImageRaw<PixelStorageType, pixel_type>::data(
+    std::uint32_t ox, std::uint32_t oy) const
 {
-  if (this->width() != dst.width() || this->height() != dst.height())
+  if (ox > this->width() || oy > this->height())
   {
-    //! @todo (MWE) if width/height is the same but alignment is different we can copy manually!
-    throw imp::Exception("Image size and/or memory alignment is different.", __FILE__, __FUNCTION__, __LINE__);
+    throw imp::Exception("Request starting offset is outside of the image.", __FILE__, __FUNCTION__, __LINE__);
   }
 
-  if (this->bytes() == dst.bytes())
-  {
-    std::cout << "using std::copy" << std::endl;
-    std::copy(data_.get(), data_.get()+this->stride()*this->height(), dst.data());
-  }
-  else
-  {
-    std::cout << "pixel-wise copy" << std::endl;
-    for (std::uint32_t y=0; y<this->height(); ++y)
-    {
-      for (std::uint32_t x=0; x<this->width(); ++x)
-      {
-        dst[y][x] = data_.get()[y*this->stride() + x];
-      }
-    }
-  }
+  return reinterpret_cast<const pixel_container_t>(&data_.get()[oy*this->stride() + ox]);
 }
-
-// //-----------------------------------------------------------------------------
-// virtual size_type bytes() const override
-// {
-//   return this->height()*pitch_;
-// }
-
-// virtual size_type pitch() const override
-// {
-//   return pitch_;
-// }
-
-// virtual bool isGpuMemory() const override
-// {
-//   return false;
-// }
-
 
 //=============================================================================
 // Explicitely instantiate the desired classes
