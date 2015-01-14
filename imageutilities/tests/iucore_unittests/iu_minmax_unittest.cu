@@ -24,7 +24,7 @@
 #ifndef IU_MINMAX_UNITTEST_CU
 #define IU_MINMAX_UNITTEST_CU
 
-#include <iucore.h>
+#include <iu/iucore.h>
 #include <iu/iucutil.h>
 
 /******************************************************************************

@@ -23,8 +23,8 @@
 
 // system includes
 #include <iostream>
-#include <cuda_runtime.h>
-#include <iucore.h>
+//#include <cuda_runtime.h>
+#include <iu/iucore.h>
 #include <iu/iucutil.h>
 #include <float.h>
 #include <iu/iumath.h>

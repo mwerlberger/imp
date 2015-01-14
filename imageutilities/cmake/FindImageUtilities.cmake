@@ -31,12 +31,9 @@ else(ImageUtilities_FIND_COMPONENTS)
 endif(ImageUtilities_FIND_COMPONENTS)
 
 # set path to use file
-get_filename_component(VMLIBRARIES_CMAKE_ROOT "${CMAKE_CURRENT_LIST_FILE}" PATH CACHE)
-set(VMLIBRARIES_DIR $ENV{VMLIBRARIES_ROOT} CACHE PATH "basepath for vmlibraries")
-if(NOT VMLIBRARIES_DIR)
-  set(VMLIBRARIES_DIR = ${VMLIBRARIES_CMAKE_ROOT}/../ CACHE PATH "basepath for vmlibraries")
-endif(NOT VMLIBRARIES_DIR)
-set(IU_USE_FILE ${VMLIBRARIES_CMAKE_ROOT}/UseImageUtilities.cmake CACHE FILEPATH "USE file for including the correct headers and libs.")
+get_filename_component(IMAGEUTILITIES_CMAKE_ROOT "${CMAKE_CURRENT_LIST_FILE}" PATH CACHE)
+set(IMAGEUTILITIES_SRC_DIR ${IMAGEUTILITIES_CMAKE_ROOT}/../src CACHE PATH "src path for imageutilities")
+set(IU_USE_FILE ${IMAGEUTILITIES_CMAKE_ROOT}/UseImageUtilities.cmake CACHE FILEPATH "USE file for including the correct headers and libs.")
 
 # set a variable for all possible modules
 set(IU_MODULES iucore iuipp iumatlab iugui iuio iuiopgm iuvideocapture iupgrcamera iuvideosource)
@@ -60,16 +57,16 @@ else(IU_INCLUDE_DIRS AND IU_LIBRARY_DIR)
   #
   
   # include path
-  set(IU_INCLUDE_DIRS "${VMLIBRARIES_DIR}/include" "${VMLIBRARIES_DIR}/include/iu" CACHE PATH "Include dir of the ImageUtilities library.")
+  set(IU_INCLUDE_DIRS "${IMAGEUTILITIES_SRC_DIR}" CACHE PATH "Include dir of the ImageUtilities library.")
   # check include dir
   ## TODO FIXME
 
-  set(VMLIBRARIES_COMMON_INCLUDE_DIR "${VMLIBRARIES_DIR}/common/include" CACHE PATH "Common include dir of the vmlibraries project for small helper functions.")
-  set(VMLIBRARIES_EXTERN_INCLUDE_DIR "${VMLIBRARIES_DIR}/extern/include" "${VMLIBRARIES_DIR}/extern" CACHE PATH "Include dir for external libraries.")
+  set(VMLIBRARIES_COMMON_INCLUDE_DIR "${IMAGEUTILITIES_SRC_DIR}/common/include" CACHE PATH "Common include dir of the vmlibraries project for small helper functions.")
+#  set(VMLIBRARIES_EXTERN_INCLUDE_DIR "${IMAGEUTILITIES_SRC_DIR}/extern/include" "${VMLIBRARIES_DIR}/extern" CACHE PATH "Include dir for external libraries.")
 
   # library path
   set(POTENTIAL_LIBRARY_PATHS
-    ${VMLIBRARIES_DIR}/lib
+    ${IMAGEUTILITIES_SRC_DIR}/../build/src
     # ${VMLIBRARIES_DIR}/lib/debug
     # ${VMLIBRARIES_DIR}/lib/release
     )

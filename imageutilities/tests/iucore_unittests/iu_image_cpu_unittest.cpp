@@ -23,9 +23,9 @@
 
 // system includes
 #include <iostream>
-#include <cuda_runtime.h>
+//#include <cuda_runtime.h>
 //#include <cutil_math.h>
-#include <iucore.h>
+#include <iu/iucore.h>
 #include <iu/iucutil.h>
 
 int main(int argc, char** argv)
