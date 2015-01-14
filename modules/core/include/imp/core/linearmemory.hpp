@@ -96,7 +96,8 @@ private:
 
 };
 
-// for explicit instantiation of the template class
+// convenience typedefs
+// (sync with explicit template class instantiations at the end of the cpp file)
 typedef LinearMemory<std::uint8_t> LinearMemory8uC1;
 typedef LinearMemory<std::uint16_t> LinearMemory16uC1;
 typedef LinearMemory<std::int32_t> LinearMemory32sC1;

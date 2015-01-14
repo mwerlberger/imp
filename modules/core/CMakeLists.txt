@@ -22,6 +22,7 @@ set(HEADERS
 
 set(SOURCES
   src/linearmemory.cpp
+  src/image_raw.cpp
 #  src/core.cpp
   )
 

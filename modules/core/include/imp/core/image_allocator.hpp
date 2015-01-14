@@ -2,6 +2,7 @@
 #define IMP_IMAGE_ALLOCATOR_HPP
 
 #include <stdlib.h>
+#include <assert.h>
 #include <math.h>
 #include <functional>
 #include <algorithm>
