@@ -1,6 +1,8 @@
 #ifndef IMP_IMAGE_BASE_HPP
 #define IMP_IMAGE_BASE_HPP
 
+#include <iostream>
+
 #include <imp/core/pixel_enums.hpp>
 #include <imp/core/size.hpp>
 #include <imp/core/roi.hpp>
@@ -106,7 +108,10 @@ public:
   }
 
   /** Returns the total amount of bytes saved in the data buffer. */
-  virtual size_type bytes() const = 0;
+  virtual size_type bytes() const
+  {
+    return this->height() * this->pitch();
+  }
 
   /** Returns the distance in bytes between starts of consecutive rows. */
   virtual size_type pitch() const = 0;
@@ -120,12 +125,30 @@ public:
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
   virtual bool isGpuMemory() const = 0;
 
-private:
+  friend std::ostream& operator<<(std::ostream &os, const ImageBase& image);
+
+protected:
   PixelType pixel_type_;
   PixelOrder pixel_order_;
   Size2u size_;
   Roi2u roi_;
 };
+
+inline std::ostream& operator<<(std::ostream &os, const ImageBase& image)
+{
+  os << "size: " << image.width() << "x" << image.height()
+     << "; roi=(" << image.roi().x() << "," << image.roi().y()
+     << "+" << image.roi().width() << "+" << image.roi().height() << ")"
+     << "; stride: " << image.stride() << "; pitch: " << image.pitch()
+     << "; bitDepth: " << (int)image.bitDepth();
+  if (image.isGpuMemory())
+    os << "; (gpu)";
+  else
+    os << "; (cpu)";
+
+  return os;
+}
+
 
 } // namespace iuprivate
 
