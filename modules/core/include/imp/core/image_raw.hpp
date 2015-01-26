@@ -44,9 +44,6 @@ public:
   virtual pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
   virtual const PixelStorageType* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
 
-  /** Returns the (guaranteed) total amount of bytes saved in the data buffer. */
-  virtual size_type bytes() const override { return this->height()*pitch_; }
-
   /** Returns the distance in bytes between starts of consecutive rows. */
   virtual size_type pitch() const override { return pitch_; }
 
