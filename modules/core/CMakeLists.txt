@@ -22,8 +22,10 @@ set(SOURCES
   )
 
 # add opencv connectors if openc has been found
-# if (IMP_USE_OPENCV)
-#   message("[+][core] Build with OpenCV connectors.")
+if (${IMP_WITH_OPENCV})
+  find_opencv()
+
+  message("[+][core] Build with OpenCV connectors.")
   set(HEADERS
     ${HEADERS}
     include/imp/core/cv_connector_pixel_types.hpp
@@ -34,11 +36,10 @@ set(SOURCES
     src/cv_connector_pixel_types.cpp
     src/image_cv.cpp
   )
-# else()
-#   message("[-][core] Build without OpenCV connectors.")
-# #  set(OpenCV_LIBS "")
-# endif()
+else()
+  message("[-][core] Build without OpenCV connectors.")
+#  set(OpenCV_LIBS "")
+endif()
 
 #imp_module_include_directories(${module})
 imp_create_module(${SOURCES} ${HEADERS})
-find_opencv()

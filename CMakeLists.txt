@@ -86,7 +86,18 @@ endif(WIN32)
 ##-----------------------------------------------------------------------------
 ## settings / options
 option(IMP_BUILD_SHARED_LIBS "Build shared libraries if ON (default) or static ones if OFF." ON)
+
+##-----------------------------------------------------------------------------
+## 3rd party dependencies
+option(IMP_WITH_OPENCV "Build IMP with opencv connectors. Default is ON." ON)
+option(IMP_WITH_CUDA "Build IMP with CUDA support. Default is OFF." OFF)
+
+##-----------------------------------------------------------------------------
+## print all options
 imp_debug_message("IMP_BUILD_SHARED_LIBS:" ${IMP_BUILD_SHARED_LIBS})
+imp_debug_message("IMP_WITH_OPENCV:" ${IMP_WITH_OPENCV})
+imp_debug_message("IMP_WITH_CUDA:" ${IMP_WITH_CUDA})
+
 
 ##-----------------------------------------------------------------------------
 ## include modules

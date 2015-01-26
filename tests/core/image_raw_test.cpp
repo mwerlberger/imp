@@ -17,7 +17,7 @@ int main(int /*argc*/, char** /*argv*/)
   {
     cv::Mat lena = cv::imread("/home/mwerlberger/data/std/Lena.pgm", CV_LOAD_IMAGE_GRAYSCALE);
 
-    imp::Size2u sz(510, 512);
+    imp::Size2u sz(513, 512);
     imp::ImageRaw8uC1 im8uC1(sz);
 
     std::cout << "im8uC1: " << im8uC1 << std::endl;

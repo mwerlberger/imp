@@ -37,8 +37,8 @@ macro(imp_add_module _name)
 
   # module details (cached)
   set(IMP_MODULE_${module}_DESCRIPTION "${imp_module_description}" CACHE INTERNAL "Brief description of the ${module} module")
-  #set(IMP_MODULE_${module}_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}" CACHE INTERNAL "Location of the ${module} module")
-  #set(IMP_${module}_LINK_DEPS "" CACHE INTERNAL "linkage dependencies") # TODO (MW)
+  set(IMP_MODULE_${module}_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}" CACHE INTERNAL "Location of the ${module} module")
+  set(IMP_${module}_LINK_DEPS "" CACHE INTERNAL "linkage dependencies of ${module} module")
 
   # setup linkage type for the current module
   if((NOT DEFINED IMP_MODULE_LINKAGE AND IMP_BUILD_SHARED_LIBS)
@@ -51,9 +51,6 @@ macro(imp_add_module _name)
 
   # option to disable module
   option(IMP_BUILD_${module}_MODULE "IMP built including the ${module} module" ${IMP_BUILD_${module}_MODULE_INIT})
-
-  # TODO (MW) parse dependencies and generate link string
-
 
   project(${module})
 endmacro()
@@ -85,6 +82,9 @@ macro(imp_create_module)
   get_target_property(FULL_LIBRARY_NAME ${module} LOCATION)
   set(IMP_MODULE_LIBRARIES_LOCATIONS ${FULL_LIBRARY_NAME} CACHE INTERNAL "")
   set(IMP_MODULE_INCLUDE_PATHS ${IMP_MODULE_${module}_INCLUDE_PATH} CACHE INTERNAL "")
-  imp_debug_message("full_library_name:" ${FULL_LIBRARY_NAME})
-  imp_debug_message("IMP_MODULE_${module}_INCLUDE_PATH:" ${IMP_MODULE_${module}_INCLUDE_PATH})
+  # imp_debug_message("full_library_name:" ${FULL_LIBRARY_NAME})
+  # imp_debug_message("IMP_MODULE_${module}_INCLUDE_PATH:" ${IMP_MODULE_${module}_INCLUDE_PATH})
+
+  imp_debug_message("${module} link dependencies: " ${IMP_${module}_LINK_DEPS})
+  target_link_libraries(${module} ${IMP_${module}_LINK_DEPS})
 endmacro()

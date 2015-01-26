@@ -9,5 +9,7 @@ macro(find_opencv)
 
   find_package( OpenCV REQUIRED ${desired_opencv_modules})
   set(IMP_USE_OPENCV TRUE)
-  target_link_libraries(${MODULE} ${OpenCV_LIBS})
+
+  list(APPEND IMP_${module}_LINK_DEPS "${OpenCV_LIBS}")
+  
 endmacro()
