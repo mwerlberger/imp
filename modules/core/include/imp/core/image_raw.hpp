@@ -1,5 +1,5 @@
-#ifndef IMAGE_RAW_HPP
-#define IMAGE_RAW_HPP
+#ifndef IMP_IMAGE_RAW_HPP
+#define IMP_IMAGE_RAW_HPP
 
 #include <memory>
 #include <algorithm>
@@ -112,4 +112,4 @@ typedef ImageRaw<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageRaw32fC4;
 } // namespace imp
 
 
-#endif // IMAGE_RAW_HPP
+#endif // IMP_IMAGE_RAW_HPP

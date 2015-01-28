@@ -13,6 +13,9 @@ include(cmake/imp_ext_finders.cmake)
 # cleanup
 set(IMP_MODULE_LIBRARIES_LOCATIONS "" CACHE INTERNAL "List of the absolute locations of all built module libraries")
 set(IMP_MODULE_INCLUDE_PATHS "" CACHE INTERNAL "List of all module's include paths")
+
+#mark_as_advanced(IMP_MODULE_LIBRARIES_LOCATIONS IMP_MODULE_INCLUDE_PATHS)
+
 # set(${IU_PUBLIC_HEADERS} "")
 
 # # general settings
@@ -66,7 +69,8 @@ endif()
 ##-----------------------------------------------------------------------------
 ## Compiler Flags
 if(UNIX)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
+  #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x") # come on guys... update your system ;)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   add_definitions(-Wall)
   add_definitions(-Werror)
   add_definitions(-g)
@@ -90,7 +94,7 @@ option(IMP_BUILD_SHARED_LIBS "Build shared libraries if ON (default) or static o
 ##-----------------------------------------------------------------------------
 ## 3rd party dependencies
 option(IMP_WITH_OPENCV "Build IMP with opencv connectors. Default is ON." ON)
-option(IMP_WITH_CUDA "Build IMP with CUDA support. Default is OFF." OFF)
+option(IMP_WITH_CUDA "Build IMP with CUDA support. Default is OFF." ON)
 
 ##-----------------------------------------------------------------------------
 ## include modules

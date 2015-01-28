@@ -1,8 +1,6 @@
 #ifndef IMP_PIXEL_HPP
 #define IMP_PIXEL_HPP
 
-#include <array>
-
 namespace imp {
 
 //------------------------------------------------------------------------------
