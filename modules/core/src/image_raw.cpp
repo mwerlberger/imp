@@ -112,10 +112,24 @@ const PixelStorageType* ImageRaw<PixelStorageType, pixel_type>::data(
 //=============================================================================
 // Explicitely instantiate the desired classes
 // (sync with typedefs at the end of the hpp file)
-template class ImageRaw<std::uint8_t, imp::PixelType::i8uC1>;
-template class ImageRaw<std::uint16_t, imp::PixelType::i8uC1>;
-template class ImageRaw<std::int32_t, imp::PixelType::i8uC1>;
-template class ImageRaw<float, imp::PixelType::i8uC1>;
+template class ImageRaw<imp::Pixel8uC1, imp::PixelType::i8uC1>;
+template class ImageRaw<imp::Pixel8uC2, imp::PixelType::i8uC2>;
+template class ImageRaw<imp::Pixel8uC3, imp::PixelType::i8uC3>;
+template class ImageRaw<imp::Pixel8uC4, imp::PixelType::i8uC4>;
 
+template class ImageRaw<imp::Pixel16uC1, imp::PixelType::i16uC1>;
+template class ImageRaw<imp::Pixel16uC2, imp::PixelType::i16uC2>;
+template class ImageRaw<imp::Pixel16uC3, imp::PixelType::i16uC3>;
+template class ImageRaw<imp::Pixel16uC4, imp::PixelType::i16uC4>;
+
+template class ImageRaw<imp::Pixel32sC1, imp::PixelType::i32sC1>;
+template class ImageRaw<imp::Pixel32sC2, imp::PixelType::i32sC2>;
+template class ImageRaw<imp::Pixel32sC3, imp::PixelType::i32sC3>;
+template class ImageRaw<imp::Pixel32sC4, imp::PixelType::i32sC4>;
+
+template class ImageRaw<imp::Pixel32fC1, imp::PixelType::i32fC1>;
+template class ImageRaw<imp::Pixel32fC2, imp::PixelType::i32fC2>;
+template class ImageRaw<imp::Pixel32fC3, imp::PixelType::i32fC3>;
+template class ImageRaw<imp::Pixel32fC4, imp::PixelType::i32fC4>;
 
 } // namespace imp

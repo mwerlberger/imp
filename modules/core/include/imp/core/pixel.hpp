@@ -37,6 +37,7 @@ union Pixel2
    };
    T c[2];
 
+   Pixel2(T _a) : x(_a), y(_a) { }
    Pixel2(T _x, T _y) : x(_x), y(_y) { }
    ~Pixel2() = default;
 };
@@ -55,6 +56,7 @@ union Pixel3
    };
    T c[3];
 
+   Pixel3(T _a) : x(_a), y(_a), z(_a) { }
    Pixel3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) { }
    ~Pixel3() = default;
 };
@@ -73,6 +75,7 @@ union Pixel4
    };
    T c[4];
 
+   Pixel4(T _a) : x(_a), y(_a), z(_a), w(_a) { }
    Pixel4(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) { }
    ~Pixel4() = default;
 };

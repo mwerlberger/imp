@@ -5,6 +5,7 @@
 
 #include <imp/core/image_base.hpp>
 #include <imp/core/exception.hpp>
+#include <imp/core/pixel.hpp>
 
 namespace imp {
 
@@ -104,8 +105,25 @@ public:
 
 //-----------------------------------------------------------------------------
 // convenience typedefs
-typedef Image<std::uint8_t, imp::PixelType::i8uC1> Image8uC1;
-typedef Image<float, imp::PixelType::i32fC1> Image32fC1;
+typedef Image<imp::Pixel8uC1, imp::PixelType::i8uC1> Image8uC1;
+typedef Image<imp::Pixel8uC2, imp::PixelType::i8uC2> Image8uC2;
+typedef Image<imp::Pixel8uC3, imp::PixelType::i8uC3> Image8uC3;
+typedef Image<imp::Pixel8uC4, imp::PixelType::i8uC4> Image8uC4;
+
+typedef Image<imp::Pixel16uC1, imp::PixelType::i16uC1> Image16uC1;
+typedef Image<imp::Pixel16uC2, imp::PixelType::i16uC2> Image16uC2;
+typedef Image<imp::Pixel16uC3, imp::PixelType::i16uC3> Image16uC3;
+typedef Image<imp::Pixel16uC4, imp::PixelType::i16uC4> Image16uC4;
+
+typedef Image<imp::Pixel32sC1, imp::PixelType::i32sC1> Image32sC1;
+typedef Image<imp::Pixel32sC2, imp::PixelType::i32sC2> Image32sC2;
+typedef Image<imp::Pixel32sC3, imp::PixelType::i32sC3> Image32sC3;
+typedef Image<imp::Pixel32sC4, imp::PixelType::i32sC4> Image32sC4;
+
+typedef Image<imp::Pixel32fC1, imp::PixelType::i32fC1> Image32fC1;
+typedef Image<imp::Pixel32fC2, imp::PixelType::i32fC2> Image32fC2;
+typedef Image<imp::Pixel32fC3, imp::PixelType::i32fC3> Image32fC3;
+typedef Image<imp::Pixel32fC4, imp::PixelType::i32fC4> Image32fC4;
 
 } // namespace imp
 

@@ -118,6 +118,7 @@ LinearMemory<Pixel>& LinearMemory<Pixel>::operator=(Pixel rhs)
 //=============================================================================
 // Explicitely instantiate the desired classes
 template class LinearMemory<imp::Pixel8uC1>;
+template class LinearMemory<imp::Pixel8uC2>;
 template class LinearMemory<imp::Pixel16uC1>;
 template class LinearMemory<imp::Pixel32sC1>;
 template class LinearMemory<imp::Pixel32fC1>;
