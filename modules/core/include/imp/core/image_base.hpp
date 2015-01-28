@@ -10,7 +10,12 @@
 
 namespace imp {
 
-//! \todo We maybe do not want to have the Image class in the public dll interface??
+/**
+ * @brief The ImageBase class is the base class of all our image representations.
+ *
+ * It defines the common interface that must be implemented for IMP images
+ *
+ */
 class ImageBase
 {
 protected:

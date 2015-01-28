@@ -13,17 +13,24 @@
 namespace imp {
 
 /**
- * @brief The ImageCv class
+ * @brief The ImageCv class is an image holding an OpenCV matrix (cv::Mat) for the image data
+ *
+ * The ImageCv can be used to interface with OpenCV. The matrix can be directly
+ * accessed and used for calling OpenCV functions. Furthermore all getters/setters
+ * for the IMP image representations are available. You can also construct an
+ * ImageCv with a given cv::Mat in order to have a common data representation in
+ * your code.
+ *
  */
-template<typename PixelStorageType, imp::PixelType pixel_type>
-class ImageCv : public imp::Image<PixelStorageType, pixel_type>
+template<typename Pixel, imp::PixelType pixel_type>
+class ImageCv : public imp::Image<Pixel, pixel_type>
 {
 public:
-  typedef Image<PixelStorageType, pixel_type> Base;
-  typedef ImageCv<PixelStorageType, pixel_type> ImCv;
+  typedef Image<Pixel, pixel_type> Base;
+  typedef ImageCv<Pixel, pixel_type> ImCv;
+  typedef Pixel pixel_t;
+  typedef pixel_t* pixel_container_t;
 
-  typedef PixelStorageType pixel_storage_t;
-  typedef pixel_storage_t* pixel_container_t;
 
 public:
   ImageCv() = default;
@@ -49,7 +56,7 @@ public:
    * @return Pointer to the pixel array.
    */
   virtual pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
-  virtual const PixelStorageType* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
+  virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
   virtual size_type pitch() const override { return m_mat.step; }

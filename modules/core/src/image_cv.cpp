@@ -9,32 +9,32 @@
 namespace imp {
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-ImageCv<PixelStorageType, pixel_type>::ImageCv(std::uint32_t width, std::uint32_t height)
+template<typename Pixel, imp::PixelType pixel_type>
+ImageCv<Pixel, pixel_type>::ImageCv(std::uint32_t width, std::uint32_t height)
   : Base(width, height)
   , m_mat(height, width, imp::pixelTypeToCv(pixel_type))
 {
 }
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-ImageCv<PixelStorageType, pixel_type>::ImageCv(const imp::Size2u& size)
+template<typename Pixel, imp::PixelType pixel_type>
+ImageCv<Pixel, pixel_type>::ImageCv(const imp::Size2u& size)
   : Base(size)
   , m_mat(size[1], size[0], imp::pixelTypeToCv(pixel_type))
 {
 }
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-ImageCv<PixelStorageType, pixel_type>::ImageCv(const ImageCv<PixelStorageType, pixel_type>& from)
+template<typename Pixel, imp::PixelType pixel_type>
+ImageCv<Pixel, pixel_type>::ImageCv(const ImageCv<Pixel, pixel_type>& from)
   : Base(from)
   , m_mat(from.cvMat())
 {
 }
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-ImageCv<PixelStorageType, pixel_type>::ImageCv(const Image<PixelStorageType, pixel_type>& from)
+template<typename Pixel, imp::PixelType pixel_type>
+ImageCv<Pixel, pixel_type>::ImageCv(const Image<Pixel, pixel_type>& from)
   : Base(from)
   , m_mat(from.height(), from.width(), imp::pixelTypeToCv(pixel_type))
 {
@@ -42,8 +42,8 @@ ImageCv<PixelStorageType, pixel_type>::ImageCv(const Image<PixelStorageType, pix
 }
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-ImageCv<PixelStorageType, pixel_type>
+template<typename Pixel, imp::PixelType pixel_type>
+ImageCv<Pixel, pixel_type>
 ::ImageCv(cv::Mat mat, imp::PixelOrder pixel_order)
   : Base(mat.cols, mat.rows, pixel_order)
   , m_mat(mat)
@@ -86,8 +86,8 @@ ImageCv<PixelStorageType, pixel_type>
 
 
 ////-----------------------------------------------------------------------------
-//template<typename PixelStorageType, imp::PixelType pixel_type>
-//ImageCv<PixelStorageType, pixel_type>
+//template<typename Pixel, imp::PixelType pixel_type>
+//ImageCv<Pixel, pixel_type>
 //::ImageCv(pixel_container_t data, std::uint32_t width, std::uint32_t height,
 //           size_type pitch, bool use_ext_data_pointer)
 //  : Base(width, height)
@@ -128,22 +128,22 @@ ImageCv<PixelStorageType, pixel_type>
 //}
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-cv::Mat ImageCv<PixelStorageType, pixel_type>::cvMat()
+template<typename Pixel, imp::PixelType pixel_type>
+cv::Mat ImageCv<Pixel, pixel_type>::cvMat()
 {
   return m_mat;
 }
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-const cv::Mat& ImageCv<PixelStorageType, pixel_type>::cvMat() const
+template<typename Pixel, imp::PixelType pixel_type>
+const cv::Mat& ImageCv<Pixel, pixel_type>::cvMat() const
 {
   return m_mat;
 }
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-PixelStorageType* ImageCv<PixelStorageType, pixel_type>::data(
+template<typename Pixel, imp::PixelType pixel_type>
+Pixel* ImageCv<Pixel, pixel_type>::data(
     std::uint32_t ox, std::uint32_t oy)
 {
   if (ox > this->width() || oy > this->height())
@@ -155,8 +155,8 @@ PixelStorageType* ImageCv<PixelStorageType, pixel_type>::data(
 }
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-const PixelStorageType* ImageCv<PixelStorageType, pixel_type>::data(
+template<typename Pixel, imp::PixelType pixel_type>
+const Pixel* ImageCv<Pixel, pixel_type>::data(
     std::uint32_t ox, std::uint32_t oy) const
 {
   if (ox > this->width() || oy > this->height())

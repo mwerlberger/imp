@@ -8,24 +8,24 @@
 namespace imp {
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-ImageRaw<PixelStorageType, pixel_type>::ImageRaw(std::uint32_t width, std::uint32_t height)
+template<typename Pixel, imp::PixelType pixel_type>
+ImageRaw<Pixel, pixel_type>::ImageRaw(std::uint32_t width, std::uint32_t height)
   : Base(width, height)
 {
   data_.reset(Memory::alignedAlloc(width, height, &pitch_));
 }
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-ImageRaw<PixelStorageType, pixel_type>::ImageRaw(const imp::Size2u& size)
+template<typename Pixel, imp::PixelType pixel_type>
+ImageRaw<Pixel, pixel_type>::ImageRaw(const imp::Size2u& size)
   : Base(size)
 {
   data_.reset(Memory::alignedAlloc(size, &pitch_));
 }
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-ImageRaw<PixelStorageType, pixel_type>::ImageRaw(const ImageRaw& from)
+template<typename Pixel, imp::PixelType pixel_type>
+ImageRaw<Pixel, pixel_type>::ImageRaw(const ImageRaw& from)
   : Base(from)
 {
   data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
@@ -33,8 +33,8 @@ ImageRaw<PixelStorageType, pixel_type>::ImageRaw(const ImageRaw& from)
 }
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-ImageRaw<PixelStorageType, pixel_type>::ImageRaw(const Image<PixelStorageType, pixel_type>& from)
+template<typename Pixel, imp::PixelType pixel_type>
+ImageRaw<Pixel, pixel_type>::ImageRaw(const Image<Pixel, pixel_type>& from)
   : Base(from)
 {
   data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
@@ -42,8 +42,8 @@ ImageRaw<PixelStorageType, pixel_type>::ImageRaw(const Image<PixelStorageType, p
 }
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-ImageRaw<PixelStorageType, pixel_type>
+template<typename Pixel, imp::PixelType pixel_type>
+ImageRaw<Pixel, pixel_type>
 ::ImageRaw(pixel_container_t data, std::uint32_t width, std::uint32_t height,
            size_type pitch, bool use_ext_data_pointer)
   : Base(width, height)
@@ -57,14 +57,14 @@ ImageRaw<PixelStorageType, pixel_type>
   {
     // This uses the external data pointer as internal data pointer.
     auto dealloc_nop = [](pixel_container_t) { ; };
-    data_ = std::unique_ptr<pixel_storage_t, Deallocator>(
+    data_ = std::unique_ptr<pixel_t, Deallocator>(
           data, Deallocator(dealloc_nop));
     pitch_ = pitch;
   }
   else
   {
     data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
-    size_type stride = pitch / sizeof(pixel_storage_t);
+    size_type stride = pitch / sizeof(pixel_t);
 
     if (this->bytes() == pitch*height)
     {
@@ -84,8 +84,8 @@ ImageRaw<PixelStorageType, pixel_type>
 }
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-PixelStorageType* ImageRaw<PixelStorageType, pixel_type>::data(
+template<typename Pixel, imp::PixelType pixel_type>
+Pixel* ImageRaw<Pixel, pixel_type>::data(
     std::uint32_t ox, std::uint32_t oy)
 {
   if (ox > this->width() || oy > this->height())
@@ -97,8 +97,8 @@ PixelStorageType* ImageRaw<PixelStorageType, pixel_type>::data(
 }
 
 //-----------------------------------------------------------------------------
-template<typename PixelStorageType, imp::PixelType pixel_type>
-const PixelStorageType* ImageRaw<PixelStorageType, pixel_type>::data(
+template<typename Pixel, imp::PixelType pixel_type>
+const Pixel* ImageRaw<Pixel, pixel_type>::data(
     std::uint32_t ox, std::uint32_t oy) const
 {
   if (ox > this->width() || oy > this->height())

@@ -9,11 +9,11 @@
 
 namespace imp {
 
-template<typename PixelStorageType, imp::PixelType pixel_type>
+template<typename Pixel, imp::PixelType pixel_type>
 class Image : public ImageBase
 {
-  typedef PixelStorageType pixel_storage_t;
-  typedef pixel_storage_t* pixel_container_t;
+  typedef Pixel pixel_t;
+  typedef pixel_t* pixel_container_t;
 
 protected:
   Image(imp::PixelOrder pixel_order = imp::PixelOrder::undefined)
@@ -42,10 +42,10 @@ public:
    * @return Pointer to the pixel array.
    */
   virtual pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) = 0;
-  virtual const PixelStorageType* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const = 0;
+  virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const = 0;
 
   /** Get Pixel value at position x,y. */
-  pixel_storage_t pixel(std::uint32_t x, std::uint32_t y) const
+  pixel_t pixel(std::uint32_t x, std::uint32_t y) const
   {
     return *data(x, y);
   }
@@ -93,13 +93,13 @@ public:
   /** Returns the distnace in pixels between starts of consecutive rows. */
   virtual size_type stride() const override
   {
-    return this->pitch()/sizeof(pixel_storage_t);
+    return this->pitch()/sizeof(pixel_t);
   }
 
   /** Returns the bit depth of the data pointer. */
   virtual std::uint8_t bitDepth() const override
   {
-    return 8*sizeof(pixel_storage_t);
+    return 8*sizeof(pixel_t);
   }
 };
 

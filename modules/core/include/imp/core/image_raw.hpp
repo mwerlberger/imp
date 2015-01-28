@@ -10,39 +10,70 @@
 namespace imp {
 
 /**
- * @brief The ImageRaw class
+ * @brief The ImageRaw class is an image (surprise) holding raw memory
+ *
+ * The ImageRaw memory can be used to allocate raw memory of a given size, or
+ * take external memory and hold a reference to that. Note that when external
+ * memory is given to the class, the memory won't be managed! You have to take
+ * care about the memory deletion. Instead when you let the class itself allocate
+ * the memory it will take care of freeing the memory again. In addition the allocation
+ * takes care about memory address alignment (default: 32-byte) for the beginning of
+ * every row.
+ *
+ * The template parameters are as follows:
+ *   - Pixel: The pixel's memory representation (e.g. imp::Pixel8uC1 for single-channel unsigned 8-bit images)
+ *   - pixel_type: The internal enum for specifying the pixel's type more specificly
  */
-template<typename PixelStorageType, imp::PixelType pixel_type>
-class ImageRaw : public imp::Image<PixelStorageType, pixel_type>
+template<typename Pixel, imp::PixelType pixel_type>
+class ImageRaw : public imp::Image<Pixel, pixel_type>
 {
 public:
-  typedef Image<PixelStorageType, pixel_type> Base;
-  typedef ImageRaw<PixelStorageType, pixel_type> ImRaw;
-  typedef imp::ImageMemoryStorage<PixelStorageType> Memory;
-  typedef imp::ImageMemoryDeallocator<PixelStorageType> Deallocator;
-
-  typedef PixelStorageType pixel_storage_t;
-  typedef pixel_storage_t* pixel_container_t;
+  typedef Image<Pixel, pixel_type> Base;
+  typedef ImageRaw<Pixel, pixel_type> ImRaw;
+  typedef imp::ImageMemoryStorage<Pixel> Memory;
+  typedef imp::ImageMemoryDeallocator<Pixel> Deallocator;
+  typedef Pixel pixel_t;
+  typedef pixel_t* pixel_container_t;
 
 public:
   ImageRaw() = default;
   virtual ~ImageRaw() = default;
 
+  /**
+   * @brief ImageRaw construcs an image of given size \a width x \a height
+   */
   ImageRaw(std::uint32_t width, std::uint32_t height);
+  /**
+   * @brief ImageRaw construcs an image of given \a size
+   */
   ImageRaw(const imp::Size2u& size);
+  /**
+   * @brief ImageRaw copy constructs an image from the given image \a from
+   */
   ImageRaw(const ImageRaw& from);
+  /**
+   * @brief ImageRaw copy constructs an arbitrary base image \a from (not necessarily am \a ImageRaw)
+   */
   ImageRaw(const Base& from);
+  /**
+   * @brief ImageRaw constructs an image with the given data (copied or refererenced!)
+   * @param data Pointer to the image data.
+   * @param width Image width.
+   * @param height Image height.
+   * @param pitch Length of a row in bytes (including padding).
+   * @param use_ext_data_pointer Flagg if the image should be copied (true) or if the data is just safed as 'reference' (false)
+   */
   ImageRaw(pixel_container_t data, std::uint32_t width, std::uint32_t height,
            size_type pitch, bool use_ext_data_pointer = false);
 
   /** Returns a pointer to the pixel data.
    * The pointer can be offset to position \a (ox/oy).
-   * @param[in] ox Horizontal offset of the pointer array.
-   * @param[in] oy Vertical offset of the pointer array.
+   * @param[in] ox Horizontal/Column offset of the pointer array.
+   * @param[in] oy Vertical/Row offset of the pointer array.
    * @return Pointer to the pixel array.
    */
-  virtual PixelStorageType* data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
-  virtual const PixelStorageType* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
+  virtual Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
+  virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
   virtual size_type pitch() const override { return pitch_; }
@@ -51,7 +82,7 @@ public:
   virtual bool isGpuMemory() const override { return false; }
 
 protected:
-  std::unique_ptr<pixel_storage_t, Deallocator > data_; //!< the actual image data
+  std::unique_ptr<pixel_t, Deallocator> data_; //!< the actual image data
   size_type pitch_ = 0; //!< Row alignment in bytes.
 };
 
