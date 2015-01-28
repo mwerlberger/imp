@@ -41,7 +41,7 @@ public:
    * @param[in] oy Vertical offset of the pointer array.
    * @return Pointer to the pixel array.
    */
-  virtual pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
+  virtual PixelStorageType* data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
   virtual const PixelStorageType* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
@@ -55,12 +55,28 @@ protected:
   size_type pitch_ = 0; //!< Row alignment in bytes.
 };
 
+//-----------------------------------------------------------------------------
 // convenience typedefs
 // (sync with explicit template class instantiations at the end of the cpp file)
-typedef ImageRaw<std::uint8_t, imp::PixelType::i8uC1> ImageRaw8uC1;
-typedef ImageRaw<std::uint16_t, imp::PixelType::i8uC1> ImageRaw16uC1;
-typedef ImageRaw<std::int32_t, imp::PixelType::i8uC1> ImageRaw32sC1;
-typedef ImageRaw<float, imp::PixelType::i8uC1> ImageRaw32fC1;
+typedef ImageRaw<imp::Pixel8uC1, imp::PixelType::i8uC1> ImageRaw8uC1;
+typedef ImageRaw<imp::Pixel8uC2, imp::PixelType::i8uC2> ImageRaw8uC2;
+typedef ImageRaw<imp::Pixel8uC3, imp::PixelType::i8uC3> ImageRaw8uC3;
+typedef ImageRaw<imp::Pixel8uC4, imp::PixelType::i8uC4> ImageRaw8uC4;
+
+typedef ImageRaw<imp::Pixel16uC1, imp::PixelType::i16uC1> ImageRaw16uC1;
+typedef ImageRaw<imp::Pixel16uC2, imp::PixelType::i16uC2> ImageRaw16uC2;
+typedef ImageRaw<imp::Pixel16uC3, imp::PixelType::i16uC3> ImageRaw16uC3;
+typedef ImageRaw<imp::Pixel16uC4, imp::PixelType::i16uC4> ImageRaw16uC4;
+
+typedef ImageRaw<imp::Pixel32sC1, imp::PixelType::i32sC1> ImageRaw32sC1;
+typedef ImageRaw<imp::Pixel32sC2, imp::PixelType::i32sC2> ImageRaw32sC2;
+typedef ImageRaw<imp::Pixel32sC3, imp::PixelType::i32sC3> ImageRaw32sC3;
+typedef ImageRaw<imp::Pixel32sC4, imp::PixelType::i32sC4> ImageRaw32sC4;
+
+typedef ImageRaw<imp::Pixel32fC1, imp::PixelType::i32fC1> ImageRaw32fC1;
+typedef ImageRaw<imp::Pixel32fC2, imp::PixelType::i32fC2> ImageRaw32fC2;
+typedef ImageRaw<imp::Pixel32fC3, imp::PixelType::i32fC3> ImageRaw32fC3;
+typedef ImageRaw<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageRaw32fC4;
 
 } // namespace imp
 

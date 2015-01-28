@@ -17,8 +17,8 @@ int main(int /*argc*/, char** /*argv*/)
     imp::LinearMemory32fC1* h_32f_C1 = new imp::LinearMemory32fC1(length);
 
     // values to be set
-    std::uint8_t val_8u = 1;
-    float val_32f = 1.0f;
+    imp::Pixel8uC1 val_8u = 1;
+    imp::Pixel32fC1 val_32f = 1.0f;
     // set host values
     *h_8u_C1 = val_8u;
     *h_32f_C1 = val_32f;

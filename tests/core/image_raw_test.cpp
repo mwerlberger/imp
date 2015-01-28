@@ -23,7 +23,7 @@ int main(int /*argc*/, char** /*argv*/)
     std::cout << "im8uC1: " << im8uC1 << std::endl;
 
     imp::ImageRaw8uC1 lena_8uC1(
-          static_cast<imp::ImageRaw8uC1::pixel_container_t>(lena.data),
+          reinterpret_cast<imp::ImageRaw8uC1::pixel_container_t>(lena.data),
           lena.cols, lena.rows, lena.step, true);
     imp::ImageRaw8uC1 lena_copy_8uC1(lena_8uC1);
     //lena_8uC1.copyTo(lena_copy_8uC1);
