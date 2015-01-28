@@ -56,7 +56,7 @@ ImageRaw<PixelStorageType, pixel_type>
   if(use_ext_data_pointer)
   {
     // This uses the external data pointer as internal data pointer.
-    auto dealloc_nop = [](pixel_container_t p) { ; };
+    auto dealloc_nop = [](pixel_container_t) { ; };
     data_ = std::unique_ptr<pixel_storage_t, Deallocator>(
           data, Deallocator(dealloc_nop));
     pitch_ = pitch;

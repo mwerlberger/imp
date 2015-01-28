@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #include <imp/core/exception.hpp>
+#include <imp/core/size.hpp>
 
 namespace imp {
 

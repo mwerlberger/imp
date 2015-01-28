@@ -41,7 +41,7 @@ public:
    * @param[in] oy Vertical offset of the pointer array.
    * @return Pointer to the pixel array.
    */
-  virtual pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
+  virtual PixelStorageType* data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
   virtual const PixelStorageType* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
