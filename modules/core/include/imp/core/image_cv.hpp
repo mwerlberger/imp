@@ -64,12 +64,34 @@ protected:
   cv::Mat m_mat;
 };
 
+//-----------------------------------------------------------------------------
 // convenience typedefs
 // (sync with explicit template class instantiations at the end of the cpp file)
-typedef ImageCv<std::uint8_t, imp::PixelType::i8uC1> ImageCv8uC1;
-typedef ImageCv<std::uint16_t, imp::PixelType::i8uC1> ImageCv16uC1;
-typedef ImageCv<std::int32_t, imp::PixelType::i8uC1> ImageCv32sC1;
-typedef ImageCv<float, imp::PixelType::i8uC1> ImageCv32fC1;
+typedef ImageCv<imp::Pixel8uC1, imp::PixelType::i8uC1> ImageCv8uC1;
+typedef ImageCv<imp::Pixel8uC2, imp::PixelType::i8uC2> ImageCv8uC2;
+typedef ImageCv<imp::Pixel8uC3, imp::PixelType::i8uC3> ImageCv8uC3;
+typedef ImageCv<imp::Pixel8uC4, imp::PixelType::i8uC4> ImageCv8uC4;
+
+typedef ImageCv<imp::Pixel16uC1, imp::PixelType::i16uC1> ImageCv16uC1;
+typedef ImageCv<imp::Pixel16uC2, imp::PixelType::i16uC2> ImageCv16uC2;
+typedef ImageCv<imp::Pixel16uC3, imp::PixelType::i16uC3> ImageCv16uC3;
+typedef ImageCv<imp::Pixel16uC4, imp::PixelType::i16uC4> ImageCv16uC4;
+
+typedef ImageCv<imp::Pixel32sC1, imp::PixelType::i32sC1> ImageCv32sC1;
+typedef ImageCv<imp::Pixel32sC2, imp::PixelType::i32sC2> ImageCv32sC2;
+typedef ImageCv<imp::Pixel32sC3, imp::PixelType::i32sC3> ImageCv32sC3;
+typedef ImageCv<imp::Pixel32sC4, imp::PixelType::i32sC4> ImageCv32sC4;
+
+typedef ImageCv<imp::Pixel32fC1, imp::PixelType::i32fC1> ImageCv32fC1;
+typedef ImageCv<imp::Pixel32fC2, imp::PixelType::i32fC2> ImageCv32fC2;
+typedef ImageCv<imp::Pixel32fC3, imp::PixelType::i32fC3> ImageCv32fC3;
+typedef ImageCv<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageCv32fC4;
+
+
+//typedef ImageCv<std::uint8_t, imp::PixelType::i8uC1> ImageCv8uC1;
+//typedef ImageCv<std::uint16_t, imp::PixelType::i8uC1> ImageCv16uC1;
+//typedef ImageCv<std::int32_t, imp::PixelType::i8uC1> ImageCv32sC1;
+//typedef ImageCv<float, imp::PixelType::i8uC1> ImageCv32fC1;
 
 } // namespace imp
 
