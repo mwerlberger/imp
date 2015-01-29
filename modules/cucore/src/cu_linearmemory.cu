@@ -3,7 +3,7 @@
 //#include <cstring>
 //#include <algorithm>
 
-//#include <imp/core/exception.hpp>
+#include <imp/cucore/cu_exception.hpp>
 
 
 namespace imp { namespace cu {
@@ -23,18 +23,45 @@ LinearMemory<Pixel>::LinearMemory(const size_t& length)
 {
 }
 
-////-----------------------------------------------------------------------------
-//template<typename Pixel>
-//LinearMemory<Pixel>::LinearMemory(const LinearMemory<Pixel>& from)
-//  : LinearMemoryBase(from)
-//{
-//  if (from.data_ == 0)
-//  {
-//    throw imp::Exception("input data not valid", __FILE__, __FUNCTION__, __LINE__);
-//  }
-//  data_.reset(Memory::alignedAlloc(this->length()));
-//  std::copy(from.data_.get(), from.data_.get()+from.length(), data_.get());
-//}
+//-----------------------------------------------------------------------------
+template<typename Pixel>
+LinearMemory<Pixel>::LinearMemory(const imp::cu::LinearMemory<Pixel>& from)
+  : imp::LinearMemoryBase(from)
+{
+  if (from.data_ == 0)
+  {
+    throw imp::cu::Exception("'from' data not valid", __FILE__, __FUNCTION__, __LINE__);
+  }
+
+  data_.reset(Memory::alloc(this->length()));
+  const cudaError cu_err =
+      cudaMemcpy(data_.get(), from.data(), this->bytes(), cudaMemcpyDeviceToDevice);
+
+  if (cu_err != cudaSuccess)
+  {
+    throw imp::cu::Exception("cudaMemcpy returned error code", cu_err, __FILE__, __FUNCTION__, __LINE__);
+  }
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel>
+LinearMemory<Pixel>::LinearMemory(const imp::LinearMemory<Pixel>& from)
+  : imp::LinearMemoryBase(from)
+{
+  if (from.data() == 0)
+  {
+    throw imp::cu::Exception("'from' data not valid", __FILE__, __FUNCTION__, __LINE__);
+  }
+
+  data_.reset(Memory::alloc(this->length()));
+  const cudaError cu_err =
+      cudaMemcpy(data_.get(), from.data(), this->bytes(), cudaMemcpyHostToDevice);
+
+  if (cu_err != cudaSuccess)
+  {
+    throw imp::cu::Exception("cudaMemcpy returned error code", cu_err, __FILE__, __FUNCTION__, __LINE__);
+  }
+}
 
 ////-----------------------------------------------------------------------------
 //template<typename Pixel>
@@ -45,7 +72,7 @@ LinearMemory<Pixel>::LinearMemory(const size_t& length)
 //{
 //  if (host_data == nullptr)
 //  {
-//    throw imp::Exception("input data not valid", __FILE__, __FUNCTION__, __LINE__);
+//    throw imp::cu::Exception("input data not valid", __FILE__, __FUNCTION__, __LINE__);
 //  }
 
 //  if(use_ext_data_pointer)
@@ -64,28 +91,19 @@ LinearMemory<Pixel>::LinearMemory(const size_t& length)
 //  }
 //}
 
-////-----------------------------------------------------------------------------
-//template<typename Pixel>
-//Pixel* LinearMemory<Pixel>::data(int offset)
-//{
-//  if ((size_t)offset > this->length())
-//  {
-//    throw imp::Exception("offset not in range", __FILE__, __FUNCTION__, __LINE__);
-//  }
+//-----------------------------------------------------------------------------
+template<typename Pixel>
+Pixel* LinearMemory<Pixel>::data()
+{
+  return data_.get();
+}
 
-//  return &(data_.get()[offset]);
-//}
-
-////-----------------------------------------------------------------------------
-//template<typename Pixel>
-//const Pixel* LinearMemory<Pixel>::data(int offset) const
-//{
-//  if ((size_t)offset > this->length())
-//  {
-//    throw imp::Exception("offset not in range", __FILE__, __FUNCTION__, __LINE__);
-//  }
-//  return reinterpret_cast<const Pixel*>(&(data_.get()[offset]));
-//}
+//-----------------------------------------------------------------------------
+template<typename Pixel>
+const Pixel* LinearMemory<Pixel>::data() const
+{
+  return reinterpret_cast<const Pixel*>(data_.get());
+}
 
 ////-----------------------------------------------------------------------------
 //template<typename Pixel>
@@ -94,16 +112,60 @@ LinearMemory<Pixel>::LinearMemory(const size_t& length)
 //  std::fill(data_.get(), data_.get()+this->length(), value);
 //}
 
-////-----------------------------------------------------------------------------
-//template<typename Pixel>
-//void LinearMemory<Pixel>::copyTo(LinearMemory<Pixel>& dst)
-//{
-//  if (this->length() != dst.length())
-//  {
-//    throw imp::Exception("source and destination array are of different length", __FILE__, __FUNCTION__, __LINE__);
-//  }
-//  std::copy(data_.get(), data_.get()+this->length(), dst.data_.get());
-//}
+//-----------------------------------------------------------------------------
+template<typename Pixel>
+void LinearMemory<Pixel>::copyTo(imp::cu::LinearMemory<Pixel>& dst)
+{
+  if (this->bytes() != dst.bytes())
+  {
+    throw imp::cu::Exception("source and destination array are of different length (byte length checked)", __FILE__, __FUNCTION__, __LINE__);
+  }
+
+  const cudaError cu_err =
+      cudaMemcpy(dst.data(), this->data(), this->bytes(), cudaMemcpyDeviceToDevice);
+
+  if (cu_err != cudaSuccess)
+  {
+    throw imp::cu::Exception("cudaMemcpy returned error code", cu_err, __FILE__, __FUNCTION__, __LINE__);
+  }
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel>
+void LinearMemory<Pixel>::copyTo(imp::LinearMemory<Pixel>& dst)
+{
+  if (this->bytes() != dst.bytes())
+  {
+    throw imp::cu::Exception("source and destination array are of different length (byte length checked)", __FILE__, __FUNCTION__, __LINE__);
+  }
+
+  const cudaError cu_err =
+      cudaMemcpy(dst.data(), this->data(), this->bytes(), cudaMemcpyDeviceToHost);
+
+  if (cu_err != cudaSuccess)
+  {
+    throw imp::cu::Exception("cudaMemcpy returned error code", cu_err, __FILE__, __FUNCTION__, __LINE__);
+  }
+}
+
+
+//-----------------------------------------------------------------------------
+template<typename Pixel>
+void LinearMemory<Pixel>::copyFrom(imp::LinearMemory<Pixel>& from)
+{
+  if (this->bytes() != from.bytes())
+  {
+    throw imp::cu::Exception("source and destination array are of different length (byte length checked)", __FILE__, __FUNCTION__, __LINE__);
+  }
+
+  const cudaError cu_err =
+      cudaMemcpy(this->data(), from.data(), this->bytes(), cudaMemcpyHostToDevice);
+
+  if (cu_err != cudaSuccess)
+  {
+    throw imp::cu::Exception("cudaMemcpy returned error code", cu_err, __FILE__, __FUNCTION__, __LINE__);
+  }
+}
 
 
 ////-----------------------------------------------------------------------------
