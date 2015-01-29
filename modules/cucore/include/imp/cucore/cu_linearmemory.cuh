@@ -7,10 +7,18 @@
 #include <memory>
 
 #include <imp/core/linearmemory_base.hpp>
+#include <imp/core/linearmemory.hpp>
+
 #include <imp/core/pixel.hpp>
 #include <imp/cucore/cu_memory_allocator.cuh>
 
 namespace imp { namespace cu {
+
+struct DeviceData
+{
+
+};
+
 
 template<typename Pixel>
 class LinearMemory : public LinearMemoryBase
@@ -27,33 +35,42 @@ public:
   virtual ~LinearMemory() = default;
 
   __host__ LinearMemory(const size_t& length);
-//  LinearMemory(const LinearMemory<Pixel>& from);
-//  LinearMemory(pixel_container_t host_data, const size_t& length,
-//               bool use_ext_data_pointer = false);
+  __host__ LinearMemory(const imp::cu::LinearMemory<Pixel>& from);
+  __host__ LinearMemory(const imp::LinearMemory<Pixel>& from);
+  __host__ LinearMemory(pixel_container_t host_data, const size_t& length,
+                        bool use_ext_data_pointer = false);
 
-//  /**
-//   * @brief Returns a pointer to the device buffer.
-//   * @param[in] offset Offset of the pointer array.
-//   * @return Pointer to the device buffer.
-//   *
-//   * @note The pointer can be offset to position \a offset.
-//   *
-//   */
-//  Pixel* data(int offset = 0);
+  /**
+   * @brief Returns a pointer to the device buffer.
+   * @param[in] offset Offset of the pointer array.
+   * @return Pointer to the device buffer.
+   *
+   * @note The pointer can be offset to position \a offset.
+   *
+   */
+  Pixel* data();
 
-//  /** Returns a const pointer to the device buffer.
-//   * @param[in] offset Desired offset within the array.
-//   * @return Const pointer to the device buffer.
-//   */
-//  const Pixel* data(int offset = 0) const;
+  /** Returns a const pointer to the device buffer.
+   * @param[in] offset Desired offset within the array.
+   * @return Const pointer to the device buffer.
+   */
+  const Pixel* data() const;
 
 //  /** Sets a certain value to all pixels in the data vector.
 //   */
 //  void setValue(const Pixel& value);
 
-//  /** Copy data to another class instance.
-//   */
-//  void copyTo(LinearMemory<Pixel>& dst);
+  /** Copy data to another device class instance.
+   */
+  void copyTo(imp::cu::LinearMemory<Pixel>& dst);
+
+  /** Copy data to a host class instance.
+   */
+  void copyTo(imp::LinearMemory<Pixel>& dst);
+
+  /** Copy data from a host class instance.
+   */
+  void copyFrom(imp::LinearMemory<Pixel>& dst);
 
 //  //! @todo (MWE) operator= for copyTo/copyFrom?
 //  LinearMem& operator=(pixel_t rhs);
@@ -65,12 +82,11 @@ public:
   virtual std::uint8_t bitDepth() const override { return 8*sizeof(pixel_t); }
 
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
-  virtual bool isGpuMemory() const  override { return false; }
+  virtual bool isGpuMemory() const  override { return true; }
 
 private:
   std::unique_ptr<pixel_t, Deallocator> data_;
   //pixel_container_t data_;
-
 };
 
 // convenience typedefs

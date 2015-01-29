@@ -4,8 +4,8 @@ target_link_libraries(size_test ${IMP_LIBRARIES})
 add_executable(roi_test roi_test.cpp)
 target_link_libraries(roi_test ${IMP_LIBRARIES})
 
-add_executable(linearhostmemory_test linearhostmemory_test.cpp)
-target_link_libraries(linearhostmemory_test ${IMP_LIBRARIES})
+add_executable(linearmemory_test linearmemory_test.cpp)
+target_link_libraries(linearmemory_test ${IMP_LIBRARIES})
 
 find_package( OpenCV REQUIRED core highgui )
 

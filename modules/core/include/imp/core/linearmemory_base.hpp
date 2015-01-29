@@ -41,7 +41,7 @@ public:
   /** Returns flag if the image data resides on the GPU (TRUE) or CPU (FALSE) */
   virtual bool isGpuMemory() const = 0;
 
-private:
+protected:
   size_t length_;
 
 };
