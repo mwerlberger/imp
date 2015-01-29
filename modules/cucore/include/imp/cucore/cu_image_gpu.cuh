@@ -1,0 +1,130 @@
+#ifndef IMP_CU_IMAGE_GPU_HPP
+#define IMP_CU_IMAGE_GPU_HPP
+
+#include <memory>
+#include <algorithm>
+
+#include <imp/core/image.hpp>
+#include <imp/cucore/cu_exception.hpp>
+#include <imp/cucore/cu_memory_storage.cuh>
+
+namespace imp { namespace cu {
+
+/**
+ * @brief The ImageGpu class is an image (surprise) holding raw memory
+ *
+ * The ImageGpu memory can be used to allocate raw memory of a given size, or
+ * take external memory and hold a reference to that. Note that when external
+ * memory is given to the class, the memory won't be managed! You have to take
+ * care about the memory deletion. Instead when you let the class itself allocate
+ * the memory it will take care of freeing the memory again. In addition the allocation
+ * takes care about memory address alignment (default: 32-byte) for the beginning of
+ * every row.
+ *
+ * The template parameters are as follows:
+ *   - Pixel: The pixel's memory representation (e.g. imp::Pixel8uC1 for single-channel unsigned 8-bit images)
+ *   - pixel_type: The internal enum for specifying the pixel's type more specificly
+ */
+template<typename Pixel, imp::PixelType pixel_type>
+class ImageGpu : public imp::Image<Pixel, pixel_type>
+{
+public:
+  typedef imp::Image<Pixel, pixel_type> Base;
+  typedef imp::cu::MemoryStorage<Pixel> Memory;
+  typedef imp::cu::MemoryDeallocator<Pixel> Deallocator;
+  typedef Pixel pixel_t;
+  typedef pixel_t* pixel_container_t;
+
+public:
+  ImageGpu() = default;
+  virtual ~ImageGpu() = default;
+
+  /**
+   * @brief ImageGpu construcs an image of given size \a width x \a height
+   */
+  ImageGpu(std::uint32_t width, std::uint32_t height);
+  /**
+   * @brief ImageGpu construcs an image of given \a size
+   */
+  ImageGpu(const imp::Size2u& size);
+  /**
+   * @brief ImageGpu copy constructs an image from the given image \a from
+   */
+  ImageGpu(const ImageGpu& from);
+  /**
+   * @brief ImageGpu copy constructs an arbitrary base image \a from (not necessarily am \a ImageGpu)
+   */
+  ImageGpu(const Base& from);
+  /**
+   * @brief ImageGpu constructs an image with the given data (copied or refererenced!)
+   * @param data Pointer to the image data.
+   * @param width Image width.
+   * @param height Image height.
+   * @param pitch Length of a row in bytes (including padding).
+   * @param use_ext_data_pointer Flagg if the image should be copied (true) or if the data is just safed as 'reference' (false)
+   */
+  ImageGpu(pixel_container_t data, std::uint32_t width, std::uint32_t height,
+           size_type pitch, bool use_ext_data_pointer = false);
+
+  /**
+   * @brief copyTo copies the internal image data to another class instance
+   * @param dst Image class that will receive this image's data.
+   */
+  virtual void copyTo(Base& dst) const override;
+
+
+  /**
+   * @brief copyFrom copies the image data from another class instance to this image
+   * @param from Image class providing the image data.
+   */
+  virtual void copyFrom(const Base& from) override;
+
+
+  /** Returns a pointer to the pixel data.
+   * The pointer can be offset to position \a (ox/oy).
+   * @param[in] ox Horizontal/Column offset of the pointer array.
+   * @param[in] oy Vertical/Row offset of the pointer array.
+   * @return Pointer to the pixel array.
+   */
+  virtual Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
+  virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
+
+  /** Returns the distance in bytes between starts of consecutive rows. */
+  virtual size_type pitch() const override { return pitch_; }
+
+  /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
+  virtual bool isGpuMemory() const override { return true; }
+
+protected:
+  std::unique_ptr<pixel_t, Deallocator> data_; //!< the actual image data
+  size_type pitch_ = 0; //!< Row alignment in bytes.
+};
+
+//-----------------------------------------------------------------------------
+// convenience typedefs
+// (sync with explicit template class instantiations at the end of the cpp file)
+typedef ImageGpu<imp::Pixel8uC1, imp::PixelType::i8uC1> ImageGpu8uC1;
+typedef ImageGpu<imp::Pixel8uC2, imp::PixelType::i8uC2> ImageGpu8uC2;
+typedef ImageGpu<imp::Pixel8uC3, imp::PixelType::i8uC3> ImageGpu8uC3;
+typedef ImageGpu<imp::Pixel8uC4, imp::PixelType::i8uC4> ImageGpu8uC4;
+
+typedef ImageGpu<imp::Pixel16uC1, imp::PixelType::i16uC1> ImageGpu16uC1;
+typedef ImageGpu<imp::Pixel16uC2, imp::PixelType::i16uC2> ImageGpu16uC2;
+typedef ImageGpu<imp::Pixel16uC3, imp::PixelType::i16uC3> ImageGpu16uC3;
+typedef ImageGpu<imp::Pixel16uC4, imp::PixelType::i16uC4> ImageGpu16uC4;
+
+typedef ImageGpu<imp::Pixel32sC1, imp::PixelType::i32sC1> ImageGpu32sC1;
+typedef ImageGpu<imp::Pixel32sC2, imp::PixelType::i32sC2> ImageGpu32sC2;
+typedef ImageGpu<imp::Pixel32sC3, imp::PixelType::i32sC3> ImageGpu32sC3;
+typedef ImageGpu<imp::Pixel32sC4, imp::PixelType::i32sC4> ImageGpu32sC4;
+
+typedef ImageGpu<imp::Pixel32fC1, imp::PixelType::i32fC1> ImageGpu32fC1;
+typedef ImageGpu<imp::Pixel32fC2, imp::PixelType::i32fC2> ImageGpu32fC2;
+typedef ImageGpu<imp::Pixel32fC3, imp::PixelType::i32fC3> ImageGpu32fC3;
+typedef ImageGpu<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageGpu32fC4;
+
+} // namespace cu
+} // namespace imp
+
+
+#endif // IMP_CU_IMAGE_GPU_HPP

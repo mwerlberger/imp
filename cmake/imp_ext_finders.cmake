@@ -9,9 +9,12 @@ macro(find_opencv)
 
 
   find_package( OpenCV REQUIRED ${desired_opencv_modules})
-  set(IMP_USE_OPENCV TRUE)
+  message(STATUS "!!!!!!!!!!!!!!!!!!OpenCV_LIBS: ${OpenCV_LIBS}")
 
   list(APPEND IMP_${module}_LINK_DEPS "${OpenCV_LIBS}")
+  set(IMP_LINK_DEPS "${IMP_LINK_DEPS};${OpenCV_LIBS}" CACHE INTERNAL
+     "linkage dependencies for imp")
+  message(STATUS "IMP_LINK_DEPS: ${IMP_LINK_DEPS}")
 endmacro()
 
 ##------------------------------------------------------------------------------
@@ -23,8 +26,10 @@ macro(find_cuda)
    cuda_include_directories(${CUDA_INCLUDE_DIRS} ${CUDA_SDK_INCLUDE_DIR})
    include_directories(${CUDA_INCLUDE_DIRS} ${CUDA_SDK_INCLUDE_DIR})
    list(APPEND IMP_${module}_LINK_DEPS "${CUDA_LIBRARIES}")
+   set(IMP_LINK_DEPS "${IMP_LINK_DEPS};${CUDA_LIBRARIES}" CACHE INTERNAL
+      "linkage dependencies for imp")
 
-   imp_debug_message("CUDA_INCLUDE_DIRS: " ${CUDA_INCLUDE_DIRS})
-   imp_debug_message("CUDA_SDK_INCLUDE_DIRS: " ${CUDA_SDK_INCLUDE_DIRS})
-   imp_debug_message("CUDA_LIBRARIES: " ${CUDA_LIBRARIES})
+   # imp_debug_message("CUDA_INCLUDE_DIRS: " ${CUDA_INCLUDE_DIRS})
+   # imp_debug_message("CUDA_SDK_INCLUDE_DIRS: " ${CUDA_SDK_INCLUDE_DIRS})
+   # imp_debug_message("CUDA_LIBRARIES: " ${CUDA_LIBRARIES})
 endmacro()

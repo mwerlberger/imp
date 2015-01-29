@@ -6,6 +6,13 @@ endif()
 include_directories(${IMP_MODULES_PATH})
 
 ## find 3rd-party dependencies (that are desired with the IMP_WITH_*) so we only have to check once.
+if (${IMP_WITH_OPENCV})
+   find_opencv()
+  if(NOT OpenCV_LIBS)
+    set(IMP_WITH_OPENCV OFF CACHE PATH "IMP library built without OpenCV support (OpenCV was not found)." FORCE)
+  endif()
+endif()
+
 if (${IMP_WITH_CUDA})
   find_cuda()
 
@@ -13,7 +20,7 @@ if (${IMP_WITH_CUDA})
     set(CUDA_NVCC_FLAGS -std=c++11)
     cuda_include_directories(${IMP_MODULES_PATH})
   else()
-    set(IMP_WITH_CUDA OFF CACHE PATH "IMP library built without CUDA support (CUDA not found)." FORCE)
+    set(IMP_WITH_CUDA OFF CACHE PATH "IMP library built without CUDA support (CUDA was not found)." FORCE)
   endif()
 endif()
 

@@ -16,12 +16,12 @@ cuda_include_directories(${IMP_MODULE_${module}_INCLUDE_PATH})
 set(HEADERS
   include/imp/cucore/cu_memory_storage.cuh
   include/imp/cucore/cu_linearmemory.cuh
-#  include/imp/cucore/cu_image_raw.cuh
+  include/imp/cucore/cu_image_gpu.cuh
   )
 
 set(SOURCES
   src/cu_linearmemory.cu
-#  src/cu_image_raw.cu
+  src/cu_image_gpu.cu
   )
 
 #imp_module_include_directories(${module})
