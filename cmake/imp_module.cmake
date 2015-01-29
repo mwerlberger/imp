@@ -11,10 +11,7 @@
 #
 # This is heavily inspired by OpenCV's build system. Thank's guys.
 
-macro(imp_debug_message)
-  string(REPLACE ";" " " __msg "${ARGN}")
-  message(STATUS "${__msg}")
-endmacro()
+#include(utils.cmake)
 
 ################################################################################
 # adds an IMP module (1st call)
@@ -37,8 +34,12 @@ macro(imp_add_module _name)
 
   # module details (cached)
   set(IMP_MODULE_${module}_DESCRIPTION "${imp_module_description}" CACHE INTERNAL "Brief description of the ${module} module")
-  #set(IMP_MODULE_${module}_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}" CACHE INTERNAL "Location of the ${module} module")
-  #set(IMP_${module}_LINK_DEPS "" CACHE INTERNAL "linkage dependencies") # TODO (MW)
+  set(IMP_MODULE_${module}_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}" CACHE INTERNAL "Location of the ${module} module")
+  set(IMP_${module}_LINK_DEPS "" CACHE INTERNAL "linkage dependencies of ${module} module")
+
+  # include path
+  get_filename_component(IMP_MODULE_${module}_INCLUDE_PATH include ABSOLUTE)
+
 
   # setup linkage type for the current module
   if((NOT DEFINED IMP_MODULE_LINKAGE AND IMP_BUILD_SHARED_LIBS)
@@ -52,19 +53,13 @@ macro(imp_add_module _name)
   # option to disable module
   option(IMP_BUILD_${module}_MODULE "IMP built including the ${module} module" ${IMP_BUILD_${module}_MODULE_INIT})
 
-  # TODO (MW) parse dependencies and generate link string
-
-
-  project(${module})
+  project(${module} CXX C)
 endmacro()
 
 
 ################################################################################
-# creates an IMP module (last call)
-macro(imp_create_module)
-  imp_debug_message("imp_create_module(" ${ARGN} ")")
-  add_library(${module} ${IMP_MODULE_${module}_LINKAGE} ${ARGN})
-
+# internal common part for creating the module library (no matter if c++ or cuda)
+macro(imp_create_module_internal)
   # dll api exports (mainly win32)
   if(${IMP_MODULE_${module}_LINKAGE} STREQUAL SHARED)
     # TODO (MW) define version and public headers
@@ -76,15 +71,35 @@ macro(imp_create_module)
       )
   endif()
 
-  # include path
-  get_filename_component(IMP_MODULE_${module}_INCLUDE_PATH include ABSOLUTE)
-  target_include_directories(${module} PUBLIC ${IMP_MODULE_${module}_INCLUDE_PATH})
-  # TODO (MW): include dir private or public?
-
-  message(STATUS "TARGET_FILE: $<TARGET_FILE:${module}>")
   get_target_property(FULL_LIBRARY_NAME ${module} LOCATION)
-  set(IMP_MODULE_LIBRARIES_LOCATIONS ${FULL_LIBRARY_NAME} CACHE INTERNAL "")
-  set(IMP_MODULE_INCLUDE_PATHS ${IMP_MODULE_${module}_INCLUDE_PATH} CACHE INTERNAL "")
-  imp_debug_message("full_library_name:" ${FULL_LIBRARY_NAME})
-  imp_debug_message("IMP_MODULE_${module}_INCLUDE_PATH:" ${IMP_MODULE_${module}_INCLUDE_PATH})
+  ## TODO(MWE) we have to get rid of LOCATION property sooner or later....
+  #  message(STATUS "TARGET_FILE: $<TARGET_FILE:${module}>")
+
+  # far from optimal but list append doesn't work with cache variables
+  set(IMP_MODULE_LIBRARIES_LOCATIONS "${IMP_MODULE_LIBRARIES_LOCATIONS};${FULL_LIBRARY_NAME}" CACHE INTERNAL "List of the absolute locations of all built module libraries")
+  set(IMP_MODULE_INCLUDE_PATHS "${IMP_MODULE_INCLUDE_PATHS};${IMP_MODULE_${module}_INCLUDE_PATH}" CACHE INTERNAL "List of all module's include paths")
+
+  # include path (TODO private or public?? difference?)
+  target_include_directories(${module} PRIVATE ${IMP_MODULE_${module}_INCLUDE_PATH})
+
+  imp_debug_message("${module} link dependencies: " ${IMP_${module}_LINK_DEPS})
+  target_link_libraries(${module} ${IMP_${module}_LINK_DEPS})
+endmacro()
+
+################################################################################
+# creates an IMP module (last call)
+macro(imp_create_module)
+  imp_debug_message("imp_create_module(" ${ARGN} ")")
+  include_directories(${IMP_MODULE_INCLUDE_PATHS})
+  add_library(${module} ${IMP_MODULE_${module}_LINKAGE} ${ARGN})
+  imp_create_module_internal()
+endmacro()
+
+################################################################################
+# creates an IMP cuda module (last call)
+macro(imp_create_cuda_module)
+  imp_debug_message("imp_create_module(" ${ARGN} ")")
+  cuda_include_directories(${IMP_MODULE_INCLUDE_PATHS})
+  cuda_add_library(${module} ${IMP_MODULE_${module}_LINKAGE} ${ARGN})
+  imp_create_module_internal()
 endmacro()

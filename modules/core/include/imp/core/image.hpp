@@ -5,14 +5,15 @@
 
 #include <imp/core/image_base.hpp>
 #include <imp/core/exception.hpp>
+#include <imp/core/pixel.hpp>
 
 namespace imp {
 
-template<typename PixelStorageType, imp::PixelType pixel_type>
+template<typename Pixel, imp::PixelType pixel_type>
 class Image : public ImageBase
 {
-  typedef PixelStorageType pixel_storage_t;
-  typedef pixel_storage_t* pixel_container_t;
+  typedef Pixel pixel_t;
+  typedef pixel_t* pixel_container_t;
 
 protected:
   Image(imp::PixelOrder pixel_order = imp::PixelOrder::undefined)
@@ -41,10 +42,10 @@ public:
    * @return Pointer to the pixel array.
    */
   virtual pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) = 0;
-  virtual const PixelStorageType* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const = 0;
+  virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const = 0;
 
   /** Get Pixel value at position x,y. */
-  pixel_storage_t pixel(std::uint32_t x, std::uint32_t y) const
+  pixel_t pixel(std::uint32_t x, std::uint32_t y) const
   {
     return *data(x, y);
   }
@@ -56,10 +57,10 @@ public:
   {
     return data(0,row);
   }
-  const pixel_container_t operator[] (std::uint32_t row) const
-  {
-    return data(0,row);
-  }
+//  const pixel_container_t operator[] (std::uint32_t row) const
+//  {
+//    return data(0,row);
+//  }
 
   /**
    * @brief copyTo copies the internal image data to another class instance
@@ -88,24 +89,67 @@ public:
     }
   }
 
+  /**
+   * @brief copyFrom copies the image data from another class instance to this image
+   * @param from Image class providing the image data.
+   */
+  virtual void copyFrom(const Image& from)
+  {
+    if (this->size()!= from.size())
+    {
+      throw imp::Exception("Copying failed: Image sizes differ.", __FILE__, __FUNCTION__, __LINE__);
+    }
+
+    if (this->bytes() == from.bytes())
+    {
+      std::copy(from.data(), from.data()+from.stride()*from.height(), this->data());
+    }
+    else
+    {
+      for (std::uint32_t y=0; y<this->height(); ++y)
+      {
+        for (std::uint32_t x=0; x<this->width(); ++x)
+        {
+          (*this)[y][x] = from.pixel(y,x);
+        }
+      }
+    }
+  }
 
   /** Returns the distnace in pixels between starts of consecutive rows. */
   virtual size_type stride() const override
   {
-    return this->pitch()/sizeof(pixel_storage_t);
+    return this->pitch()/sizeof(pixel_t);
   }
 
   /** Returns the bit depth of the data pointer. */
   virtual std::uint8_t bitDepth() const override
   {
-    return 8*sizeof(pixel_storage_t);
+    return 8*sizeof(pixel_t);
   }
 };
 
 //-----------------------------------------------------------------------------
 // convenience typedefs
-typedef Image<std::uint8_t, imp::PixelType::i8uC1> Image8uC1;
-typedef Image<float, imp::PixelType::i32fC1> Image32fC1;
+typedef Image<imp::Pixel8uC1, imp::PixelType::i8uC1> Image8uC1;
+typedef Image<imp::Pixel8uC2, imp::PixelType::i8uC2> Image8uC2;
+typedef Image<imp::Pixel8uC3, imp::PixelType::i8uC3> Image8uC3;
+typedef Image<imp::Pixel8uC4, imp::PixelType::i8uC4> Image8uC4;
+
+typedef Image<imp::Pixel16uC1, imp::PixelType::i16uC1> Image16uC1;
+typedef Image<imp::Pixel16uC2, imp::PixelType::i16uC2> Image16uC2;
+typedef Image<imp::Pixel16uC3, imp::PixelType::i16uC3> Image16uC3;
+typedef Image<imp::Pixel16uC4, imp::PixelType::i16uC4> Image16uC4;
+
+typedef Image<imp::Pixel32sC1, imp::PixelType::i32sC1> Image32sC1;
+typedef Image<imp::Pixel32sC2, imp::PixelType::i32sC2> Image32sC2;
+typedef Image<imp::Pixel32sC3, imp::PixelType::i32sC3> Image32sC3;
+typedef Image<imp::Pixel32sC4, imp::PixelType::i32sC4> Image32sC4;
+
+typedef Image<imp::Pixel32fC1, imp::PixelType::i32fC1> Image32fC1;
+typedef Image<imp::Pixel32fC2, imp::PixelType::i32fC2> Image32fC2;
+typedef Image<imp::Pixel32fC3, imp::PixelType::i32fC3> Image32fC3;
+typedef Image<imp::Pixel32fC4, imp::PixelType::i32fC4> Image32fC4;
 
 } // namespace imp
 

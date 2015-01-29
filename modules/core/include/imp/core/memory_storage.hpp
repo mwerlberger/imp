@@ -8,69 +8,22 @@
 #include <algorithm>
 
 #include <imp/core/exception.hpp>
+#include <imp/core/size.hpp>
 
 namespace imp {
 
-////--------------------------------------------------------------------------
-//template <typename PixelType>
-//class ImageAllocator
-//{
-//public:
-//  static PixelType* alloc(unsigned int width, unsigned int height, size_t *pitch)
-//  {
-//    //! @todo use sse malloc stuff so that pointers are aligned to 16/32-bytes! is there an optimal way to do that in windows and linux?
-
-//    if ((width == 0) || (height == 0)) throw IuException("width or height is 0", __FILE__,__FUNCTION__, __LINE__);
-
-//    // manually pitch the memory to 32-byte alignment (for better support of eg. IPP functions)
-//    *pitch = width * sizeof(PixelType);
-
-//    unsigned int elements_to_pitch = (32-(*pitch % 32))/sizeof(PixelType);
-
-//    // n*32 % 32 = 0 -> elements_to_pitch according to above formula would be (unnecessarily) 32 in that case
-//    // alternative formula: elements_to_pitch = ( 31 - ( ((*pitch) - 1) % 32) ) / sizeof(PixelType);
-//    if(*pitch % 32 == 0)
-//      elements_to_pitch = 0;
-
-//    width += elements_to_pitch;
-//    PixelType *buffer = new PixelType[width * height];
-//    *pitch = width * sizeof(PixelType);
-//    return buffer;
-//  }
-
-//  static void free(PixelType *buffer)
-//  {
-//    delete[] buffer;
-//  }
-
-//  static void copy(const PixelType *src, size_t src_pitch,
-//                   PixelType *dst, size_t dst_pitch, IuSize size)
-//  {
-//    size_t src_stride = src_pitch/sizeof(PixelType);
-//    size_t dst_stride = src_pitch/sizeof(PixelType);
-
-//    for(unsigned int y=0; y< size.height; ++y)
-//    {
-//      for(unsigned int x=0; x<size.width; ++x)
-//      {
-//        dst[y*dst_stride+x] = src[y*src_stride+x];
-//      }
-//    }
-//  }
-//};
-
 //--------------------------------------------------------------------------
-template <typename PixelStorageType, int memaddr_align=32, bool align_rows=true>
-struct ImageMemoryStorage
+template <typename Pixel, int memaddr_align=32, bool align_rows=true>
+struct MemoryStorage
 {
 public:
-  typedef PixelStorageType pixel_storage_t;
-  typedef pixel_storage_t* pixel_container_t;
+  typedef Pixel pixel_t;
+  typedef pixel_t* pixel_container_t;
   typedef std::uint32_t size_type;
 
   //----------------------------------------------------------------------------
-  ImageMemoryStorage() = default;
-  virtual ~ImageMemoryStorage() = default;
+  MemoryStorage() = default;
+  virtual ~MemoryStorage() = default;
 
   //----------------------------------------------------------------------------
   /**
@@ -97,7 +50,8 @@ public:
     assert((memaddr_align != 0) && memaddr_align <= 128 &&
            ((memaddr_align & (~memaddr_align + 1)) == memaddr_align));
 
-    const size_type memory_size = sizeof(pixel_storage_t) * num_elements;
+    const size_type memory_size = sizeof(pixel_t) * num_elements;
+    //std::cout << "memory_size=" << memory_size << "; sizeof(pixel_t)=" << sizeof(pixel_t) << std::endl;
 
     pixel_container_t p_data_aligned =
         (pixel_container_t)aligned_alloc(memaddr_align, memory_size);
@@ -109,10 +63,10 @@ public:
 
     if (init_with_zeros)
     {
-      std::fill(p_data_aligned, p_data_aligned+num_elements, 0);
+      std::fill(p_data_aligned, p_data_aligned+num_elements, pixel_t(0));
     }
 
-    return p_data_aligned;
+    return (pixel_container_t)p_data_aligned;
   }
 
   //----------------------------------------------------------------------------
@@ -140,11 +94,11 @@ public:
            ((memaddr_align & (~memaddr_align + 1)) == memaddr_align));
 
     // check if the width allows a correct alignment of every row, otherwise add padding
-    const size_type width_bytes = width * sizeof(pixel_storage_t);
+    const size_type width_bytes = width * sizeof(pixel_t);
     // bytes % memaddr_align = 0 for bytes=n*memaddr_align is the reason for
     // the decrement in the following compution:
     const size_type bytes_to_add = (memaddr_align-1) - ((width_bytes-1) % memaddr_align);
-    const std::uint32_t pitched_width = width + bytes_to_add/sizeof(pixel_storage_t);
+    const std::uint32_t pitched_width = width + bytes_to_add/sizeof(pixel_t);
     *pitch = width_bytes + bytes_to_add;
     return alignedAlloc(pitched_width*height, init_with_zeros);
   }
@@ -183,18 +137,18 @@ public:
  *
  */
 template<typename PixelStorageType>
-struct ImageMemoryDeallocator
+struct MemoryDeallocator
 {
   typedef PixelStorageType pixel_storage_t;
   typedef pixel_storage_t* pixel_container_t;
 
   // Default custom deleter assuming we use arrays (new PixelType[length])
-  ImageMemoryDeallocator()
+  MemoryDeallocator()
     : f([](pixel_container_t p) { free(p); })
   { }
 
   // allow us to define a custom deallocator
-  explicit ImageMemoryDeallocator(std::function<void(pixel_container_t)> const &_f)
+  explicit MemoryDeallocator(std::function<void(pixel_container_t)> const &_f)
     : f(_f)
   { }
 

@@ -1,6 +1,8 @@
 #ifndef IMP_LINEARMEMORY_HPP
 #define IMP_LINEARMEMORY_HPP
 
+#include <cstdint>
+
 namespace imp {
 
 /** \brief LinearMemory Base class for linear memory classes.
@@ -39,7 +41,7 @@ public:
   /** Returns flag if the image data resides on the GPU (TRUE) or CPU (FALSE) */
   virtual bool isGpuMemory() const = 0;
 
-private:
+protected:
   size_t length_;
 
 };

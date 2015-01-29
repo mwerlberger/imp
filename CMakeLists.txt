@@ -6,12 +6,17 @@ project(${PROJECT_NAME} CXX C)
 cmake_minimum_required(VERSION 2.8.0)
 
 ## internal macros/includes
-#include(cmake/utils.cmake)
+include(cmake/imp_utils.cmake)
 include(cmake/imp_module.cmake)
+include(cmake/imp_ext_finders.cmake)
 
 # cleanup
 set(IMP_MODULE_LIBRARIES_LOCATIONS "" CACHE INTERNAL "List of the absolute locations of all built module libraries")
 set(IMP_MODULE_INCLUDE_PATHS "" CACHE INTERNAL "List of all module's include paths")
+set(IMP_LINK_DEPS "" CACHE INTERNAL "linkage dependencies for imp")
+
+#mark_as_advanced(IMP_MODULE_LIBRARIES_LOCATIONS IMP_MODULE_INCLUDE_PATHS)
+
 # set(${IU_PUBLIC_HEADERS} "")
 
 # # general settings
@@ -65,7 +70,8 @@ endif()
 ##-----------------------------------------------------------------------------
 ## Compiler Flags
 if(UNIX)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
+  #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x") # come on guys... update your system ;)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   add_definitions(-Wall)
   add_definitions(-Werror)
   add_definitions(-g)
@@ -85,17 +91,27 @@ endif(WIN32)
 ##-----------------------------------------------------------------------------
 ## settings / options
 option(IMP_BUILD_SHARED_LIBS "Build shared libraries if ON (default) or static ones if OFF." ON)
-imp_debug_message("IMP_BUILD_SHARED_LIBS:" ${IMP_BUILD_SHARED_LIBS})
+
+##-----------------------------------------------------------------------------
+## 3rd party dependencies
+option(IMP_WITH_OPENCV "Build IMP with opencv connectors. Default is ON." ON)
+option(IMP_WITH_CUDA "Build IMP with CUDA support. Default is OFF." ON)
 
 ##-----------------------------------------------------------------------------
 ## include modules
 add_subdirectory(modules)
 
-#
-#
+##-----------------------------------------------------------------------------
+## print build config
+##
 imp_debug_message("************************************************************")
 imp_debug_message("IMP BUILD SETUP:")
+imp_debug_message("================")
 imp_debug_message("")
+imp_debug_message("IMP_BUILD_SHARED_LIBS:" ${IMP_BUILD_SHARED_LIBS})
+imp_debug_message("IMP_WITH_OPENCV:" ${IMP_WITH_OPENCV})
+imp_debug_message("IMP_WITH_CUDA:" ${IMP_WITH_CUDA})
+imp_debug_message("------------------------------------------------------------")
 imp_debug_message("IMP_MODULE_LIBRARIES_LOCATIONS: ${IMP_MODULE_LIBRARIES_LOCATIONS}")
 imp_debug_message("IMP_MODULE_INCLUDE_PATHS: ${IMP_MODULE_INCLUDE_PATHS}")
 imp_debug_message("************************************************************")
@@ -108,12 +124,12 @@ imp_debug_message("************************************************************"
 # Create the opengvConfig.cmake file for other cmake projects.
 #get_target_property(FULL_LIBRARY_NAME ${PROJECT_NAME} LOCATION)
 set(IMP_LIBRARIES ${IMP_MODULE_LIBRARIES_LOCATIONS})
+message(STATUS "link_deps ${IMP_core_LINK_DEPS}")
+set(IMP_LIBRARY_DEPENDS ${IMP_LINK_DEPS})
 set(IMP_LIBRARY_DIR ${PROJECT_BINARY_DIR} )
 set(IMP_INCLUDE_DIR ${IMP_MODULE_INCLUDE_PATHS})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/impConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/impConfig.cmake @ONLY IMMEDIATE)
-message(STATUS "PROJECT_NAME=${PROJECT_NAME}")
-#export(PACKAGE imp)
 export(PACKAGE ${PROJECT_NAME})
 
 

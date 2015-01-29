@@ -1,5 +1,5 @@
 # cmake
-CMakeLists.txt*
+CMakeLists.txt.*
 
 # Compiled Object files
 *.slo

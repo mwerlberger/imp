@@ -10,6 +10,9 @@ namespace imp {
 class Exception : public std::exception
 {
 public:
+  Exception() = default;
+  virtual ~Exception() throw() = default;
+
   Exception(const std::string& msg,
             const char* file=NULL, const char* function=NULL, int line=0) throw():
     msg_(msg),
@@ -26,9 +29,6 @@ public:
     out_msg << (function_.empty() ? "unknown function" : function_) << ":" << line_;
     msg_ = out_msg.str();
   }
-
-  virtual ~Exception() throw()
-  { }
 
   virtual const char* what() const throw()
   {
