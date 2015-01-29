@@ -8,11 +8,8 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
 ## find 3rd-party dependencies (that are desired with the IMP_WITH_*)
 ## so we only have to check once.
 ##-----------------------------------------------------------------------------
-message(STATUS "IMP_LIBRARIES: ${IMP_LIBRARIES}")
 if (${IMP_WITH_OPENCV})
   find_opencv(core highgui)
-
-  message(STATUS "OpenCV_LIBS: ${OpenCV_LIBS}")
 endif()
 
 if (${IMP_WITH_CUDA})
