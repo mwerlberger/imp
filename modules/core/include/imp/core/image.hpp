@@ -89,6 +89,32 @@ public:
     }
   }
 
+  /**
+   * @brief copyFrom copies the image data from another class instance to this image
+   * @param from Image class providing the image data.
+   */
+  virtual void copyFrom(Image& from)
+  {
+    if (this->size()!= from.size())
+    {
+      throw imp::Exception("Copying failed: Image sizes differ.", __FILE__, __FUNCTION__, __LINE__);
+    }
+
+    if (this->bytes() == from.bytes())
+    {
+      std::copy(dst.data(), dst.data()+dst.stride()*dst.height(), this->data());
+    }
+    else
+    {
+      for (std::uint32_t y=0; y<this->height(); ++y)
+      {
+        for (std::uint32_t x=0; x<this->width(); ++x)
+        {
+          (*this)[y][x] = from[y][x];
+        }
+      }
+    }
+  }
 
   /** Returns the distnace in pixels between starts of consecutive rows. */
   virtual size_type stride() const override
