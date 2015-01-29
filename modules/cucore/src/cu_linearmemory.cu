@@ -6,7 +6,7 @@
 //#include <imp/core/exception.hpp>
 
 
-namespace imp {
+namespace imp { namespace cu {
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
@@ -15,13 +15,13 @@ LinearMemory<Pixel>::LinearMemory()
 {
 }
 
-////-----------------------------------------------------------------------------
-//template<typename Pixel>
-//LinearMemory<Pixel>::LinearMemory(const size_t& length)
-//  : LinearMemoryBase(length)
-//  , data_(Memory::alignedAlloc(this->length()))
-//{
-//}
+//-----------------------------------------------------------------------------
+template<typename Pixel>
+LinearMemory<Pixel>::LinearMemory(const size_t& length)
+  : LinearMemoryBase(length)
+  , data_(Memory::alloc(this->length()))
+{
+}
 
 ////-----------------------------------------------------------------------------
 //template<typename Pixel>
@@ -123,4 +123,5 @@ template class LinearMemory<imp::Pixel16uC1>;
 template class LinearMemory<imp::Pixel32sC1>;
 template class LinearMemory<imp::Pixel32fC1>;
 
+} // namespace cu
 } // namespace imp

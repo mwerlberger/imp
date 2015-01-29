@@ -1,32 +1,32 @@
-#ifndef IMP_LINEARHOSTMEMORY_H
-#define IMP_LINEARHOSTMEMORY_H
+#ifndef IMP_CU_LINEARHOSTMEMORY_CUH
+#define IMP_CU_LINEARHOSTMEMORY_CUH
 
 //#include <stdio.h>
 //#include <assert.h>
 //#include <cstdlib>
-//#include <memory>
+#include <memory>
 
 #include <imp/core/linearmemory_base.hpp>
-#include <imp/core/image_allocator.hpp>
 #include <imp/core/pixel.hpp>
+#include <imp/cucore/cu_memory_allocator.cuh>
 
-namespace imp {
+namespace imp { namespace cu {
 
 template<typename Pixel>
 class LinearMemory : public LinearMemoryBase
 {
 public:
   typedef LinearMemory<Pixel> LinearMem;
-  typedef imp::ImageMemoryStorage<Pixel> Memory;
-  typedef imp::ImageMemoryDeallocator<Pixel> Deallocator;
+  typedef imp::cu::MemoryStorage<Pixel> Memory;
+  typedef imp::cu::MemoryDeallocator<Pixel> Deallocator;
 
   typedef Pixel pixel_t;
   typedef pixel_t* pixel_container_t;
 
-  LinearMemory();
+  __host__ LinearMemory();
   virtual ~LinearMemory() = default;
 
-//  LinearMemory(const size_t& length);
+  __host__ LinearMemory(const size_t& length);
 //  LinearMemory(const LinearMemory<Pixel>& from);
 //  LinearMemory(pixel_container_t host_data, const size_t& length,
 //               bool use_ext_data_pointer = false);
@@ -68,7 +68,8 @@ public:
   virtual bool isGpuMemory() const  override { return false; }
 
 private:
-//  std::unique_ptr<pixel_t, Deallocator> data_;
+  std::unique_ptr<pixel_t, Deallocator> data_;
+  //pixel_container_t data_;
 
 };
 
@@ -84,6 +85,7 @@ typedef LinearMemory<imp::Pixel32fC1> LinearMemory32fC1;
 
 
 
+} // namespace cu
 } // namespace imp
 
 #endif // IMP_LINEARHOSTMEMORY_H
