@@ -11,20 +11,7 @@
 #
 # This is heavily inspired by OpenCV's build system. Thank's guys.
 
-macro(imp_debug_message)
-  string(REPLACE ";" " " __msg "${ARGN}")
-  message(STATUS "${__msg}")
-endmacro()
-
-macro(imp_warn)
-  string(REPLACE ";" " " __msg "${ARGN}")
-  message(WARNING "${__msg}")
-endmacro()
-
-macro(imp_fatal)
-  string(REPLACE ";" " " __msg "${ARGN}")
-  message(FATAL_ERROR "${__msg}")
-endmacro()
+#include(utils.cmake)
 
 ################################################################################
 # adds an IMP module (1st call)

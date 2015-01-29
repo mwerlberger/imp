@@ -6,7 +6,7 @@ project(${PROJECT_NAME} CXX C)
 cmake_minimum_required(VERSION 2.8.0)
 
 ## internal macros/includes
-#include(cmake/utils.cmake)
+include(cmake/imp_utils.cmake)
 include(cmake/imp_module.cmake)
 include(cmake/imp_ext_finders.cmake)
 
