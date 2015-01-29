@@ -42,7 +42,7 @@ public:
 
     if (cu_err == cudaErrorMemoryAllocation)
     {
-      trow std::bad_alloc();
+      throw std::bad_alloc();
     }
     else if (cu_err != cudaSuccess)
     {
@@ -68,18 +68,14 @@ public:
       throw imp::cu::Exception("Failed to allocate memory: width or height is zero");
     }
 
-    const size_type width_bytes = width * sizeof(pixel_t);
+    const size_t width_bytes = width * sizeof(pixel_t);
     pixel_container_t p_data = nullptr;
-    cudaError_t cu_err = cudaMallocPitch((void **)&p_data, pitch,
-                                         width_bytes, size.height);
+    cudaError_t cu_err = cudaMallocPitch((void **)&p_data, (size_t*)pitch,
+                                         width_bytes, (size_t)height);
 
-    const cudaError err = cudaMallocPitch(&dev_data_,
-                                          &pitch_,
-                                          width_*sizeof(ElementType),
-                                          height_);
     if (cu_err == cudaErrorMemoryAllocation)
     {
-      trow std::bad_alloc();
+      throw std::bad_alloc();
     }
     else if (cu_err != cudaSuccess)
     {

@@ -1,4 +1,4 @@
-#include <imp/cucore/cu_image_gpu.hpp>
+#include <imp/cucore/cu_image_gpu.cuh>
 
 #include <iostream>
 
@@ -86,11 +86,21 @@ ImageGpu<Pixel, pixel_type>::ImageGpu(const Image<Pixel, pixel_type>& from)
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void ImageGpu<Pixel, pixel_type>::copyTo(const Image<Pixel, pixel_type>& dst)
+void ImageGpu<Pixel, pixel_type>::copyTo(imp::Image<Pixel, pixel_type>& dst) const
 {
-  if (this->size()!= from.size())
+  if (this->size()!= dst.size())
   {
     throw imp::Exception("Copying failed: Image sizes differ.", __FILE__, __FUNCTION__, __LINE__);
+  }
+  cudaMemcpyKind memcpy_kind = dst.isGpuMemory() ? cudaMemcpyDeviceToDevice :
+                                                   cudaMemcpyDeviceToHost;
+  const cudaError cu_err = cudaMemcpy2D(dst.data(), dst.pitch(),
+                                        this->data(), this->pitch(),
+                                        this->width()*sizeof(Pixel),
+                                        this->height(), memcpy_kind);
+  if (cu_err != cudaSuccess)
+  {
+    throw imp::cu::Exception("copyFrom failed", cu_err, __FILE__, __FUNCTION__, __LINE__);
   }
 
 }
@@ -107,8 +117,8 @@ void ImageGpu<Pixel, pixel_type>::copyFrom(const Image<Pixel, pixel_type>& from)
                                                     cudaMemcpyHostToDevice;
   const cudaError cu_err = cudaMemcpy2D(this->data(), this->pitch(),
                                         from.data(), from.pitch(),
-                                        this->width()*sizeof(ElementType),
-                                        height_, memcpy_kind);
+                                        this->width()*sizeof(Pixel),
+                                        this->height(), memcpy_kind);
   if (cu_err != cudaSuccess)
   {
     throw imp::cu::Exception("copyFrom failed", cu_err, __FILE__, __FUNCTION__, __LINE__);
@@ -143,7 +153,8 @@ const Pixel* ImageGpu<Pixel, pixel_type>::data(
     throw imp::cu::Exception("Device memory pointer offset is not possible from host function");
   }
 
-  return reinterpret_cast<const pixel_container_t>(data_.get());
+//  return reinterpret_cast<const pixel_container_t>(data_.get());
+  return data_.get();
 }
 
 //=============================================================================

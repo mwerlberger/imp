@@ -57,10 +57,10 @@ public:
   {
     return data(0,row);
   }
-  const pixel_container_t operator[] (std::uint32_t row) const
-  {
-    return data(0,row);
-  }
+//  const pixel_container_t operator[] (std::uint32_t row) const
+//  {
+//    return data(0,row);
+//  }
 
   /**
    * @brief copyTo copies the internal image data to another class instance
@@ -93,7 +93,7 @@ public:
    * @brief copyFrom copies the image data from another class instance to this image
    * @param from Image class providing the image data.
    */
-  virtual void copyFrom(Image& from)
+  virtual void copyFrom(const Image& from)
   {
     if (this->size()!= from.size())
     {
@@ -102,7 +102,7 @@ public:
 
     if (this->bytes() == from.bytes())
     {
-      std::copy(dst.data(), dst.data()+dst.stride()*dst.height(), this->data());
+      std::copy(from.data(), from.data()+from.stride()*from.height(), this->data());
     }
     else
     {
@@ -110,7 +110,7 @@ public:
       {
         for (std::uint32_t x=0; x<this->width(); ++x)
         {
-          (*this)[y][x] = from[y][x];
+          (*this)[y][x] = from.pixel(y,x);
         }
       }
     }

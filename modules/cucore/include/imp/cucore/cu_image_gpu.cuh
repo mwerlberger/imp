@@ -5,8 +5,8 @@
 #include <algorithm>
 
 #include <imp/core/image.hpp>
-#include <imp/cucore/cu_memory_storage.hpp>
 #include <imp/cucore/cu_exception.hpp>
+#include <imp/cucore/cu_memory_storage.cuh>
 
 namespace imp { namespace cu {
 
@@ -77,7 +77,7 @@ public:
    * @brief copyFrom copies the image data from another class instance to this image
    * @param from Image class providing the image data.
    */
-  virtual void copyFrom(Base& from) override;
+  virtual void copyFrom(const Base& from) override;
 
 
   /** Returns a pointer to the pixel data.
