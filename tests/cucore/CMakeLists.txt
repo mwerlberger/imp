@@ -1,0 +1,2 @@
+cuda_add_executable(cu_linearmemory_test cu_linearmemory_test.cpp)
+target_link_libraries(cu_linearmemory_test ${IMP_LIBRARIES})

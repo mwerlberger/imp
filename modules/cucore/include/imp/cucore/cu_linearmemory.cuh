@@ -10,7 +10,7 @@
 #include <imp/core/linearmemory.hpp>
 
 #include <imp/core/pixel.hpp>
-#include <imp/cucore/cu_memory_allocator.cuh>
+#include <imp/cucore/cu_memory_storage.cuh>
 
 namespace imp { namespace cu {
 

@@ -14,7 +14,7 @@ include_directories(${IMP_MODULE_${module}_INCLUDE_PATH})
 cuda_include_directories(${IMP_MODULE_${module}_INCLUDE_PATH})
 
 set(HEADERS
-  include/imp/cucore/cu_memory_allocator.cuh
+  include/imp/cucore/cu_memory_storage.cuh
   include/imp/cucore/cu_linearmemory.cuh
 #  include/imp/cucore/cu_image_raw.cuh
   )
