@@ -1,6 +1,8 @@
 #ifndef IMP_PIXEL_HPP
 #define IMP_PIXEL_HPP
 
+#include <cstdint>
+
 namespace imp {
 
 //------------------------------------------------------------------------------

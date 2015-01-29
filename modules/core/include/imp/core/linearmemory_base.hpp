@@ -1,6 +1,8 @@
 #ifndef IMP_LINEARMEMORY_HPP
 #define IMP_LINEARMEMORY_HPP
 
+#include <cstdint>
+
 namespace imp {
 
 /** \brief LinearMemory Base class for linear memory classes.

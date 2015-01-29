@@ -10,7 +10,7 @@ if (${IMP_WITH_CUDA})
   find_cuda()
 
   if (CUDA_FOUND)
-    set(CUDA_NVCC_FLAGS --compiler-options;-std=c++11)
+    set(CUDA_NVCC_FLAGS -std=c++11)
     cuda_include_directories(${IMP_MODULES_PATH})
   else()
     set(IMP_WITH_CUDA OFF CACHE PATH "IMP library built without CUDA support (CUDA not found)." FORCE)

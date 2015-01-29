@@ -1,13 +1,13 @@
 #ifndef IMP_LINEARHOSTMEMORY_H
 #define IMP_LINEARHOSTMEMORY_H
 
-#include <stdio.h>
-#include <assert.h>
-#include <cstdlib>
+//#include <stdio.h>
+//#include <assert.h>
+//#include <cstdlib>
 //#include <memory>
 
 #include <imp/core/linearmemory_base.hpp>
-//#include <imp/core/image_allocator.hpp>
+#include <imp/core/image_allocator.hpp>
 #include <imp/core/pixel.hpp>
 
 namespace imp {
