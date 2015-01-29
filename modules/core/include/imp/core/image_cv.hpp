@@ -7,7 +7,7 @@
 #include <opencv2/core/core.hpp>
 
 #include <imp/core/image.hpp>
-//#include <imp/core/image_allocator.hpp>
+//#include <imp/core/memory_storage.hpp>
 #include <imp/core/pixel_enums.hpp>
 
 namespace imp {

@@ -25,7 +25,7 @@ class LinearMemory : public LinearMemoryBase
 {
 public:
   typedef LinearMemory<Pixel> LinearMem;
-  typedef imp::cu::MemoryStorage<Pixel> Memory;
+  typedef imp::cu::MemoryStorage<Pixel> CuMemory;
   typedef imp::cu::MemoryDeallocator<Pixel> Deallocator;
 
   typedef Pixel pixel_t;
@@ -86,7 +86,6 @@ public:
 
 private:
   std::unique_ptr<pixel_t, Deallocator> data_;
-  //pixel_container_t data_;
 };
 
 // convenience typedefs

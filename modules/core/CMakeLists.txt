@@ -12,7 +12,7 @@ set(HEADERS
   include/imp/core/linearmemory.hpp
   include/imp/core/image_base.hpp
   include/imp/core/image.hpp
-  include/imp/core/image_allocator.hpp
+  include/imp/core/memory_storage.hpp
   include/imp/core/image_raw.hpp
   )
 

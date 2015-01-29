@@ -14,7 +14,7 @@ namespace imp {
 
 //--------------------------------------------------------------------------
 template <typename Pixel, int memaddr_align=32, bool align_rows=true>
-struct ImageMemoryStorage
+struct MemoryStorage
 {
 public:
   typedef Pixel pixel_t;
@@ -22,8 +22,8 @@ public:
   typedef std::uint32_t size_type;
 
   //----------------------------------------------------------------------------
-  ImageMemoryStorage() = default;
-  virtual ~ImageMemoryStorage() = default;
+  MemoryStorage() = default;
+  virtual ~MemoryStorage() = default;
 
   //----------------------------------------------------------------------------
   /**
@@ -137,18 +137,18 @@ public:
  *
  */
 template<typename PixelStorageType>
-struct ImageMemoryDeallocator
+struct MemoryDeallocator
 {
   typedef PixelStorageType pixel_storage_t;
   typedef pixel_storage_t* pixel_container_t;
 
   // Default custom deleter assuming we use arrays (new PixelType[length])
-  ImageMemoryDeallocator()
+  MemoryDeallocator()
     : f([](pixel_container_t p) { free(p); })
   { }
 
   // allow us to define a custom deallocator
-  explicit ImageMemoryDeallocator(std::function<void(pixel_container_t)> const &_f)
+  explicit MemoryDeallocator(std::function<void(pixel_container_t)> const &_f)
     : f(_f)
   { }
 

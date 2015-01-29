@@ -5,7 +5,7 @@
 #include <algorithm>
 
 #include <imp/core/image.hpp>
-#include <imp/core/image_allocator.hpp>
+#include <imp/core/memory_storage.hpp>
 
 namespace imp {
 
@@ -30,8 +30,8 @@ class ImageRaw : public imp::Image<Pixel, pixel_type>
 public:
   typedef Image<Pixel, pixel_type> Base;
   typedef ImageRaw<Pixel, pixel_type> ImRaw;
-  typedef imp::ImageMemoryStorage<Pixel> Memory;
-  typedef imp::ImageMemoryDeallocator<Pixel> Deallocator;
+  typedef imp::MemoryStorage<Pixel> Memory;
+  typedef imp::MemoryDeallocator<Pixel> Deallocator;
   typedef Pixel pixel_t;
   typedef pixel_t* pixel_container_t;
 

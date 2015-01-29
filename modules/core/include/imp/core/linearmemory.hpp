@@ -7,7 +7,7 @@
 #include <memory>
 
 #include <imp/core/linearmemory_base.hpp>
-#include <imp/core/image_allocator.hpp>
+#include <imp/core/memory_storage.hpp>
 #include <imp/core/pixel.hpp>
 
 namespace imp {
@@ -17,8 +17,8 @@ class LinearMemory : public LinearMemoryBase
 {
 public:
   typedef LinearMemory<Pixel> LinearMem;
-  typedef imp::ImageMemoryStorage<Pixel> Memory;
-  typedef imp::ImageMemoryDeallocator<Pixel> Deallocator;
+  typedef imp::MemoryStorage<Pixel> Memory;
+  typedef imp::MemoryDeallocator<Pixel> Deallocator;
 
   typedef Pixel pixel_t;
   typedef pixel_t* pixel_container_t;

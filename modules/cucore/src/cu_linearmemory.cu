@@ -19,7 +19,7 @@ LinearMemory<Pixel>::LinearMemory()
 template<typename Pixel>
 LinearMemory<Pixel>::LinearMemory(const size_t& length)
   : LinearMemoryBase(length)
-  , data_(Memory::alloc(this->length()))
+  , data_(CuMemory::alloc(this->length()))
 {
 }
 
@@ -33,7 +33,7 @@ LinearMemory<Pixel>::LinearMemory(const imp::cu::LinearMemory<Pixel>& from)
     throw imp::cu::Exception("'from' data not valid", __FILE__, __FUNCTION__, __LINE__);
   }
 
-  data_.reset(Memory::alloc(this->length()));
+  data_.reset(CuMemory::alloc(this->length()));
   const cudaError cu_err =
       cudaMemcpy(data_.get(), from.data(), this->bytes(), cudaMemcpyDeviceToDevice);
 
@@ -53,7 +53,7 @@ LinearMemory<Pixel>::LinearMemory(const imp::LinearMemory<Pixel>& from)
     throw imp::cu::Exception("'from' data not valid", __FILE__, __FUNCTION__, __LINE__);
   }
 
-  data_.reset(Memory::alloc(this->length()));
+  data_.reset(CuMemory::alloc(this->length()));
   const cudaError cu_err =
       cudaMemcpy(data_.get(), from.data(), this->bytes(), cudaMemcpyHostToDevice);
 
@@ -86,7 +86,7 @@ LinearMemory<Pixel>::LinearMemory(const imp::LinearMemory<Pixel>& from)
 //  else
 //  {
 //    // allocates an internal data pointer and copies the external data it.
-//    data_.reset(Memory::alignedAlloc(this->length()));
+//    data_.reset(CuMemory::alignedAlloc(this->length()));
 //    std::copy(host_data, host_data+length, data_.get());
 //  }
 //}
