@@ -14,9 +14,13 @@ include_directories(${IMP_MODULE_${module}_INCLUDE_PATH})
 cuda_include_directories(${IMP_MODULE_${module}_INCLUDE_PATH})
 
 set(HEADERS
+  include/imp/cucore/cu_utils.hpp
+  include/imp/cucore/cu_exception.hpp
   include/imp/cucore/cu_memory_storage.cuh
   include/imp/cucore/cu_linearmemory.cuh
+  include/imp/cucore/cu_gpu_data.cuh
   include/imp/cucore/cu_image_gpu.cuh
+  include/imp/cucore/cu_setvalue.cuh
   )
 
 set(SOURCES

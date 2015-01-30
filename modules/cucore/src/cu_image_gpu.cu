@@ -2,8 +2,10 @@
 
 #include <iostream>
 
-#include <imp/cucore/cu_exception.hpp>
 
+#include <imp/cucore/cu_exception.hpp>
+#include <imp/cucore/cu_utils.hpp>
+#include <imp/cucore/cu_setvalue.cuh>
 
 namespace imp { namespace cu {
 
@@ -13,6 +15,8 @@ ImageGpu<Pixel, pixel_type>::ImageGpu(std::uint32_t width, std::uint32_t height)
   : Base(width, height)
 {
   data_.reset(Memory::alignedAlloc(width, height, &pitch_));
+//  gpu_data_ = new GpuData2D<Pixel>(data_.get(), this->stride(),
+//                                   this->width(), this->height());
 }
 
 //-----------------------------------------------------------------------------
@@ -21,6 +25,8 @@ ImageGpu<Pixel, pixel_type>::ImageGpu(const imp::Size2u& size)
   : Base(size)
 {
   data_.reset(Memory::alignedAlloc(size, &pitch_));
+//  gpu_data_ = new GpuData2D(data_.get(), this->stride(),
+//                            this->width(), this->height());
 }
 
 //-----------------------------------------------------------------------------
@@ -30,6 +36,8 @@ ImageGpu<Pixel, pixel_type>::ImageGpu(const ImageGpu& from)
 {
   data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
   this->copyFrom(from);
+//  gpu_data_ = new GpuData2D(data_.get(), this->stride(),
+//                            this->width(), this->height());
 }
 
 //-----------------------------------------------------------------------------
@@ -39,6 +47,8 @@ ImageGpu<Pixel, pixel_type>::ImageGpu(const Image<Pixel, pixel_type>& from)
 {
   data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
   this->copyFrom(from);
+//  gpu_data_ = new GpuData2D(data_.get(), this->stride(),
+//                            this->width(), this->height());
 }
 
 ////-----------------------------------------------------------------------------
@@ -83,6 +93,20 @@ ImageGpu<Pixel, pixel_type>::ImageGpu(const Image<Pixel, pixel_type>& from)
 //  }
 //}
 
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+ImageGpu<Pixel, pixel_type>::~ImageGpu()
+{
+//  delete gpu_data_;
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+void ImageGpu<Pixel, pixel_type>::setRoi(const imp::Roi2u& roi)
+{
+  this->roi_ = roi;
+//  gpu_data_.roi = roi;
+}
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
@@ -96,7 +120,7 @@ void ImageGpu<Pixel, pixel_type>::copyTo(imp::Image<Pixel, pixel_type>& dst) con
                                                    cudaMemcpyDeviceToHost;
   const cudaError cu_err = cudaMemcpy2D(dst.data(), dst.pitch(),
                                         this->data(), this->pitch(),
-                                        this->width()*sizeof(Pixel),
+                                        this->rowBytes(),
                                         this->height(), memcpy_kind);
   if (cu_err != cudaSuccess)
   {
@@ -117,7 +141,7 @@ void ImageGpu<Pixel, pixel_type>::copyFrom(const Image<Pixel, pixel_type>& from)
                                                     cudaMemcpyHostToDevice;
   const cudaError cu_err = cudaMemcpy2D(this->data(), this->pitch(),
                                         from.data(), from.pitch(),
-                                        this->width()*sizeof(Pixel),
+                                        this->rowBytes(),
                                         this->height(), memcpy_kind);
   if (cu_err != cudaSuccess)
   {
@@ -156,6 +180,29 @@ const Pixel* ImageGpu<Pixel, pixel_type>::data(
 //  return reinterpret_cast<const pixel_container_t>(data_.get());
   return data_.get();
 }
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
+{
+  if (sizeof(pixel_t) == 1)
+  {
+    cudaMemset2D((void*)this->data(), this->pitch(), (int)value.c[0], this->rowBytes(), this->height());
+  }
+  else
+  {
+    // fragmentation
+    const unsigned int block_size = 16;
+    dim3 dimBlock(block_size, block_size);
+    dim3 dimGrid(divUp(this->width(), dimBlock.x),
+                 divUp(this->height(), dimBlock.y));
+    // todo add roi to kernel!
+    imp::cu::k_setValue
+        <<< dimGrid, dimBlock >>> (this->data(), this->stride(), value,
+                                   this->width(), this->height());
+  }
+}
+
 
 //=============================================================================
 // Explicitely instantiate the desired classes

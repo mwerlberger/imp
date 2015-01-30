@@ -69,7 +69,7 @@ public:
     return *this;
   }
 
-  void setRoi(const imp::Roi2u& roi)
+  virtual void setRoi(const imp::Roi2u& roi)
   {
     roi_ = roi;
   }
@@ -117,6 +117,9 @@ public:
   {
     return this->height() * this->pitch();
   }
+
+  /** Returns the length of a row (not including the padding!) in bytes. */
+  virtual size_type rowBytes() const = 0;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
   virtual size_type pitch() const = 0;

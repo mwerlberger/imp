@@ -9,7 +9,8 @@ include_directories(${IMP_MODULES_PATH})
 if (${IMP_WITH_OPENCV})
    find_opencv()
   if(NOT OpenCV_LIBS)
-    set(IMP_WITH_OPENCV OFF CACHE PATH "IMP library built without OpenCV support (OpenCV was not found)." FORCE)
+    set(IMP_WITH_OPENCV OFF CACHE PATH
+        "IMP library built without OpenCV support (OpenCV was not found)." FORCE)
   endif()
 endif()
 

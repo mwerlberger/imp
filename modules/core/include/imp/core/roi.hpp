@@ -96,6 +96,7 @@ struct RoiBase
    * @brief size of the ROI (const)
    */
   const imp::Size<T, DIM>& size() const {return reinterpret_cast<const imp::Size<T, DIM>&>(sz);}
+
 };
 
 //------------------------------------------------------------------------------

@@ -7,6 +7,7 @@
 #include <imp/core/image.hpp>
 #include <imp/cucore/cu_exception.hpp>
 #include <imp/cucore/cu_memory_storage.cuh>
+//#include <imp/cucore/cu_gpu_data.cuh>
 
 namespace imp { namespace cu {
 
@@ -37,7 +38,7 @@ public:
 
 public:
   ImageGpu() = default;
-  virtual ~ImageGpu() = default;
+  virtual ~ImageGpu();/* = default;*/
 
   /**
    * @brief ImageGpu construcs an image of given size \a width x \a height
@@ -66,19 +67,20 @@ public:
   ImageGpu(pixel_container_t data, std::uint32_t width, std::uint32_t height,
            size_type pitch, bool use_ext_data_pointer = false);
 
+  /** sets a region of interest */
+  virtual void setRoi(const imp::Roi2u& roi) override;
+
   /**
    * @brief copyTo copies the internal image data to another class instance
    * @param dst Image class that will receive this image's data.
    */
   virtual void copyTo(Base& dst) const override;
 
-
   /**
    * @brief copyFrom copies the image data from another class instance to this image
    * @param from Image class providing the image data.
    */
   virtual void copyFrom(const Base& from) override;
-
 
   /** Returns a pointer to the pixel data.
    * The pointer can be offset to position \a (ox/oy).
@@ -89,15 +91,30 @@ public:
   virtual Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
   virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
 
+  /**
+   * @brief setValue Sets image data to the specified \a value.
+   * @param value Value to be set to the whole image data.
+   * @note @todo (MWE) TBD: region-of-interest is considered
+   */
+  virtual void setValue(const pixel_t& value);
+
   /** Returns the distance in bytes between starts of consecutive rows. */
   virtual size_type pitch() const override { return pitch_; }
 
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
   virtual bool isGpuMemory() const override { return true; }
 
+  /** Returns a data structure to operate within a cuda kernel (does not copy any memory!). */
+//  std::unique_ptr<GpuData2D<pixel_t>> gpuData() { return gpu_data_; }
+
+
 protected:
   std::unique_ptr<pixel_t, Deallocator> data_; //!< the actual image data
   size_type pitch_ = 0; //!< Row alignment in bytes.
+
+private:
+  //std::unique_ptr<GpuData2D<pixel_t>> gpu_data_; //!< data collection that can be directly used within a kernel.
+//  GpuData2D<Pixel>* gpu_data_;
 };
 
 //-----------------------------------------------------------------------------
