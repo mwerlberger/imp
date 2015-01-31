@@ -1,5 +1,5 @@
-#ifndef IMP_CU_SETVALUE_CUH
-#define IMP_CU_SETVALUE_CUH
+#ifndef IMP_CU_K_SETVALUE_CU
+#define IMP_CU_K_SETVALUE_CU
 
 #include <stdio.h>
 
@@ -53,4 +53,4 @@ __global__ void k_setValue(Pixel* dst, size_t stride, const Pixel& value,
 } // namespace cu
 } // namespace imp
 
-#endif // IMP_CU_SETVALUE_CUH
+#endif // IMP_CU_K_SETVALUE_CU

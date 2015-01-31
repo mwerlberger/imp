@@ -20,12 +20,13 @@ set(HEADERS
   include/imp/cucore/cu_linearmemory.cuh
   include/imp/cucore/cu_gpu_data.cuh
   include/imp/cucore/cu_image_gpu.cuh
-  include/imp/cucore/cu_setvalue.cuh
+  #include/imp/cucore/cu_setvalue.cuh
   )
 
 set(SOURCES
   src/cu_linearmemory.cu
   src/cu_image_gpu.cu
+  include/imp/cucore/cu_k_setvalue.cu
   )
 
 #imp_module_include_directories(${module})

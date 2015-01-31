@@ -5,7 +5,7 @@
 
 #include <imp/cucore/cu_exception.hpp>
 #include <imp/cucore/cu_utils.hpp>
-#include <imp/cucore/cu_setvalue.cuh>
+#include <imp/cucore/cu_k_setvalue.cu>
 
 namespace imp { namespace cu {
 

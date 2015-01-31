@@ -16,7 +16,6 @@ if (${IMP_WITH_CUDA})
   find_cuda()
 
   if (CUDA_FOUND)
-    set(CUDA_NVCC_FLAGS -std=c++11)
     cuda_include_directories("${IMP_INCLUDE_DIRS}")
     cuda_include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
   else()
