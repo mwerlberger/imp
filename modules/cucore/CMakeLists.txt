@@ -20,7 +20,7 @@ set(HEADERS
   include/imp/cucore/cu_linearmemory.cuh
   include/imp/cucore/cu_gpu_data.cuh
   include/imp/cucore/cu_image_gpu.cuh
-  include/imp/cucore/cu_setvalue.cuh
+  include/imp/cucore/cu_k_setvalue.cuh
   )
 
 set(SOURCES
