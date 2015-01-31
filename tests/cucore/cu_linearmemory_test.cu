@@ -10,7 +10,7 @@
 
 #include "default_msg.h"
 
-__global__ void simpleKernelTest(imp::Pixel8uC1* dst, size_t length, const Pixel8uC1 value)
+__global__ void simpleKernelTest(imp::Pixel8uC1* dst, size_t length, const imp::Pixel8uC1 value)
 {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -132,8 +132,8 @@ int main(int /*argc*/, char** /*argv*/)
     //--------------------------------------------------------------------------
     // SIMPLE KERNEL TEST
     {
-      size_t length = 13;
-      imp::cu::LinearMemory8uC1 d1_8u_C1(1024);
+      size_t length = 1026;
+      imp::cu::LinearMemory8uC1 d1_8u_C1(length);
 
       // fragmentation
       const unsigned int block_width = 512;
@@ -142,12 +142,15 @@ int main(int /*argc*/, char** /*argv*/)
 
       imp::Pixel8uC1 val_8u(123);
       simpleKernelTest
-          <<< dimGrid, dimBlock >>> (dst->data(), dst->length(), val_8u);
+          <<< dimGrid, dimBlock >>> (d1_8u_C1.data(), d1_8u_C1.length(), val_8u);
 
-      imp::LinearMemory8uC1 check_8u_C1(d1_8u_C1);
+      imp::LinearMemory8uC1 check_8u_C1(d1_8u_C1.length());
+      check_8u_C1.setValue(0);
+      d1_8u_C1.copyTo(check_8u_C1);
       for (size_t i=0; i<check_8u_C1.length(); ++i)
       {
         assert(check_8u_C1(i) == val_8u);
+        //std::cout << "check(" << i << "): " << (int)check_8u_C1(i).x << std::endl;
       }
 
 

@@ -67,6 +67,11 @@ public:
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
   virtual bool isGpuMemory() const  override { return false; }
 
+  /** Pixel access with (idx). */
+   pixel_t& operator()(size_t idx) {return *this->data(idx);}
+   /** Pixel access with [idx]. */
+   pixel_t& operator[](size_t idx) {return *this->data(idx);}
+
 private:
   std::unique_ptr<pixel_t, Deallocator> data_;
 

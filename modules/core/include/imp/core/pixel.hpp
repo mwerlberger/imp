@@ -5,6 +5,14 @@
 
 namespace imp {
 
+template<typename T>
+struct PixelTest
+{
+  T x;
+  PixelTest(T _x) : x(_x) {}
+};
+typedef PixelTest<std::uint8_t> PixelTest8uC1;
+
 //------------------------------------------------------------------------------
 template<typename T>
 union Pixel1
@@ -18,6 +26,8 @@ union Pixel1
       T r;
    };
    T c[1];
+
+   //__device__ operator T () const { return c[0]; }
 
    Pixel1(T _x) : x(_x) { }
    ~Pixel1() = default;

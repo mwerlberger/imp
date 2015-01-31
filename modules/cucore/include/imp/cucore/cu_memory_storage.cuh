@@ -69,9 +69,14 @@ public:
     }
 
     const size_t width_bytes = width * sizeof(pixel_t);
+    size_t intern_pitch;
     pixel_container_t p_data = nullptr;
-    cudaError_t cu_err = cudaMallocPitch((void **)&p_data, (size_t*)pitch,
+    cudaError_t cu_err = cudaMallocPitch((void **)&p_data, &intern_pitch,
                                          width_bytes, (size_t)height);
+
+    *pitch = intern_pitch;
+
+    printf("pitch: %lu, i_pitch: %lu, width_bytes: %lu\n", *pitch, intern_pitch, width_bytes);
 
     if (cu_err == cudaErrorMemoryAllocation)
     {

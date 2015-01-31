@@ -30,7 +30,8 @@ macro(find_cuda)
   # imp_debug_message("CUDA_SDK_INCLUDE_DIRS: " ${CUDA_SDK_INCLUDE_DIRS})
   # imp_debug_message("CUDA_LIBRARIES: " ${CUDA_LIBRARIES})
 
-
+  list(APPEND CUDA_NVCC_FLAGS --compiler-options -fno-strict-aliasing -lineinfo -use_fast_math -Xptxas -dlcm=cg -std=c++11)
+  
   # Checking cuda version
   # set defines due to some missing functions in cuda 3.1
   if(CUDA_VERSION_STRING STREQUAL "6.0")
@@ -45,8 +46,6 @@ macro(find_cuda)
      # CUDA 7.0
      message(STATUS "IMP library compiled with CUDA 7.0")
      add_definitions(-DCUDA_VERSION_70)
-     # add c++11 support for cuda>=7
-     list(APPEND CUDA_NVCC_FLAGS -std=c++11)
   elseif()
      message(STATUS "unknown CUDA version. some things might not be tested.")
   endif()
@@ -65,17 +64,23 @@ macro(find_cuda)
   elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "2.0")
      message(STATUS "IMP library compiled with SM 20")
      list(APPEND CUDA_NVCC_FLAGS -arch=sm_20)
+     list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_20,code=sm_20)
   elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "2.1")
      message(STATUS "IMP library compiled with SM 21")
      list(APPEND CUDA_NVCC_FLAGS -arch=sm_21)
   elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "3.0")
      message(STATUS "IMP library compiled with SM 30")
      list(APPEND CUDA_NVCC_FLAGS -arch=sm_30)
+     list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_30,code=sm_30)
+  elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "3.5")
+     message(STATUS "IMP library compiled with SM 35")
+     list(APPEND CUDA_NVCC_FLAGS -arch=sm_35)
+     list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_35,code=sm_35)
   else()
      message(STATUS "IMP library compiled with SM 30")
      list(APPEND CUDA_NVCC_FLAGS -arch=sm_30)
   endif()
 
-  message(STATUS "=======CUDA_NVCC_FLAGS=${CUDA_NVCC_FLAGS}")
-  
+#  list(APPEND CMAKE_CXX_FLAGS "-std=c++11 -O3 -ffast-math -Wall")
+
 endmacro()
