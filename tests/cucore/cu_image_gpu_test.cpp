@@ -49,15 +49,15 @@ int main(int /*argc*/, char** /*argv*/)
     d0_8uC1.setValue(imp::Pixel8uC1(128));
     imp::ImageCv8uC1 h0_8uC1(d0_8uC1);
 
-    imp::cu::ImageGpu8uC3 d1_8uC3(sz);
-    d1_8uC3.setValue(imp::Pixel8uC3(255, 0, 0));
-    imp::ImageCv8uC3 h1_8uC3(d1_8uC3);
+    imp::cu::ImageGpu8uC4 d1_8uC4(sz);
+    d1_8uC4.setValue(imp::Pixel8uC4(255, 0, 0, 0));
+    imp::ImageCv8uC4 h1_8uC4(d1_8uC4);
 
 
     std::cout << "h0_8uC1: " << h0_8uC1 << std::endl;
     std::cout << "d0_8uC1: " << d0_8uC1 << std::endl;
 //    std::cout << "h1_8uC3: " << h1_8uC3 << std::endl;
-    std::cout << "d1_8uC3: " << d1_8uC3 << std::endl;
+    std::cout << "d1_8uC3: " << d1_8uC4 << std::endl;
 
     std::cout << "h1_lena_8uC1: " << h1_lena_8uC1 << std::endl;
     std::cout << "d1_lena_8uC1: " << d1_lena_8uC1 << std::endl;
@@ -70,7 +70,7 @@ int main(int /*argc*/, char** /*argv*/)
     std::cout << "d2_lena_8uC3: " << d2_lena_8uC3 << std::endl;
 
     cv::imshow("setValue - 8uC1", h0_8uC1.cvMat());
-    cv::imshow("setValue - 8uC3 - is it blue??", h1_8uC3.cvMat());
+    cv::imshow("setValue - 8uC4 - is it blue??", h1_8uC4.cvMat());
 
     cv::imshow("lena input", h1_lena_8uC1.cvMat());
     cv::imshow("lena copied around", h2_lena_8uC1.cvMat());

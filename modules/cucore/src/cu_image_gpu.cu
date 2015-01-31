@@ -5,29 +5,10 @@
 
 #include <imp/cucore/cu_exception.hpp>
 #include <imp/cucore/cu_utils.hpp>
-//#include <imp/cucore/cu_k_setvalue.cu>
+#include <imp/cucore/cu_setvalue.cuh>
 
 
 namespace imp { namespace cu {
-
-
-template<class Pixel>
-__global__ void k_setValue(Pixel* dst, size_t stride, const Pixel& value,
-                           size_t width, size_t height)
-{
-  int x = blockIdx.x*blockDim.x + threadIdx.x;
-  int y = blockIdx.y*blockDim.y + threadIdx.y;
-
-  printf("x=%d, y=%d, w=%d, h=%d, s=%d, /*dst=%p,*/ value=%d, c=%d\n",
-         x, y, width, height, stride, /*dst,*/ value.c[0], y*stride+x);
-
-  if (x>=0 && y>=0 && x<width && y<height)
-  {
-    dst[y*stride+x] = value;
-  }
-}
-
-
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
@@ -197,7 +178,7 @@ const Pixel* ImageGpu<Pixel, pixel_type>::data(
     throw imp::cu::Exception("Device memory pointer offset is not possible from host function");
   }
 
-//  return reinterpret_cast<const pixel_container_t>(data_.get());
+//  return reinterpreft_cast<const pixel_container_t>(data_.get());
   return data_.get();
 }
 
@@ -229,7 +210,8 @@ void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
 // (sync with typedefs at the end of the hpp file)
 template class ImageGpu<imp::Pixel8uC1, imp::PixelType::i8uC1>;
 template class ImageGpu<imp::Pixel8uC2, imp::PixelType::i8uC2>;
-template class ImageGpu<imp::Pixel8uC3, imp::PixelType::i8uC3>;
+// be careful with 8uC3 images as pitch values are not divisable by 3!
+//template class ImageGpu<imp::Pixel8uC3, imp::PixelType::i8uC3>;
 template class ImageGpu<imp::Pixel8uC4, imp::PixelType::i8uC4>;
 
 template class ImageGpu<imp::Pixel16uC1, imp::PixelType::i16uC1>;

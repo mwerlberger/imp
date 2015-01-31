@@ -17,7 +17,7 @@ namespace imp { namespace cu {
  */
 #if 0
 template<class Pixel>
-__global__ void k_setValue(GpuData2D<Pixel>* dst, const Pixel& value)
+__global__ void k_setValue(GpuData2D<Pixel>* dst, const Pixel value)
 {
   int x = blockIdx.x*blockDim.x + threadIdx.x;
   int y = blockIdx.y*blockDim.y + threadIdx.y;
@@ -34,14 +34,11 @@ __global__ void k_setValue(GpuData2D<Pixel>* dst, const Pixel& value)
 #endif
 
 template<class Pixel>
-__global__ void k_setValue(Pixel* dst, size_t stride, const Pixel& value,
+__global__ void k_setValue(Pixel* dst, size_t stride, const Pixel value,
                            size_t width, size_t height)
 {
   int x = blockIdx.x*blockDim.x + threadIdx.x;
   int y = blockIdx.y*blockDim.y + threadIdx.y;
-
-  printf("x=%d, y=%d, w=%d, h=%d, s=%d, /*dst=%p,*/ value=%d, c=%d\n",
-         x, y, width, height, stride, /*dst,*/ value.c[0], y*stride+x);
 
   if (x>=0 && y>=0 && x<width && y<height)
   {
