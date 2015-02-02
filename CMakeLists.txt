@@ -104,17 +104,17 @@ add_subdirectory(modules)
 ##-----------------------------------------------------------------------------
 ## print build config
 ##
-imp_debug_message("************************************************************")
-imp_debug_message("IMP BUILD SETUP:")
-imp_debug_message("================")
-imp_debug_message("")
-imp_debug_message("IMP_BUILD_SHARED_LIBS:" ${IMP_BUILD_SHARED_LIBS})
-imp_debug_message("IMP_WITH_OPENCV:" ${IMP_WITH_OPENCV})
-imp_debug_message("IMP_WITH_CUDA:" ${IMP_WITH_CUDA})
-imp_debug_message("------------------------------------------------------------")
-imp_debug_message("IMP_MODULE_LIBRARIES_LOCATIONS: ${IMP_MODULE_LIBRARIES_LOCATIONS}")
-imp_debug_message("IMP_MODULE_INCLUDE_PATHS: ${IMP_MODULE_INCLUDE_PATHS}")
-imp_debug_message("************************************************************")
+imp_debug("************************************************************")
+imp_debug("IMP BUILD SETUP:")
+imp_debug("================")
+imp_debug("")
+imp_debug("IMP_BUILD_SHARED_LIBS:" ${IMP_BUILD_SHARED_LIBS})
+imp_debug("IMP_WITH_OPENCV:" ${IMP_WITH_OPENCV})
+imp_debug("IMP_WITH_CUDA:" ${IMP_WITH_CUDA})
+imp_debug("------------------------------------------------------------")
+imp_debug("IMP_MODULE_LIBRARIES_LOCATIONS: ${IMP_MODULE_LIBRARIES_LOCATIONS}")
+imp_debug("IMP_MODULE_INCLUDE_PATHS: ${IMP_MODULE_INCLUDE_PATHS}")
+imp_debug("************************************************************")
 
 #
 #

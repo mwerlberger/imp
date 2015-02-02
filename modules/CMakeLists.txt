@@ -1,6 +1,6 @@
 if(NOT IMP_MODULES_PATH)
   set(IMP_MODULES_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
-  imp_debug_message("IMP_MODULES_PATH: " ${CMAKE_CURRENT_SOURCE_DIR})
+  imp_debug("IMP_MODULES_PATH: " ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
 include_directories(${IMP_MODULES_PATH})

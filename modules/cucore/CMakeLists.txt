@@ -8,8 +8,8 @@ endif()
 
 imp_add_module(cucore)
 
-include_directories(${IMP_MODULE_core_INCLUDE_PATH})
-cuda_include_directories(${IMP_MODULE_core_INCLUDE_PATH})
+imp_include_module(core)
+
 include_directories(${IMP_MODULE_${module}_INCLUDE_PATH})
 cuda_include_directories(${IMP_MODULE_${module}_INCLUDE_PATH})
 

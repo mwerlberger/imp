@@ -5,13 +5,14 @@
 
 #include <cuda_runtime_api.h>
 
-#include <imp/cucore/cu_exception.hpp>
+#include <imp/core/pixel_enums.hpp>
 #include <imp/core/size.hpp>
+#include <imp/cucore/cu_exception.hpp>
 
 namespace imp { namespace cu {
 
 //--------------------------------------------------------------------------
-template <typename Pixel>
+template <typename Pixel, imp::PixelType pixel_type = imp::PixelType::undefined>
 struct MemoryStorage
 {
 public:
@@ -68,7 +69,16 @@ public:
       throw imp::cu::Exception("Failed to allocate memory: width or height is zero");
     }
 
-    const size_t width_bytes = width * sizeof(pixel_t);
+
+
+
+    size_t width_bytes = width * sizeof(pixel_t);
+    const int align_bytes = 4;
+    if (pixel_type == imp::PixelType::i8uC3 && width_bytes % align_bytes)
+    {
+      width_bytes += (align_bytes-(width_bytes%align_bytes));
+    }
+
     size_t intern_pitch;
     pixel_container_t p_data = nullptr;
     cudaError_t cu_err = cudaMallocPitch((void **)&p_data, &intern_pitch,

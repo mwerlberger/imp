@@ -5,7 +5,7 @@
 #   endif()
 # endfunction()
 
-macro(imp_debug_message)
+macro(imp_debug)
   string(REPLACE ";" " " __msg "${ARGN}")
   message(STATUS "${__msg}")
 endmacro()
