@@ -48,33 +48,10 @@ ImageGpu<Pixel, pixel_type>::ImageGpu(const Image<Pixel, pixel_type>& from)
   : Base(from)
 {
   data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
+  this->copyFrom(from);
   //  gpu_data_ = new GpuData2D(data_.get(), this->stride(),
 //                            this->width(), this->height());
 }
-
-////-----------------------------------------------------------------------------
-//template<typename Pixel, imp::PixelType pixel_type>
-//ImageGpu<Pixel, pixel_type>::ImageGpu(const Image8uC3& from)
-//  : Base(from)
-//{
-//  if (from.isGpuMemory() || from.pixelType() != imp::PixelType::i8uC3)
-//  {
-//    throw imp::cu::Exception("this copy constructor should only be used with 8-bit 3-channel images (cpu)");
-//  }
-
-//  throw imp::cu::Exception("implementation tbd");
-
-////  imp::LinearMemory8uC3(from.numel())
-
-//  // copy linearmemory (including padding) and then convert to 4-channel with a special cuda kernel!
-
-
-////  data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
-////  this->copyFrom(from);
-////  gpu_data_ = new GpuData2D(data_.get(), this->stride(),
-////                            this->width(), this->height());
-//}
-
 
 ////-----------------------------------------------------------------------------
 //template<typename Pixel, imp::PixelType pixel_type>

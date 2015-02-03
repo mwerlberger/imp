@@ -69,15 +69,14 @@ public:
       throw imp::cu::Exception("Failed to allocate memory: width or height is zero");
     }
 
-
-
-
     size_t width_bytes = width * sizeof(pixel_t);
-    const int align_bytes = 4;
+    std::cout << "width_bytes: " << width_bytes << std::endl;
+    const int align_bytes = 1536;
     if (pixel_type == imp::PixelType::i8uC3 && width_bytes % align_bytes)
     {
       width_bytes += (align_bytes-(width_bytes%align_bytes));
     }
+    std::cout << "width_bytes: " << width_bytes << std::endl;
 
     size_t intern_pitch;
     pixel_container_t p_data = nullptr;
