@@ -44,7 +44,7 @@ int main(int /*argc*/, char** /*argv*/)
 
 
     // set-value test:
-    imp::Size2u sz(512, 512);
+    imp::Size2u sz(513, 512);
     imp::cu::ImageGpu8uC1 d0_8uC1(sz);
     d0_8uC1.setValue(imp::Pixel8uC1(128));
     imp::ImageCv8uC1 h0_8uC1(d0_8uC1);

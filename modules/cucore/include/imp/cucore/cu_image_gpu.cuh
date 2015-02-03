@@ -33,7 +33,7 @@ class ImageGpu : public imp::Image<Pixel, pixel_type>
 {
 public:
   typedef imp::Image<Pixel, pixel_type> Base;
-  typedef imp::cu::MemoryStorage<Pixel> Memory;
+  typedef imp::cu::MemoryStorage<Pixel, pixel_type> Memory;
   typedef imp::cu::MemoryDeallocator<Pixel> Deallocator;
   typedef Pixel pixel_t;
   typedef pixel_t* pixel_container_t;
