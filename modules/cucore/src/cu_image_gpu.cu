@@ -235,7 +235,7 @@ void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
 template class ImageGpu<imp::Pixel8uC1, imp::PixelType::i8uC1>;
 template class ImageGpu<imp::Pixel8uC2, imp::PixelType::i8uC2>;
 // be careful with 8uC3 images as pitch values are not divisable by 3!
-//template class ImageGpu<imp::Pixel8uC3, imp::PixelType::i8uC3>;
+template class ImageGpu<imp::Pixel8uC3, imp::PixelType::i8uC3>;
 template class ImageGpu<imp::Pixel8uC4, imp::PixelType::i8uC4>;
 
 template class ImageGpu<imp::Pixel16uC1, imp::PixelType::i16uC1>;

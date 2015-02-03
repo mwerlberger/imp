@@ -25,6 +25,8 @@ namespace imp { namespace cu {
  * The template parameters are as follows:
  *   - Pixel: The pixel's memory representation (e.g. imp::Pixel8uC1 for single-channel unsigned 8-bit images)
  *   - pixel_type: The internal enum for specifying the pixel's type more specificly
+ *
+ * @warning Be careful with 8-bit 3-channel GPU memory as the stride is not divisable by 3!
  */
 template<typename Pixel, imp::PixelType pixel_type>
 class ImageGpu : public imp::Image<Pixel, pixel_type>

@@ -38,5 +38,4 @@ else()
   message("[-][core] Build without OpenCV connectors.")
 endif()
 
-#imp_module_include_directories(${module})
 imp_create_module(${SOURCES} ${HEADERS})

@@ -9,9 +9,12 @@ macro(find_opencv)
   imp_debug("desired opencv modules: " ${desired_opencv_modules})
   find_package( OpenCV REQUIRED ${desired_opencv_modules})
 
-  list(APPEND IMP_${module}_LINK_DEPS "${OpenCV_LIBS}")
+  if (DEFINED module)
+     set(IMP_${module}_LINK_DEPS "${IMP_${module}_LINK_DEPS};${OpenCV_LIBS}" CACHE INTERNAL
+        "linkage dependencies for the module ${module}")
+  endif()
   set(IMP_LINK_DEPS "${IMP_LINK_DEPS};${OpenCV_LIBS}" CACHE INTERNAL
-      "linkage dependencies for imp")
+     "linkage dependencies for imp")
 endmacro()
 
 ##------------------------------------------------------------------------------
@@ -20,9 +23,11 @@ macro(find_cuda)
 
   find_package(CUDA)
 
-  cuda_include_directories(${CUDA_INCLUDE_DIRS} ${CUDA_SDK_INCLUDE_DIR})
-  include_directories(${CUDA_INCLUDE_DIRS} ${CUDA_SDK_INCLUDE_DIR})
-  list(APPEND IMP_${module}_LINK_DEPS "${CUDA_LIBRARIES}")
+  imp_include(${CUDA_INCLUDE_DIRS} ${CUDA_SDK_INCLUDE_DIR})
+  if (DEFINED module)
+     set(IMP_${module}_LINK_DEPS "${IMP_${module}_LINK_DEPS};${CUDA_LIBRARIES}" CACHE INTERNAL
+        "linkage dependencies for the module ${module}")
+  endif()
   set(IMP_LINK_DEPS "${IMP_LINK_DEPS};${CUDA_LIBRARIES}" CACHE INTERNAL
      "linkage dependencies for imp")
 
