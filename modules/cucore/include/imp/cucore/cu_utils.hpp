@@ -1,6 +1,7 @@
 #ifndef IMP_CU_UTILS_CUH
 #define IMP_CU_UTILS_CUH
 
+#include <cuda_runtime_api.h>
 #include <cstdint>
 
 namespace imp { namespace cu {

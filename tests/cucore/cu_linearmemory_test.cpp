@@ -3,23 +3,11 @@
 #include <cstdint>
 #include <iostream>
 #include <imp/core/linearmemory.hpp>
-#include <imp/cucore/cu_utils.hpp>
 #include <imp/cucore/cu_linearmemory.cuh>
 
 #include <cuda_runtime.h>
 
 #include "default_msg.h"
-
-__global__ void simpleKernelTest(imp::Pixel8uC1* dst, size_t length, const Pixel8uC1 value)
-{
-  int x = blockIdx.x * blockDim.x + threadIdx.x;
-
-  if(x<length)
-  {
-    dst[x] = value;
-  }
-}
-
 
 int main(int /*argc*/, char** /*argv*/)
 {
@@ -128,30 +116,6 @@ int main(int /*argc*/, char** /*argv*/)
     //        assert(*check_32f_C1.data(i) == val_32f);
     //      }
     //    }
-
-    //--------------------------------------------------------------------------
-    // SIMPLE KERNEL TEST
-    {
-      size_t length = 13;
-      imp::cu::LinearMemory8uC1 d1_8u_C1(1024);
-
-      // fragmentation
-      const unsigned int block_width = 512;
-      dim3 dimBlock(block_width, 1, 1);
-      dim3 dimGrid(imp::cu::divUp(d1_8u_C1.length(), dimBlock.x), 1);
-
-      imp::Pixel8uC1 val_8u(123);
-      simpleKernelTest
-          <<< dimGrid, dimBlock >>> (dst->data(), dst->length(), val_8u);
-
-      imp::LinearMemory8uC1 check_8u_C1(d1_8u_C1);
-      for (size_t i=0; i<check_8u_C1.length(); ++i)
-      {
-        assert(check_8u_C1(i) == val_8u);
-      }
-
-
-    }
 
     //--------------------------------------------------------------------------
     //  cleanup

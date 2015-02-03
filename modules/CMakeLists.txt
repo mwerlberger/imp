@@ -25,10 +25,11 @@ endif()
 
 # general include
 imp_include(${IMP_MODULES_PATH})
-   
+
 ##------------------------------------------------------------------------------
 # TODO (MWE): make this a macro and add all the modules automagically
 add_subdirectory(core)
 if (${IMP_WITH_CUDA})
    add_subdirectory(cucore)
+   add_subdirectory(cuimgproc)
 endif()

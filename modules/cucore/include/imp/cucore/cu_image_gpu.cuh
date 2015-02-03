@@ -1,5 +1,5 @@
-#ifndef IMP_CU_IMAGE_GPU_HPP
-#define IMP_CU_IMAGE_GPU_HPP
+#ifndef IMP_CU_IMAGE_GPU_CUH
+#define IMP_CU_IMAGE_GPU_CUH
 
 #include <memory>
 #include <algorithm>
@@ -157,4 +157,4 @@ typedef ImageGpu<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageGpu32fC4;
 } // namespace imp
 
 
-#endif // IMP_CU_IMAGE_GPU_HPP
+#endif // IMP_CU_IMAGE_GPU_CUH

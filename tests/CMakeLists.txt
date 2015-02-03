@@ -26,5 +26,6 @@ imp_include("${CMAKE_CURRENT_SOURCE_DIR}/common")
 add_subdirectory(core)
 
 if (${IMP_WITH_CUDA})
-  add_subdirectory(cucore)
+   add_subdirectory(cucore)
+   add_subdirectory(cuimgproc)
 endif()
