@@ -5,10 +5,16 @@ project(${PROJECT_NAME} CXX C)
 #set(CMAKE_BUILD_TYPE Debug)
 cmake_minimum_required(VERSION 2.8.0)
 
+## base directory
+if(NOT IMP_PATH)
+  set(IMP_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
+endif()
+
 ## internal macros/includes
-include(cmake/imp_utils.cmake)
-include(cmake/imp_module.cmake)
-include(cmake/imp_ext_finders.cmake)
+include(${IMP_PATH}/cmake/imp_utils.cmake)
+include(${IMP_PATH}/cmake/imp_module.cmake)
+include(${IMP_PATH}/cmake/imp_ext_finders.cmake)
+
 
 # cleanup
 set(IMP_MODULE_LIBRARIES_LOCATIONS "" CACHE INTERNAL "List of the absolute locations of all built module libraries")
@@ -104,17 +110,18 @@ add_subdirectory(modules)
 ##-----------------------------------------------------------------------------
 ## print build config
 ##
-imp_debug_message("************************************************************")
-imp_debug_message("IMP BUILD SETUP:")
-imp_debug_message("================")
-imp_debug_message("")
-imp_debug_message("IMP_BUILD_SHARED_LIBS:" ${IMP_BUILD_SHARED_LIBS})
-imp_debug_message("IMP_WITH_OPENCV:" ${IMP_WITH_OPENCV})
-imp_debug_message("IMP_WITH_CUDA:" ${IMP_WITH_CUDA})
-imp_debug_message("------------------------------------------------------------")
-imp_debug_message("IMP_MODULE_LIBRARIES_LOCATIONS: ${IMP_MODULE_LIBRARIES_LOCATIONS}")
-imp_debug_message("IMP_MODULE_INCLUDE_PATHS: ${IMP_MODULE_INCLUDE_PATHS}")
-imp_debug_message("************************************************************")
+imp_debug("\n\n***********************************************************************************")
+imp_debug("IMP BUILD SETUP:")
+imp_debug("================")
+imp_debug("")
+imp_debug("IMP_PATH:" ${IMP_PATH})
+imp_debug("IMP_BUILD_SHARED_LIBS:" ${IMP_BUILD_SHARED_LIBS})
+imp_debug("IMP_WITH_OPENCV:" ${IMP_WITH_OPENCV})
+imp_debug("IMP_WITH_CUDA:" ${IMP_WITH_CUDA})
+imp_debug("------------------------------------------------------------")
+imp_debug("IMP_MODULE_LIBRARIES_LOCATIONS: ${IMP_MODULE_LIBRARIES_LOCATIONS}")
+imp_debug("IMP_MODULE_INCLUDE_PATHS: ${IMP_MODULE_INCLUDE_PATHS}")
+imp_debug("\n***********************************************************************************\n")
 
 #
 #

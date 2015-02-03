@@ -25,6 +25,8 @@ namespace imp { namespace cu {
  * The template parameters are as follows:
  *   - Pixel: The pixel's memory representation (e.g. imp::Pixel8uC1 for single-channel unsigned 8-bit images)
  *   - pixel_type: The internal enum for specifying the pixel's type more specificly
+ *
+ * @warning Be careful with 8-bit 3-channel GPU memory as the stride is not divisable by 3!
  */
 template<typename Pixel, imp::PixelType pixel_type>
 class ImageGpu : public imp::Image<Pixel, pixel_type>
@@ -38,24 +40,35 @@ public:
 
 public:
   ImageGpu() = default;
+
+  //ImageGpu() = default;
   virtual ~ImageGpu();/* = default;*/
 
   /**
    * @brief ImageGpu construcs an image of given size \a width x \a height
    */
   ImageGpu(std::uint32_t width, std::uint32_t height);
+
   /**
    * @brief ImageGpu construcs an image of given \a size
    */
   ImageGpu(const imp::Size2u& size);
+
   /**
    * @brief ImageGpu copy constructs an image from the given image \a from
    */
   ImageGpu(const ImageGpu& from);
+
   /**
-   * @brief ImageGpu copy constructs an arbitrary base image \a from (not necessarily am \a ImageGpu)
+   * @brief ImageGpu copy construcs a GPU image from an arbitrary base image \a from (not necessarily am \a ImageGpu)
    */
   ImageGpu(const Base& from);
+
+  /**
+   * @brief ImageGpu copy constructs a GPU image from the 8-bit (cpu) image \a from
+   */
+  //ImageGpu(const Image8uC3& from);
+
   /**
    * @brief ImageGpu constructs an image with the given data (copied or refererenced!)
    * @param data Pointer to the image data.
@@ -64,8 +77,8 @@ public:
    * @param pitch Length of a row in bytes (including padding).
    * @param use_ext_data_pointer Flagg if the image should be copied (true) or if the data is just safed as 'reference' (false)
    */
-  ImageGpu(pixel_container_t data, std::uint32_t width, std::uint32_t height,
-           size_type pitch, bool use_ext_data_pointer = false);
+//  ImageGpu(pixel_container_t data, std::uint32_t width, std::uint32_t height,
+//           size_type pitch, bool use_ext_data_pointer = false);
 
   /** sets a region of interest */
   virtual void setRoi(const imp::Roi2u& roi) override;

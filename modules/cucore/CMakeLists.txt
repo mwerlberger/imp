@@ -8,10 +8,11 @@ endif()
 
 imp_add_module(cucore)
 
-include_directories(${IMP_MODULE_core_INCLUDE_PATH})
-cuda_include_directories(${IMP_MODULE_core_INCLUDE_PATH})
-include_directories(${IMP_MODULE_${module}_INCLUDE_PATH})
-cuda_include_directories(${IMP_MODULE_${module}_INCLUDE_PATH})
+# internal module dependencies
+imp_include_module(core)
+
+include_directories(${IMP_${module}_INCLUDE_PATH})
+cuda_include_directories(${IMP_${module}_INCLUDE_PATH})
 
 set(HEADERS
   include/imp/cucore/cu_utils.hpp
@@ -29,5 +30,4 @@ set(SOURCES
   #include/imp/cucore/cu_k_setvalue.cu
   )
 
-#imp_module_include_directories(${module})
 imp_create_cuda_module(${SOURCES} ${HEADERS})
