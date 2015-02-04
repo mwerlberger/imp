@@ -4,6 +4,7 @@
 #include <memory>
 #include <cuda_runtime_api.h>
 #include <imp/cucore/cu_image_gpu.cuh>
+#include <imp/cucore/cu_texture.cuh>
 
 namespace imp { namespace cu {
 
@@ -28,10 +29,10 @@ protected:
   std::shared_ptr<imp::ImageBase> p_;
 
   // cuda textures
-  cudaTextureObject_t f_tex_;
-  cudaTextureObject_t u_tex_;
-  cudaTextureObject_t u_prev_tex_;
-  cudaTextureObject_t p_tex_;
+  std::shared_ptr<imp::cu::Texture2D<Pixel>> f_tex_;
+  //std::shared_ptr<imp::cu::Texture2D<Pixel>> u_tex_;
+  //std::shared_ptr<imp::cu::Texture2D<Pixel>> u_prev_tex_;
+  //std::shared_ptr<imp::cu::Texture> p_tex_;
 
   Size2u size_;
 
