@@ -15,7 +15,7 @@
 ################################################################################
 # adds an IMP module (1st call)
 macro(imp_add_module _name)
-  imp_debug("imp_add_module(" ${_name} ${ARGN} ")")
+  imp_debug("[MACRO] imp_add_module(" ${_name} ${ARGN} ")")
   string(TOLOWER "${_name}" name)
   set(module ${name})
 
@@ -61,7 +61,7 @@ endmacro()
 ################################################################################
 # internal common part for creating the module library (no matter if c++ or cuda)
 macro(imp_create_module_internal)
-  imp_debug(">>>>> imp_create_module_internal (${module})")
+  imp_debug("[MACRO] imp_create_module_internal(${module})")
   # dll api exports (mainly win32)
   if(${IMP_${module}_LINKAGE} STREQUAL SHARED)
     # TODO (MW) define version and public headers
@@ -95,7 +95,7 @@ endmacro()
 ################################################################################
 # creates an IMP module (last call)
 macro(imp_create_module)
-  imp_debug(">>>>> imp_create_module(" ${ARGN} ")")
+  imp_debug("[MACRO]  imp_create_module(" ${ARGN} ")")
   imp_include(${IMP_MODULE_INCLUDE_PATHS})
   add_library(${module} ${IMP_${module}_LINKAGE} ${ARGN})
   imp_create_module_internal()
@@ -104,7 +104,7 @@ endmacro()
 ################################################################################
 # creates an IMP cuda module (last call)
 macro(imp_create_cuda_module)
-  imp_debug(">>>>> imp_create_cuda_module(" ${ARGN} ")")
+  imp_debug("[MACRO]  imp_create_cuda_module(" ${ARGN} ")")
   imp_include(${IMP_MODULE_INCLUDE_PATHS})
   cuda_add_library(${module} ${IMP_${module}_LINKAGE} ${ARGN})
   imp_create_module_internal()
@@ -115,10 +115,9 @@ endmacro()
 # adds include paths if we use another mother internally
 # @todo (MWE) at the moment we don't have a dependency hirarchy -> check yourself!
 macro(imp_include_module MODULE_DEP)
-  imp_debug("imp module ${module} includes: " ${MODULE_DEP})
+  imp_debug("[MACRO] imp_include_module(${MODULE_DEP}) [module=${module}]")
 
   imp_include(${IMP_${MODULE_DEP}_INCLUDE_PATH})
-
   if (DEFINED module)
      list(APPEND IMP_${module}_LINK_DEPS ${IMP_${MODULE_DEP}_LIBRARIES})
   endif()

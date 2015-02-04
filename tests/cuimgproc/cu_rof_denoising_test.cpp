@@ -24,11 +24,14 @@ int main(int /*argc*/, char** /*argv*/)
                                   imp::PixelOrder::gray);
 
     // copy host->device
-    std::shared_ptr<imp::cu::ImageGpu8uC1> d1_lena_8uC1(new imp::cu::ImageGpu8uC1(h1_lena_8uC1));
+    std::shared_ptr<imp::cu::ImageGpu8uC1> d1_lena_8uC1(
+          new imp::cu::ImageGpu8uC1(h1_lena_8uC1));
 
     // ROF denoising
     imp::cu::RofDenoising8uC1 rof;
-    rof.setU(d1_lena_8uC1);
+    std::shared_ptr<imp::cu::ImageGpu8uC1> d_lena_denoised_8uC1(
+          new imp::cu::ImageGpu8uC1(d1_lena_8uC1->size()));
+    rof.denoise(d1_lena_8uC1, d_lena_denoised_8uC1);
 
     // show pictures
     cv::imshow("lena input", h1_lena_8uC1.cvMat());

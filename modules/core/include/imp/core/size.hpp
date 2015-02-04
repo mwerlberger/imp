@@ -145,6 +145,7 @@ struct Size
 {
   typedef SizeBase<T, DIM, Size<T, DIM> > Base;
   using Base::SizeBase;
+  Size() = default;
   virtual ~Size() = default;
 };
 
@@ -159,6 +160,7 @@ struct Size<T, 2>
   typedef SizeBase<T, 2, Size<T, 2> > Base;
 
   using Base::SizeBase;
+  Size() = default;
   virtual ~Size() = default;
 
   Size(const T& width, const T& height)
@@ -189,6 +191,7 @@ struct Size<T, 3>
   typedef SizeBase<T, 3, Size<T, 3> > Base;
 
   using Base::SizeBase;
+  Size() = default;
   virtual ~Size() = default;
 
   Size(const T& width, const T& height, const T& depth)

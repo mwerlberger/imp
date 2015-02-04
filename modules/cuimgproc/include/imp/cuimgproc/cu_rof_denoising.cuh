@@ -11,12 +11,16 @@ class RofDenoising  : public imp::cu::VariationalDenoising<Pixel, pixel_type>
 {
 public:
   typedef VariationalDenoising<Pixel, pixel_type> Base;
+  typedef imp::cu::ImageGpu<Pixel, pixel_type> Image;
+  typedef std::shared_ptr<Image> ImagePtr;
+
 
 public:
-  using Base::VariationalDenoising;
+  RofDenoising() = default;
   virtual ~RofDenoising() = default;
+  using Base::VariationalDenoising;
 
-  inline virtual __host__ void denoise(ImagePtr f, ImagePtr u) override;
+  virtual __host__ void denoise(ImagePtr f, ImagePtr u) override;
 
 protected:
 };

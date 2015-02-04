@@ -6,24 +6,23 @@ namespace imp { namespace cu {
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void RofDenoising<Pixel, pixel_type>::RofDenoising::denoise(
-    Base::ImagePtr f, Base::ImagePtr u)
+void RofDenoising<Pixel, pixel_type>::RofDenoising::denoise(ImagePtr f, ImagePtr u)
 {
   std::cout << "solving the ROF image denosing model (gpu)" << std::endl;
 
-  if (f_->size() != u_->size())
+  if (this->f_->size() != this->u_->size())
   {
     throw imp::cu::Exception("Input and output image are not of the same size.",
                              __FILE__, __FUNCTION__, __LINE__);
   }
 
-  f_ = f;
-  u_ = u;
+  this->f_ = f;
+  this->u_ = u;
 
-  if (size_ != f_->size() || u_prev_ == nullptr)
+  if (this->size_ != this->f_->size() || this->u_prev_ == nullptr)
   {
-    size_ = f_->size();
-    u_prev_.reset(new Base::Image(size_));
+    this->size_ = this->f_->size();
+    this->u_prev_.reset(new Image(this->size_));
   }
 }
 
