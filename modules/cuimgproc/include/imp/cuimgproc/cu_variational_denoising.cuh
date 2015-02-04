@@ -27,6 +27,12 @@ protected:
   std::shared_ptr<imp::ImageBase> u_prev_;
   std::shared_ptr<imp::ImageBase> p_;
 
+  // cuda textures
+  cudaTextureObject_t f_tex_;
+  cudaTextureObject_t u_tex_;
+  cudaTextureObject_t u_prev_tex_;
+  cudaTextureObject_t p_tex_;
+
   Size2u size_;
 
   // algorithm parameters

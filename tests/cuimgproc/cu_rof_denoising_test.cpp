@@ -30,13 +30,15 @@ int main(int /*argc*/, char** /*argv*/)
     // ROF denoising
     imp::cu::RofDenoising8uC1 rof;
     std::shared_ptr<imp::cu::ImageGpu8uC1> d_lena_denoised_8uC1(
-          new imp::cu::ImageGpu8uC1(d1_lena_8uC1->size()));
+          new imp::cu::ImageGpu8uC1(*d1_lena_8uC1));
     rof.denoise(d1_lena_8uC1, d_lena_denoised_8uC1);
+
+    // copy denoised result back to host
+    imp::ImageCv8uC1 h_lena_denoised_8uC1(*d_lena_denoised_8uC1);
 
     // show pictures
     cv::imshow("lena input", h1_lena_8uC1.cvMat());
-
-    //cv::imshow("lena copied around", h2_lena_8uC1.cvMat());
+    cv::imshow("lena denoised", h_lena_denoised_8uC1.cvMat());
 
     cv::waitKey();
   }

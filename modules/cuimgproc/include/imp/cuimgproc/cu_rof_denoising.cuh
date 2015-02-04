@@ -2,7 +2,11 @@
 #define IMP_CU_ROF_DENOISING_CUH
 
 #include <imp/cuimgproc/cu_variational_denoising.cuh>
+
+#include <memory>
 #include <cuda_runtime_api.h>
+
+#include <imp/cucore/cu_utils.hpp>
 
 namespace imp { namespace cu {
 
@@ -14,7 +18,6 @@ public:
   typedef imp::cu::ImageGpu<Pixel, pixel_type> Image;
   typedef std::shared_ptr<Image> ImagePtr;
 
-
 public:
   RofDenoising() = default;
   virtual ~RofDenoising() = default;
@@ -23,6 +26,8 @@ public:
   virtual __host__ void denoise(ImagePtr f, ImagePtr u) override;
 
 protected:
+  std::unique_ptr<Fragmentation<16>> fragmentation_;
+
 };
 
 //-----------------------------------------------------------------------------
