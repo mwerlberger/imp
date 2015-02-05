@@ -3,6 +3,15 @@
 
 #include <cstdint>
 
+//#ifdef IMP_WITH_CUDA
+//#  include<cuda_runtime_api.h>
+//#  define CUDA_HOST __host__
+//#  define CUDA_DEVICE  __device__
+//#else
+#  define CUDA_HOST
+#  define CUDA_DEVICE
+//#endif
+
 namespace imp {
 
 //------------------------------------------------------------------------------
@@ -21,11 +30,11 @@ union Pixel1
   };
   T c[1];
 
-  //__device__ operator T () const { return c[0]; }
+  CUDA_HOST CUDA_DEVICE operator T () const { return c[0]; }
 
-  Pixel1() : x(0) { }
-  Pixel1(T _x) : x(_x) { }
-  ~Pixel1() = default;
+  CUDA_HOST CUDA_DEVICE Pixel1() : x(0) { }
+  CUDA_HOST CUDA_DEVICE Pixel1(T _x) : x(_x) { }
+  CUDA_HOST CUDA_DEVICE ~Pixel1() = default;
 };
 
 //------------------------------------------------------------------------------
@@ -44,10 +53,10 @@ union Pixel2
   };
   T c[2];
 
-  Pixel2() : x(0), y(0) { }
-  Pixel2(T _a) : x(_a), y(_a) { }
-  Pixel2(T _x, T _y) : x(_x), y(_y) { }
-  ~Pixel2() = default;
+  CUDA_HOST CUDA_DEVICE Pixel2() : x(0), y(0) { }
+  CUDA_HOST CUDA_DEVICE Pixel2(T _a) : x(_a), y(_a) { }
+  CUDA_HOST CUDA_DEVICE Pixel2(T _x, T _y) : x(_x), y(_y) { }
+  CUDA_HOST CUDA_DEVICE ~Pixel2() = default;
 };
 
 //------------------------------------------------------------------------------
@@ -66,10 +75,10 @@ union Pixel3
   };
   T c[3];
 
-  Pixel3() : x(0), y(0), z(0) { }
-  Pixel3(T _a) : x(_a), y(_a), z(_a) { }
-  Pixel3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) { }
-  ~Pixel3() = default;
+  CUDA_HOST CUDA_DEVICE Pixel3() : x(0), y(0), z(0) { }
+  CUDA_HOST CUDA_DEVICE Pixel3(T _a) : x(_a), y(_a), z(_a) { }
+  CUDA_HOST CUDA_DEVICE Pixel3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) { }
+  CUDA_HOST CUDA_DEVICE ~Pixel3() = default;
 };
 
 //------------------------------------------------------------------------------
@@ -88,10 +97,10 @@ union Pixel4
   };
   T c[4];
 
-  Pixel4() : x(0), y(0), z(0), w(0) { }
-  Pixel4(T _a) : x(_a), y(_a), z(_a), w(_a) { }
-  Pixel4(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) { }
-  ~Pixel4() = default;
+  CUDA_HOST CUDA_DEVICE Pixel4() : x(0), y(0), z(0), w(0) { }
+  CUDA_HOST CUDA_DEVICE Pixel4(T _a) : x(_a), y(_a), z(_a), w(_a) { }
+  CUDA_HOST CUDA_DEVICE Pixel4(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) { }
+  CUDA_HOST CUDA_DEVICE ~Pixel4() = default;
 };
 
 //------------------------------------------------------------------------------

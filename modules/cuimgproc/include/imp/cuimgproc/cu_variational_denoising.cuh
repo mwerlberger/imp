@@ -29,7 +29,7 @@ protected:
   std::shared_ptr<imp::ImageBase> p_;
 
   // cuda textures
-  std::shared_ptr<imp::cu::Texture2D<Pixel>> f_tex_;
+  std::shared_ptr<imp::cu::Texture2D<Pixel,pixel_type>> f_tex_;
   //std::shared_ptr<imp::cu::Texture2D<Pixel>> u_tex_;
   //std::shared_ptr<imp::cu::Texture2D<Pixel>> u_prev_tex_;
   //std::shared_ptr<imp::cu::Texture> p_tex_;

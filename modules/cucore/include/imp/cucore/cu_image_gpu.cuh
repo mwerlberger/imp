@@ -102,6 +102,7 @@ public:
    */
   virtual Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
   virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
+  void* cuData();
 
   /**
    * @brief setValue Sets image data to the specified \a value.
@@ -120,11 +121,11 @@ public:
 //  std::unique_ptr<GpuData2D<pixel_t>> gpuData() { return gpu_data_; }
 
   /** Returns a cuda texture object. */
-  std::shared_ptr<Texture2D<Pixel>> texture(
+  std::shared_ptr<Texture2D<Pixel,pixel_type>> texture(
       bool normalized_coords = false,
       cudaTextureFilterMode filter_mode = cudaFilterModePoint,
       cudaTextureAddressMode address_mode = cudaAddressModeClamp,
-      cudaTextureReadMode read_mode = cudaReadModeElementType) const;
+      cudaTextureReadMode read_mode = cudaReadModeElementType);
 
 protected:
   std::unique_ptr<pixel_t, Deallocator> data_; //!< the actual image data

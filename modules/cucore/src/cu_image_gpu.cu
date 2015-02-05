@@ -184,6 +184,13 @@ const Pixel* ImageGpu<Pixel, pixel_type>::data(
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
+void* ImageGpu<Pixel, pixel_type>::cuData()
+{
+  return (void*)data_.get();
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
 void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
 {
   if (sizeof(pixel_t) == 1)
@@ -206,14 +213,14 @@ void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-std::shared_ptr<Texture2D<Pixel>>
+std::shared_ptr<Texture2D<Pixel,pixel_type>>
 ImageGpu<Pixel, pixel_type>::texture(bool normalized_coords,
                                      cudaTextureFilterMode filter_mode,
                                      cudaTextureAddressMode address_mode,
-                                     cudaTextureReadMode read_mode) const
+                                     cudaTextureReadMode read_mode)
 {
-  std::shared_ptr<Texture2D<Pixel>> texture(
-        new Texture2D<Pixel>(/*this->data(), this->pitch(),*/ this->size(),
+  std::shared_ptr<Texture2D<Pixel,pixel_type>> texture(
+        new Texture2D<Pixel,pixel_type>(this->cuData(), this->pitch(), this->size(),
                              normalized_coords, filter_mode, address_mode, read_mode));
   return texture;
 }

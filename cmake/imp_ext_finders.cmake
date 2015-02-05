@@ -23,6 +23,8 @@ macro(find_cuda)
 
   find_package(CUDA)
 
+  add_definitions(-DIMP_WITH_CUDA)
+
   imp_include(${CUDA_INCLUDE_DIRS} ${CUDA_SDK_INCLUDE_DIR})
   if (DEFINED module)
      set(IMP_${module}_LINK_DEPS "${IMP_${module}_LINK_DEPS};${CUDA_LIBRARIES}" CACHE INTERNAL
@@ -35,8 +37,10 @@ macro(find_cuda)
   # imp_debug("CUDA_SDK_INCLUDE_DIRS: " ${CUDA_SDK_INCLUDE_DIRS})
   # imp_debug("CUDA_LIBRARIES: " ${CUDA_LIBRARIES})
 
-  list(APPEND CUDA_NVCC_FLAGS --compiler-options -fno-strict-aliasing -lineinfo -use_fast_math -Xptxas -dlcm=cg -std=c++11)
-  
+  list(APPEND CUDA_NVCC_FLAGS --compiler-options -fno-strict-aliasing -lineinfo
+       -use_fast_math -Xptxas -dlcm=cg -std=c++11)
+
+
   # Checking cuda version
   # set defines due to some missing functions in cuda 3.1
   if(CUDA_VERSION_STRING STREQUAL "6.0")
