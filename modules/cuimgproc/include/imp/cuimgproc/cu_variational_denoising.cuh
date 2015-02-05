@@ -23,24 +23,24 @@ public:
 
 protected:
   ImagePtr f_;
-  ImagePtr u_;
+  std::shared_ptr<imp::cu::ImageGpu32fC1> u_;
 
-  std::shared_ptr<imp::ImageBase> u_prev_;
-  std::shared_ptr<imp::ImageBase> p_;
+  std::shared_ptr<imp::cu::ImageGpu32fC1> u_prev_;
+  std::shared_ptr<imp::cu::ImageGpu32fC2> p_;
 
   // cuda textures
   std::shared_ptr<imp::cu::Texture2D> f_tex_;
-  //std::shared_ptr<imp::cu::Texture2D<Pixel>> u_tex_;
-  //std::shared_ptr<imp::cu::Texture2D<Pixel>> u_prev_tex_;
-  //std::shared_ptr<imp::cu::Texture> p_tex_;
+  std::shared_ptr<imp::cu::Texture2D> u_tex_;
+  std::shared_ptr<imp::cu::Texture2D> u_prev_tex_;
+  std::shared_ptr<imp::cu::Texture2D> p_tex_;
 
   Size2u size_;
 
   // algorithm parameters
   struct Parameters
   {
-    float lambda_ = 1.0f;
-    std::uint16_t max_iter_ = 100;
+    float lambda = 1.0f;
+    std::uint16_t max_iter = 100;
   };
   Parameters params_;
 

@@ -13,7 +13,7 @@ namespace imp { namespace cu {
 struct Texture
 {
   cudaTextureObject_t tex_object;
-  bool normalized_coords;
+//  bool normalized_coords;
 
   __host__ Texture() = default;
   __host__ virtual ~Texture() = default;
@@ -21,7 +21,7 @@ struct Texture
 
 struct Texture2D : Texture
 {
-  std::uint32_t width, height;
+  //std::uint32_t width, height;
 
   __host__ Texture2D(void* data, size_type pitch,
                      cudaChannelFormatDesc channel_desc,
@@ -32,22 +32,22 @@ struct Texture2D : Texture
                      cudaTextureReadMode read_mode = cudaReadModeElementType)
     : Texture()
   {
-    width = size.width();
-    height = size.height();
-    this->normalized_coords = _normalized_coords;
+//    width = size.width();
+//    height = size.height();
+//    this->normalized_coords = _normalized_coords;
 
     cudaResourceDesc tex_res;
     std::memset(&tex_res, 0, sizeof(tex_res));
     tex_res.resType = cudaResourceTypePitch2D;
-    tex_res.res.pitch2D.width = width;
-    tex_res.res.pitch2D.height = height;
+    tex_res.res.pitch2D.width = size.width();
+    tex_res.res.pitch2D.height = size.height();
     tex_res.res.pitch2D.pitchInBytes = pitch;
     tex_res.res.pitch2D.devPtr = data;
     tex_res.res.pitch2D.desc = channel_desc;
 
     cudaTextureDesc tex_desc;
     std::memset(&tex_desc, 0, sizeof(tex_desc));
-    tex_desc.normalizedCoords = normalized_coords;
+    tex_desc.normalizedCoords = _normalized_coords;
     tex_desc.filterMode = filter_mode;
     tex_desc.addressMode[0] = address_mode;
     tex_desc.addressMode[1] = address_mode;
@@ -85,6 +85,9 @@ struct Texture2D : Texture
 //  }
 
 };
+
+
+
 
 } // namespace cu
 } // namespace imp
