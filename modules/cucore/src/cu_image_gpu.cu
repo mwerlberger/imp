@@ -99,6 +99,7 @@ template<typename Pixel, imp::PixelType pixel_type>
 void ImageGpu<Pixel, pixel_type>::initMemory()
 {
   data_.reset(Memory::alignedAlloc(this->size(), &pitch_));
+  channel_format_desc_ = toCudaChannelFormatDesc(pixel_type);
 }
 
 //-----------------------------------------------------------------------------
@@ -213,15 +214,17 @@ void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-std::shared_ptr<Texture2D<Pixel,pixel_type>>
+std::shared_ptr<Texture2D>
 ImageGpu<Pixel, pixel_type>::texture(bool normalized_coords,
                                      cudaTextureFilterMode filter_mode,
                                      cudaTextureAddressMode address_mode,
                                      cudaTextureReadMode read_mode)
 {
-  std::shared_ptr<Texture2D<Pixel,pixel_type>> texture(
-        new Texture2D<Pixel,pixel_type>(this->cuData(), this->pitch(), this->size(),
-                             normalized_coords, filter_mode, address_mode, read_mode));
+  std::shared_ptr<Texture2D> texture(
+        new Texture2D(this->cuData(), this->pitch(),
+                                        channel_format_desc_, this->size(),
+                                        normalized_coords, filter_mode,
+                                        address_mode, read_mode));
   return texture;
 }
 

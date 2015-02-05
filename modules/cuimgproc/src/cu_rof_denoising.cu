@@ -10,9 +10,9 @@
 namespace imp { namespace cu {
 
 // texture object is a kernel argument
-template<typename Pixel, imp::PixelType pixel_type>
+template<typename Pixel>
 __global__ void k_simpleTextureObjectTest(Pixel* u, size_t stride_u,
-                                          imp::cu::Texture2D<Pixel,pixel_type> f_tex,
+                                          imp::cu::Texture2D f_tex,
                                           Pixel* f, size_t stride_f,
                                           size_t width, size_t height)
 {

@@ -6,6 +6,7 @@
 #include <imp/core/types.hpp>
 #include <imp/core/pixel_enums.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
+#include <imp/cucore/cu_pixel_conversion.hpp>
 
 namespace imp { namespace cu {
 
@@ -20,15 +21,16 @@ struct Texture
   __host__ virtual ~Texture() = default;
 };
 
-template<typename Pixel, imp::PixelType pixel_type>
+//template<typename Pixel, imp::PixelType pixel_type>
 struct Texture2D : Texture
 {
-  typedef Pixel pixel_t;
-  typedef pixel_t* pixel_container_t;
+//  typedef Pixel pixel_t;
+//  typedef pixel_t* pixel_container_t;
 
   std::uint32_t width, height;
 
   __host__ Texture2D(void* data, size_type pitch,
+                     cudaChannelFormatDesc channel_desc,
                      imp::Size2u size,
                      bool _normalized_coords = false,
                      cudaTextureFilterMode filter_mode = cudaFilterModePoint,
@@ -39,7 +41,7 @@ struct Texture2D : Texture
     width = size.width();
     height = size.height();
     this->normalized_coords = _normalized_coords;
-    // Use the texture object
+
     cudaResourceDesc tex_res;
     std::memset(&tex_res, 0, sizeof(tex_res));
     tex_res.resType = cudaResourceTypePitch2D;
@@ -47,37 +49,7 @@ struct Texture2D : Texture
     tex_res.res.pitch2D.height = height;
     tex_res.res.pitch2D.pitchInBytes = pitch;
     tex_res.res.pitch2D.devPtr = data;
-
-    switch (pixel_type)
-    {
-    case imp::PixelType::i8uC1:
-      tex_res.res.pitch2D.desc = cudaCreateChannelDesc<uchar1>();
-      break;
-    case imp::PixelType::i8uC2:
-      tex_res.res.pitch2D.desc = cudaCreateChannelDesc<uchar2>();
-      break;
-    case imp::PixelType::i8uC3:
-      tex_res.res.pitch2D.desc = cudaCreateChannelDesc<uchar3>();
-      break;
-    case imp::PixelType::i8uC4:
-      tex_res.res.pitch2D.desc = cudaCreateChannelDesc<uchar4>();
-      break;
-    case imp::PixelType::i32fC1:
-      tex_res.res.pitch2D.desc = cudaCreateChannelDesc<float1>();
-      break;
-    case imp::PixelType::i32fC2:
-      tex_res.res.pitch2D.desc = cudaCreateChannelDesc<float2>();
-      break;
-    case imp::PixelType::i32fC3:
-      tex_res.res.pitch2D.desc = cudaCreateChannelDesc<float3>();
-      break;
-    case imp::PixelType::i32fC4:
-      tex_res.res.pitch2D.desc = cudaCreateChannelDesc<float4>();
-      break;
-    default:
-      throw imp::cu::Exception("Pixel buffer not supported to generate a CUDA texture.",
-                               __FILE__, __FUNCTION__, __LINE__);
-    }
+    tex_res.res.pitch2D.desc = channel_desc;
 
     cudaTextureDesc tex_desc;
     std::memset(&tex_desc, 0, sizeof(tex_desc));

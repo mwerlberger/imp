@@ -17,6 +17,7 @@ cuda_include_directories(${IMP_${module}_INCLUDE_PATH})
 set(HEADERS
   include/imp/cucore/cu_utils.hpp
   include/imp/cucore/cu_exception.hpp
+  include/imp/cucore/cu_pixel_conversion.hpp
   include/imp/cucore/cu_memory_storage.cuh
   include/imp/cucore/cu_linearmemory.cuh
   include/imp/cucore/cu_gpu_data.cuh

@@ -30,11 +30,11 @@ union Pixel1
   };
   T c[1];
 
-  CUDA_HOST CUDA_DEVICE operator T () const { return c[0]; }
-
   CUDA_HOST CUDA_DEVICE Pixel1() : x(0) { }
   CUDA_HOST CUDA_DEVICE Pixel1(T _x) : x(_x) { }
   CUDA_HOST CUDA_DEVICE ~Pixel1() = default;
+
+  CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
 };
 
 //------------------------------------------------------------------------------
@@ -57,6 +57,8 @@ union Pixel2
   CUDA_HOST CUDA_DEVICE Pixel2(T _a) : x(_a), y(_a) { }
   CUDA_HOST CUDA_DEVICE Pixel2(T _x, T _y) : x(_x), y(_y) { }
   CUDA_HOST CUDA_DEVICE ~Pixel2() = default;
+
+  CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
 };
 
 //------------------------------------------------------------------------------
@@ -79,6 +81,8 @@ union Pixel3
   CUDA_HOST CUDA_DEVICE Pixel3(T _a) : x(_a), y(_a), z(_a) { }
   CUDA_HOST CUDA_DEVICE Pixel3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) { }
   CUDA_HOST CUDA_DEVICE ~Pixel3() = default;
+
+  CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
 };
 
 //------------------------------------------------------------------------------
@@ -101,6 +105,8 @@ union Pixel4
   CUDA_HOST CUDA_DEVICE Pixel4(T _a) : x(_a), y(_a), z(_a), w(_a) { }
   CUDA_HOST CUDA_DEVICE Pixel4(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) { }
   CUDA_HOST CUDA_DEVICE ~Pixel4() = default;
+
+  CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
 };
 
 //------------------------------------------------------------------------------

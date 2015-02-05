@@ -120,8 +120,11 @@ public:
   /** Returns a data structure to operate within a cuda kernel (does not copy any memory!). */
 //  std::unique_ptr<GpuData2D<pixel_t>> gpuData() { return gpu_data_; }
 
+  /** Returns the channel descriptor for texture memory */
+  cudaChannelFormatDesc channelFormatDesc() { return channel_format_desc_; }
+
   /** Returns a cuda texture object. */
-  std::shared_ptr<Texture2D<Pixel,pixel_type>> texture(
+  std::shared_ptr<Texture2D> texture(
       bool normalized_coords = false,
       cudaTextureFilterMode filter_mode = cudaFilterModePoint,
       cudaTextureAddressMode address_mode = cudaAddressModeClamp,
@@ -133,6 +136,7 @@ protected:
 
 private:
   void initMemory();
+  cudaChannelFormatDesc channel_format_desc_;
 
   //std::unique_ptr<GpuData2D<pixel_t>> gpu_data_; //!< data collection that can be directly used within a kernel.
 //  GpuData2D<Pixel>* gpu_data_;
