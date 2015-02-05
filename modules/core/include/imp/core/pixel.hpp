@@ -3,14 +3,14 @@
 
 #include <cstdint>
 
-//#ifdef IMP_WITH_CUDA
-//#  include<cuda_runtime_api.h>
-//#  define CUDA_HOST __host__
-//#  define CUDA_DEVICE  __device__
-//#else
+#ifdef IMP_WITH_CUDA
+#  include<cuda_runtime_api.h>
+#  define CUDA_HOST __host__
+#  define CUDA_DEVICE  __device__
+#else
 #  define CUDA_HOST
 #  define CUDA_DEVICE
-//#endif
+#endif
 
 namespace imp {
 

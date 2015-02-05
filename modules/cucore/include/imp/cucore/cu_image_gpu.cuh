@@ -8,9 +8,11 @@
 #include <imp/cucore/cu_exception.hpp>
 #include <imp/cucore/cu_memory_storage.cuh>
 #include <imp/cucore/cu_gpu_data.cuh>
-#include <imp/cucore/cu_texture.cuh>
 
 namespace imp { namespace cu {
+
+// forward declarations
+class Texture2D;
 
 /**
  * @brief The ImageGpu class is an image (surprise) holding raw memory
@@ -102,6 +104,10 @@ public:
    */
   virtual Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
   virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
+
+  /** Returns a void* that is pointing to the beginning for the data buffer.
+   * @note this is mainly for convenience when calling cuda functions.
+   */
   void* cuData();
 
   /**
@@ -120,11 +126,11 @@ public:
   /** Returns a data structure to operate within a cuda kernel (does not copy any memory!). */
 //  std::unique_ptr<GpuData2D<pixel_t>> gpuData() { return gpu_data_; }
 
-  /** Returns the channel descriptor for texture memory */
+  /** Returns the channel descriptor for Cuda's texture memory. */
   cudaChannelFormatDesc channelFormatDesc() { return channel_format_desc_; }
 
   /** Returns a cuda texture object. */
-  std::shared_ptr<Texture2D> texture(
+  std::shared_ptr<Texture2D> genTexture(
       bool normalized_coords = false,
       cudaTextureFilterMode filter_mode = cudaFilterModePoint,
       cudaTextureAddressMode address_mode = cudaAddressModeClamp,
