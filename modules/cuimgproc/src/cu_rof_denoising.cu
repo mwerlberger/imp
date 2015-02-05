@@ -72,8 +72,26 @@ float dpAd(const imp::cu::Texture2D& tex, size_t x, size_t y, size_t width, size
 //}
 
 //-----------------------------------------------------------------------------
+__global__ void k_initRofSolver(float* d_u, float* d_u_prev, size_t stride_u,
+                                float2* d_p, size_t stride_p,
+                                imp::cu::Texture2D f_tex,
+                                size_t width, size_t height)
+{
+  int x = blockIdx.x*blockDim.x + threadIdx.x;
+  int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+  if (x<width && y<height)
+  {
+    float val = tex2D<float>(f_tex, x+.5f, y+.5f);
+    d_u[y*stride_u + x] = val;
+    d_u_prev[y*stride_u + x] = val;
+    d_p[y*stride_p + x] = make_float2(0.0f, 0.0f);
+  }
+}
+
+//-----------------------------------------------------------------------------
 __global__ void k_solveRofPrimalIteration(
-    float* d_u, float* d_u_prev, size_t stride_8uC1,
+    float* d_u, float* d_u_prev, size_t stride_u,
     Texture2D f_tex, Texture2D u_tex, Texture2D p_tex,
     float lambda, float tau, float theta, size_t width, size_t height)
 {
@@ -92,8 +110,8 @@ __global__ void k_solveRofPrimalIteration(
 
     u = (u + tau*(div + lambda*f)) / (1.0f + tau*lambda);
 
-    d_u[y*stride_8uC1 + x] = u;
-    d_u_prev[y*stride_8uC1 + x] = u + theta*(u-u_prev);
+    d_u[y*stride_u + x] = u;
+    d_u_prev[y*stride_u + x] = u + theta*(u-u_prev);
   }
 }
 
@@ -117,7 +135,7 @@ __global__ void k_solveRofDualIteration(
 }
 
 //-----------------------------------------------------------------------------
-__global__ void k_convertResult8uC1(unsigned char* u, size_t stride_u,
+__global__ void k_convertResult8uC1(unsigned char* d_u, size_t stride_u,
                                     imp::cu::Texture2D u_tex,
                                     size_t width, size_t height)
 {
@@ -126,7 +144,7 @@ __global__ void k_convertResult8uC1(unsigned char* u, size_t stride_u,
 
   if (x<width && y<height)
   {
-    u[y*stride_u + x] = static_cast<unsigned char>(
+    d_u[y*stride_u + x] = static_cast<unsigned char>(
           255.0f * tex2D<float>(u_tex, x+.5f, y+.5f));
   }
 }
@@ -155,17 +173,10 @@ void RofDenoising<Pixel, pixel_type>::RofDenoising::denoise(ImagePtr f, ImagePtr
     fragmentation_.reset(new Fragmentation<16>(this->size_));
 
     // setup internal memory
-    switch (this->u_->nChannels())
-    {
-    case 1:
-      this->u_.reset(new ImageGpu32fC1(this->size_));
-      this->u_prev_.reset(new ImageGpu32fC1(this->size_));
-      this->p_.reset(new ImageGpu32fC2(this->size_));
-      break;
-    default:
-      throw imp::cu::Exception("ROF denoising not implemented for given image type.",
-                               __FILE__, __FUNCTION__, __LINE__);
-    }
+    this->u_.reset(new ImageGpu32fC1(this->size_));
+    this->u_prev_.reset(new ImageGpu32fC1(this->size_));
+    this->p_.reset(new ImageGpu32fC2(this->size_));
+
 
     // setup textures
     this->f_tex_ = this->f_->genTexture(false,
@@ -184,6 +195,14 @@ void RofDenoising<Pixel, pixel_type>::RofDenoising::denoise(ImagePtr f, ImagePtr
                                         cudaFilterModeLinear,
                                         cudaAddressModeClamp,
                                         cudaReadModeElementType);
+
+    // init internal vars
+    k_initRofSolver
+        <<< fragmentation_->dimGrid, fragmentation_->dimBlock >>> (
+        reinterpret_cast<float*>(this->u_->data()),
+        reinterpret_cast<float*>(this->u_prev_->data()), this->u_->stride(),
+        reinterpret_cast<float2*>(this->p_->data()), this->p_->stride(),
+        *this->f_tex_, this->size_.width(), this->size_.height());
 
     // internal params
     float L = sqrtf(8.0f);
@@ -209,7 +228,8 @@ void RofDenoising<Pixel, pixel_type>::RofDenoising::denoise(ImagePtr f, ImagePtr
           reinterpret_cast<float*>(this->u_->data()),
           reinterpret_cast<float*>(this->u_prev_->data()), this->u_->stride(),
           *this->f_tex_, *this->u_tex_, *this->p_tex_,
-          this->params_.lambda, tau, theta, this->size_.width(), this->size_.height());
+          this->params_.lambda, tau, theta,
+          this->size_.width(), this->size_.height());
 
       sigma /= theta;
       theta *= theta;
