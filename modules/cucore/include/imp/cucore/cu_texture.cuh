@@ -16,7 +16,6 @@ namespace imp { namespace cu {
 struct Texture
 {
   cudaTextureObject_t tex_object;
-//  bool normalized_coords;
 
   __host__ Texture() = default;
   __host__ virtual ~Texture() = default;
@@ -29,8 +28,6 @@ struct Texture
  */
 struct Texture2D : Texture
 {
-  //std::uint32_t width, height;
-
   __host__ Texture2D(void* data, size_type pitch,
                      cudaChannelFormatDesc channel_desc,
                      imp::Size2u size,
@@ -40,10 +37,6 @@ struct Texture2D : Texture
                      cudaTextureReadMode read_mode = cudaReadModeElementType)
     : Texture()
   {
-//    width = size.width();
-//    height = size.height();
-//    this->normalized_coords = _normalized_coords;
-
     cudaResourceDesc tex_res;
     std::memset(&tex_res, 0, sizeof(tex_res));
     tex_res.resType = cudaResourceTypePitch2D;
