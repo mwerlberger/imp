@@ -8,6 +8,7 @@
 #include <imp/core/pixel.hpp>
 #include <imp/cucore/cu_texture.cuh>
 #include <imp/cucore/cu_k_derivative.cuh>
+#include <imp/cucore/cu_math.cuh>
 
 
 namespace imp {
@@ -174,6 +175,11 @@ void RofDenoising<Pixel, pixel_type>::denoise(std::shared_ptr<imp::ImageBase> ds
       tau *= theta;
     }
     IMP_CUDA_CHECK();
+
+    Pixel32fC1 min, max;
+    minMax(*u_, min, max);
+    std::cout << "~~~~~~~ ROF solution min/max: " << min << ", " << max << std::endl;
+
 
     switch (dst->pixelType())
     {
