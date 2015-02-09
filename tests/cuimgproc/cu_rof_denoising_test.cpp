@@ -43,8 +43,6 @@ int main(int /*argc*/, char** /*argv*/)
     // show pictures
     cv::imshow("lena input", h1_lena_8uC1.cvMat());
     cv::imshow("lena denoised", h_lena_denoised_8uC1.cvMat());
-    cv::waitKey();
-
 
 
     // 32fC1 test
@@ -67,16 +65,11 @@ int main(int /*argc*/, char** /*argv*/)
 
     cv::minMaxLoc(h_lena_denoised_32fC1.cvMat(),  &min_val, &max_val);
     std::cout << "denoised: min: " << min_val << "; max: " << max_val << std::endl;
-//    cv::normalize(h_lena_denoised_32fC1.cvMat(),  h_lena_denoised_32fC1.cvMat(),
-//                  0, 1, CV_MINMAX);
-//    cv::minMaxLoc(h_lena_denoised_32fC1.cvMat(),  &min_val, &max_val);
-//    std::cout << "denoised: min: " << min_val << "; max: " << max_val << std::endl;
-
 
     cv::imshow("lena input 32f", h1_lena_32fC1.cvMat());
     cv::imshow("lena denoised 32f", h_lena_denoised_32fC1.cvMat());
-    cv::waitKey();
 
+    cv::waitKey();
   }
   catch (std::exception& e)
   {
