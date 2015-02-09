@@ -24,6 +24,7 @@ set(HEADERS
   include/imp/cucore/cu_image_gpu.cuh
   include/imp/cucore/cu_texture.cuh
   include/imp/cucore/cu_k_setvalue.cuh
+  include/imp/cucore/cu_k_derivative.cuh
   )
 
 set(SOURCES
