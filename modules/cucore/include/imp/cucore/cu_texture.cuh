@@ -10,6 +10,9 @@
 
 namespace imp { namespace cu {
 
+/**
+ * @brief The Texture struct
+ */
 struct Texture
 {
   cudaTextureObject_t tex_object;
@@ -17,8 +20,13 @@ struct Texture
 
   __host__ Texture() = default;
   __host__ virtual ~Texture() = default;
+  __device__ __forceinline__ operator cudaTextureObject_t() const {return tex_object;}
+
 };
 
+/**
+ * @brief The Texture2D struct
+ */
 struct Texture2D : Texture
 {
   //std::uint32_t width, height;
@@ -62,27 +70,15 @@ struct Texture2D : Texture
     cudaDestroyTextureObject(this->tex_object);
   }
 
-  __device__ __forceinline__ operator cudaTextureObject_t() const {return this->tex_object;}
 
-//  /**
-//   * Wrapper for accesing texels. The coordinate are not texture but pixel coords (no need to add 0.5f!)
-//   */
-//  template<typename T>
-//  __device__ __forceinline__ T fetch(float x, float y) const
-//  {
-////    if (this->normalized_coords)
-////    {
-////      x /= width;
-////      y /= height;
-////    }
-////    else
-////    {
-////      x += 0.5f;
-////      y += 0.5f;
-////    }
-//    return tex2D<T>(this->tex_object, x+.5f, y+.5f);
-
-//  }
+  /**
+   * Wrapper for accesing texels. The coordinate are not texture but pixel coords (no need to add 0.5f!)
+   */
+  template<typename T>
+  __device__ __forceinline__ T fetch(float x, float y) const
+  {
+    return tex2D<T>(tex_object, x+.5f, y+.5f);
+  }
 
 };
 

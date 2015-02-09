@@ -4,11 +4,17 @@
 #include <memory>
 #include <cuda_runtime_api.h>
 #include <imp/core/image_base.hpp>
-#include <imp/cucore/cu_texture.cuh>
+#include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cucore/cu_utils.hpp>
 
 namespace imp { namespace cu {
 
+// forward declarations
+class Texture2D;
+
+/**
+ * @brief The VariationalDenoising class
+ */
 class VariationalDenoising
 {
 public:

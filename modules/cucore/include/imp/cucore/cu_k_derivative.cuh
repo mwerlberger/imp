@@ -2,6 +2,7 @@
 #define IMP_CU_K_DERIVATIVE_CUH
 
 #include <cuda_runtime.h>
+#include <imp/cucore/cu_texture.cuh>
 
 namespace imp {
 namespace cu {
@@ -12,9 +13,9 @@ static __device__ __forceinline__ float2 dp(
     const imp::cu::Texture2D& tex, size_t x, size_t y)
 {
   float2 grad = make_float2(0.0f, 0.0f);
-  float cval = tex2D<float>(tex, x+.5f, y+.5f);
-  grad.x = tex2D<float>(tex, x+1.5f, y+0.5f) - cval;
-  grad.y = tex2D<float>(tex, x+0.5f, y+1.5f) - cval;
+  float cval = tex.fetch<float>(x, y);
+  grad.x = tex.fetch<float>(x+1, y) - cval;
+  grad.y = tex.fetch<float>(x, y+1) - cval;
   return grad;
 }
 
@@ -24,9 +25,9 @@ static __device__ __forceinline__
 float dpAd(const imp::cu::Texture2D& tex,
            size_t x, size_t y, size_t width, size_t height)
 {
-  float2 cval = tex2D<float2>(tex, x+0.5f, y+0.5f);
-  float2 wval = tex2D<float2>(tex, x-0.5f, y+0.5f);
-  float2 nval = tex2D<float2>(tex, x+0.5f, y-0.5f);
+  float2 cval = tex.fetch<float2>(x,y);
+  float2 wval = tex.fetch<float2>(x-1, y);
+  float2 nval = tex.fetch<float2>(x, y-1);
 
   if (x == 0)
     wval.x = 0.0f;
