@@ -12,12 +12,13 @@
 #include <imp/core/pixel.hpp>
 #include <imp/cucore/cu_memory_storage.cuh>
 
-namespace imp { namespace cu {
+namespace imp {
+namespace cu {
 
-struct DeviceData
-{
+//struct DeviceData
+//{
 
-};
+//};
 
 
 template<typename Pixel>

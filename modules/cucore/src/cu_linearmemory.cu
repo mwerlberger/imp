@@ -6,7 +6,8 @@
 #include <imp/cucore/cu_exception.hpp>
 
 
-namespace imp { namespace cu {
+namespace imp {
+namespace cu {
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>

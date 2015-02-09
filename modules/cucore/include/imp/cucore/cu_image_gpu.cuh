@@ -9,7 +9,8 @@
 #include <imp/cucore/cu_memory_storage.cuh>
 #include <imp/cucore/cu_gpu_data.cuh>
 
-namespace imp { namespace cu {
+namespace imp {
+namespace cu {
 
 // forward declarations
 class Texture2D;
