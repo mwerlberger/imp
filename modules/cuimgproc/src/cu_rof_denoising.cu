@@ -10,8 +10,8 @@
 #include <imp/cucore/cu_k_derivative.cuh>
 
 
-namespace imp { namespace cu {
-
+namespace imp {
+namespace cu {
 
 //-----------------------------------------------------------------------------
 __global__ void k_initRofSolver(Pixel32fC1* d_u, Pixel32fC1* d_u_prev, size_t stride_u,
@@ -88,6 +88,8 @@ __global__ void k_convertResult8uC1(Pixel8uC1* d_u, size_t stride_u,
   }
 }
 
+//#############################################################################
+
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 void RofDenoising<Pixel, pixel_type>::init(Size2u size)
@@ -120,7 +122,10 @@ template<typename Pixel, imp::PixelType pixel_type>
 void RofDenoising<Pixel, pixel_type>::denoise(std::shared_ptr<imp::ImageBase> dst,
                                               std::shared_ptr<imp::ImageBase> src)
 {
-  std::cout << "solving the ROF image denosing model (gpu)" << std::endl;
+  if (params_.verbose)
+  {
+    std::cout << "[Solver @gpu] RofDenoising::denoise:" << std::endl;
+  }
 
   if (src->size() != dst->size())
   {

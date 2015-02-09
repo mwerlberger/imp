@@ -32,10 +32,11 @@ int main(int /*argc*/, char** /*argv*/)
     std::shared_ptr<imp::cu::ImageGpu8uC1> d_lena_denoised_8uC1(
           new imp::cu::ImageGpu8uC1(*d1_lena_8uC1));
 
-    rof.denoise(d_lena_denoised_8uC1, d1_lena_8uC1);
     std::cout << "\n"
               << rof
               << std::endl << std::endl;
+
+    rof.denoise(d_lena_denoised_8uC1, d1_lena_8uC1);
 
     // copy denoised result back to host
     imp::ImageCv8uC1 h_lena_denoised_8uC1(*d_lena_denoised_8uC1);

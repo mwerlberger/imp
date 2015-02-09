@@ -49,9 +49,9 @@ protected:
 
   inline virtual void print(std::ostream& os) const
   {
-    os << "size: " << this->size_
-       << "; lambda: " << this->params_.lambda
-       << "; max_iter: " << this->params_.max_iter;
+    //os << "  size: " << this->size_ << std::endl
+    os << "  lambda: " << this->params_.lambda << std::endl
+       << "  max_iter: " << this->params_.max_iter << std::endl;
   }
 
 
