@@ -142,6 +142,13 @@ void RofDenoising<Pixel, pixel_type>::init(Size2u size)
   p_tex_ = p_->genTexture(false, cudaFilterModeLinear, cudaAddressModeClamp,
                           cudaReadModeElementType);
   IMP_CUDA_CHECK();
+
+  // init internal vars
+  k_initRofSolver
+      <<< dimGrid(), dimBlock() >>> (u_->data(), u_prev_->data(), u_->stride(),
+                                     p_->data(), p_->stride(),
+                                     *f_tex_, size_.width(), size_.height());
+  IMP_CUDA_CHECK();
 }
 
 //-----------------------------------------------------------------------------
@@ -163,13 +170,6 @@ void RofDenoising<Pixel, pixel_type>::denoise(std::shared_ptr<imp::ImageBase> ds
   if (size_ != f_->size())
   {
     this->init(f_->size());
-
-    // init internal vars
-    k_initRofSolver
-        <<< dimGrid(), dimBlock() >>> (u_->data(), u_prev_->data(), u_->stride(),
-                                       p_->data(), p_->stride(),
-                                       *f_tex_, size_.width(), size_.height());
-    IMP_CUDA_CHECK();
 
     // internal params
     float L = sqrtf(8.0f);
@@ -223,6 +223,7 @@ void RofDenoising<Pixel, pixel_type>::denoise(std::shared_ptr<imp::ImageBase> ds
     }
     break;
     }
+    IMP_CUDA_CHECK();
   }
 }
 
