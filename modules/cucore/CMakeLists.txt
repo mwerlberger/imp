@@ -31,7 +31,7 @@ set(HEADERS
 set(SOURCES
   src/cu_linearmemory.cu
   src/cu_image_gpu.cu
-  include/imp/cucore/cu_math.cu
+  src/cu_math.cu
   )
 
 imp_create_cuda_module(${SOURCES} ${HEADERS})
