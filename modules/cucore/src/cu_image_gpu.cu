@@ -5,7 +5,9 @@
 #include <imp/cucore/cu_exception.hpp>
 #include <imp/cucore/cu_utils.hpp>
 #include <imp/cucore/cu_linearmemory.cuh>
+#include <imp/cucore/cu_texture.cuh>
 
+// kernel includes
 #include <imp/cucore/cu_k_setvalue.cuh>
 
 
@@ -16,9 +18,7 @@ template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>::ImageGpu(std::uint32_t width, std::uint32_t height)
   : Base(width, height)
 {
-  data_.reset(Memory::alignedAlloc(width, height, &pitch_));
-//  gpu_data_ = new GpuData2D<Pixel>(data_.get(), this->stride(),
-//                                   this->width(), this->height());
+  this->initMemory();
 }
 
 //-----------------------------------------------------------------------------
@@ -26,9 +26,7 @@ template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>::ImageGpu(const imp::Size2u& size)
   : Base(size)
 {
-  data_.reset(Memory::alignedAlloc(size, &pitch_));
-//  gpu_data_ = new GpuData2D(data_.get(), this->stride(),
-//                            this->width(), this->height());
+  this->initMemory();
 }
 
 //-----------------------------------------------------------------------------
@@ -36,10 +34,8 @@ template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>::ImageGpu(const ImageGpu& from)
   : Base(from)
 {
-  data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
+  this->initMemory();
   this->copyFrom(from);
-//  gpu_data_ = new GpuData2D(data_.get(), this->stride(),
-//                            this->width(), this->height());
 }
 
 //-----------------------------------------------------------------------------
@@ -47,10 +43,8 @@ template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>::ImageGpu(const Image<Pixel, pixel_type>& from)
   : Base(from)
 {
-  data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
+  this->initMemory();
   this->copyFrom(from);
-  //  gpu_data_ = new GpuData2D(data_.get(), this->stride(),
-//                            this->width(), this->height());
 }
 
 ////-----------------------------------------------------------------------------
@@ -100,6 +94,14 @@ template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>::~ImageGpu()
 {
 //  delete gpu_data_;
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+void ImageGpu<Pixel, pixel_type>::initMemory()
+{
+  data_.reset(Memory::alignedAlloc(this->size(), &pitch_));
+  channel_format_desc_ = toCudaChannelFormatDesc(pixel_type);
 }
 
 //-----------------------------------------------------------------------------
@@ -185,6 +187,13 @@ const Pixel* ImageGpu<Pixel, pixel_type>::data(
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
+void* ImageGpu<Pixel, pixel_type>::cuData()
+{
+  return (void*)data_.get();
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
 void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
 {
   if (sizeof(pixel_t) == 1)
@@ -203,6 +212,21 @@ void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
         <<< dimGrid, dimBlock >>> (this->data(), this->stride(), value,
                                    this->width(), this->height());
   }
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+std::shared_ptr<Texture2D>
+ImageGpu<Pixel, pixel_type>::genTexture(bool normalized_coords,
+                                        cudaTextureFilterMode filter_mode,
+                                        cudaTextureAddressMode address_mode,
+                                        cudaTextureReadMode read_mode)
+{
+  std::shared_ptr<Texture2D> texture(
+        new Texture2D(this->cuData(), this->pitch(),
+                      channel_format_desc_, this->size(),
+                      normalized_coords, filter_mode, address_mode, read_mode));
+  return texture;
 }
 
 

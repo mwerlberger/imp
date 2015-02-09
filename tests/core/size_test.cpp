@@ -11,6 +11,11 @@ int main(int /*argc*/, char** /*argv*/)
 {
   try
   {
+    // default constructor
+    imp::Size2u sz2u;
+    assert (sz2u.width() == 0);
+    assert (sz2u.height() == 0);
+
     //
     // 2D case
     //

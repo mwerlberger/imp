@@ -1,7 +1,7 @@
 #ifndef IMP_CU_SETVALUE_CUH
 #define IMP_CU_SETVALUE_CUH
 
-#include <stdio.h>
+//#include <stdio.h>
 
 #include <cuda_runtime_api.h>
 
@@ -9,7 +9,8 @@
 #include <imp/cucore/cu_gpu_data.cuh>
 #endif
 
-namespace imp { namespace cu {
+namespace imp {
+namespace cu {
 
 //-----------------------------------------------------------------------------
 /**

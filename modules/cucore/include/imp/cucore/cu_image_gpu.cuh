@@ -1,5 +1,5 @@
-#ifndef IMP_CU_IMAGE_GPU_HPP
-#define IMP_CU_IMAGE_GPU_HPP
+#ifndef IMP_CU_IMAGE_GPU_CUH
+#define IMP_CU_IMAGE_GPU_CUH
 
 #include <memory>
 #include <algorithm>
@@ -7,9 +7,12 @@
 #include <imp/core/image.hpp>
 #include <imp/cucore/cu_exception.hpp>
 #include <imp/cucore/cu_memory_storage.cuh>
-//#include <imp/cucore/cu_gpu_data.cuh>
+#include <imp/cucore/cu_gpu_data.cuh>
 
 namespace imp { namespace cu {
+
+// forward declarations
+class Texture2D;
 
 /**
  * @brief The ImageGpu class is an image (surprise) holding raw memory
@@ -39,9 +42,7 @@ public:
   typedef pixel_t* pixel_container_t;
 
 public:
-  ImageGpu() = default;
-
-  //ImageGpu() = default;
+  ImageGpu() = delete;
   virtual ~ImageGpu();/* = default;*/
 
   /**
@@ -104,6 +105,11 @@ public:
   virtual Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
   virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
 
+  /** Returns a void* that is pointing to the beginning for the data buffer.
+   * @note this is mainly for convenience when calling cuda functions.
+   */
+  void* cuData();
+
   /**
    * @brief setValue Sets image data to the specified \a value.
    * @param value Value to be set to the whole image data.
@@ -120,12 +126,24 @@ public:
   /** Returns a data structure to operate within a cuda kernel (does not copy any memory!). */
 //  std::unique_ptr<GpuData2D<pixel_t>> gpuData() { return gpu_data_; }
 
+  /** Returns the channel descriptor for Cuda's texture memory. */
+  cudaChannelFormatDesc channelFormatDesc() { return channel_format_desc_; }
+
+  /** Returns a cuda texture object. */
+  std::shared_ptr<Texture2D> genTexture(
+      bool normalized_coords = false,
+      cudaTextureFilterMode filter_mode = cudaFilterModePoint,
+      cudaTextureAddressMode address_mode = cudaAddressModeClamp,
+      cudaTextureReadMode read_mode = cudaReadModeElementType);
 
 protected:
   std::unique_ptr<pixel_t, Deallocator> data_; //!< the actual image data
   size_type pitch_ = 0; //!< Row alignment in bytes.
 
 private:
+  void initMemory();
+  cudaChannelFormatDesc channel_format_desc_;
+
   //std::unique_ptr<GpuData2D<pixel_t>> gpu_data_; //!< data collection that can be directly used within a kernel.
 //  GpuData2D<Pixel>* gpu_data_;
 };
@@ -157,4 +175,4 @@ typedef ImageGpu<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageGpu32fC4;
 } // namespace imp
 
 
-#endif // IMP_CU_IMAGE_GPU_HPP
+#endif // IMP_CU_IMAGE_GPU_CUH

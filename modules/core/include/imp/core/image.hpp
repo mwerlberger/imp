@@ -33,6 +33,7 @@ protected:
   Image(const Image& from) = default;
 
 public:
+  Image() = delete;
   virtual ~Image() = default;
 
   /** Returns a pointer to the pixel data.

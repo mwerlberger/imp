@@ -14,7 +14,7 @@ public:
   virtual ~Exception() throw() = default;
 
   Exception(const std::string& msg,
-            const char* file=NULL, const char* function=NULL, int line=0) throw():
+            const char* file=nullptr, const char* function=nullptr, int line=0) throw():
     msg_(msg),
     file_(file),
     function_(function),
@@ -22,7 +22,7 @@ public:
   {
     std::ostringstream out_msg;
 
-    out_msg << "IuException: ";
+    out_msg << "IMP Exception: ";
     out_msg << (msg_.empty() ? "unknown error" : msg_) << "\n";
     out_msg << "      where: ";
     out_msg << (file_.empty() ? "no filename available" : file_) << " | ";

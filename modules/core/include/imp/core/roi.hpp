@@ -127,6 +127,7 @@ struct Roi
   typedef RoiBase<T, DIM, Roi<T, DIM> > Base;
 
   using Base::RoiBase;
+  Roi() = default;
   virtual ~Roi() = default;
 };
 
@@ -141,6 +142,7 @@ struct Roi<T, 2>
   typedef RoiBase<T, 2, Roi<T, 2> > Base;
 
   using Base::RoiBase;
+  Roi() = default;
   virtual ~Roi() = default;
 
   Roi(const T& x, const T& y, const T& width, const T& height)

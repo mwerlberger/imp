@@ -3,91 +3,110 @@
 
 #include <cstdint>
 
+#ifdef IMP_WITH_CUDA
+#  include<cuda_runtime_api.h>
+#  define CUDA_HOST __host__
+#  define CUDA_DEVICE  __device__
+#else
+#  define CUDA_HOST
+#  define CUDA_DEVICE
+#endif
+
 namespace imp {
 
-template<typename T>
-struct PixelTest
-{
-  T x;
-  PixelTest(T _x) : x(_x) {}
-};
-typedef PixelTest<std::uint8_t> PixelTest8uC1;
-
 //------------------------------------------------------------------------------
-template<typename T>
+template<typename _T>
 union Pixel1
 {
-   struct
-   {
-      T x;
-   };
-   struct
-   {
-      T r;
-   };
-   T c[1];
+  typedef _T T;
 
-   //__device__ operator T () const { return c[0]; }
+  struct
+  {
+    T x;
+  };
+  struct
+  {
+    T r;
+  };
+  T c[1];
 
-   Pixel1(T _x) : x(_x) { }
-   ~Pixel1() = default;
+  CUDA_HOST CUDA_DEVICE Pixel1() : x(0) { }
+  CUDA_HOST CUDA_DEVICE Pixel1(T _x) : x(_x) { }
+  CUDA_HOST CUDA_DEVICE ~Pixel1() = default;
+
+  CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
 };
 
 //------------------------------------------------------------------------------
-template<typename T>
+template<typename _T>
 union Pixel2
 {
-   struct
-   {
-      T x,y;
-   };
-   struct
-   {
-      T r,g;
-   };
-   T c[2];
+  typedef _T T;
 
-   Pixel2(T _a) : x(_a), y(_a) { }
-   Pixel2(T _x, T _y) : x(_x), y(_y) { }
-   ~Pixel2() = default;
+  struct
+  {
+    T x,y;
+  };
+  struct
+  {
+    T r,g;
+  };
+  T c[2];
+
+  CUDA_HOST CUDA_DEVICE Pixel2() : x(0), y(0) { }
+  CUDA_HOST CUDA_DEVICE Pixel2(T _a) : x(_a), y(_a) { }
+  CUDA_HOST CUDA_DEVICE Pixel2(T _x, T _y) : x(_x), y(_y) { }
+  CUDA_HOST CUDA_DEVICE ~Pixel2() = default;
+
+  CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
 };
 
 //------------------------------------------------------------------------------
-template<typename T>
+template<typename _T>
 union Pixel3
 {
-   struct
-   {
-      T x,y,z;
-   };
-   struct
-   {
-      T r,g,b;
-   };
-   T c[3];
+  typedef _T T;
 
-   Pixel3(T _a) : x(_a), y(_a), z(_a) { }
-   Pixel3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) { }
-   ~Pixel3() = default;
+  struct
+  {
+    T x,y,z;
+  };
+  struct
+  {
+    T r,g,b;
+  };
+  T c[3];
+
+  CUDA_HOST CUDA_DEVICE Pixel3() : x(0), y(0), z(0) { }
+  CUDA_HOST CUDA_DEVICE Pixel3(T _a) : x(_a), y(_a), z(_a) { }
+  CUDA_HOST CUDA_DEVICE Pixel3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) { }
+  CUDA_HOST CUDA_DEVICE ~Pixel3() = default;
+
+  CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
 };
 
 //------------------------------------------------------------------------------
-template<typename T>
+template<typename _T>
 union Pixel4
 {
-   struct
-   {
-      T x,y,z,w;
-   };
-   struct
-   {
-      T r,g,b,a;
-   };
-   T c[4];
+  typedef _T T;
 
-   Pixel4(T _a) : x(_a), y(_a), z(_a), w(_a) { }
-   Pixel4(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) { }
-   ~Pixel4() = default;
+  struct
+  {
+    T x,y,z,w;
+  };
+  struct
+  {
+    T r,g,b,a;
+  };
+  T c[4];
+
+  CUDA_HOST CUDA_DEVICE Pixel4() : x(0), y(0), z(0), w(0) { }
+  CUDA_HOST CUDA_DEVICE Pixel4(T _a) : x(_a), y(_a), z(_a), w(_a) { }
+  CUDA_HOST CUDA_DEVICE Pixel4(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) { }
+  CUDA_HOST CUDA_DEVICE ~Pixel4() = default;
+
+  CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
 };
 
 //------------------------------------------------------------------------------
