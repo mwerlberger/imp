@@ -67,6 +67,7 @@ protected:
   {
     float lambda = 10.f;
     std::uint16_t max_iter = 100;
+    bool verbose = false;
   };
   Parameters params_;
 

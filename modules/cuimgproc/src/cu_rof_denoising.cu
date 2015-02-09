@@ -46,23 +46,6 @@ float dpAd(const imp::cu::Texture2D& tex,
   return (cval.x - wval.x + cval.y - nval.y);
 }
 
-//// texture object is a kernel argument
-//template<typename Pixel>
-//__global__ void k_simpleTextureObjectTest(Pixel* u, size_t stride_u,
-//                                          imp::cu::Texture2D f_tex,
-//                                          Pixel* f, size_t stride_f,
-//                                          size_t width, size_t height)
-//{
-//  int x = blockIdx.x*blockDim.x + threadIdx.x;
-//  int y = blockIdx.y*blockDim.y + threadIdx.y;
-
-//  if (x>=0 && y>=0 && x<width && y<height)
-//  {
-//    float px = tex2D<float>(f_tex, x+.5f, y+.5f);
-//    u[y*stride_u+x] = f[y*stride_f+x] - static_cast<int>(255.0f*px);
-//  }
-//}
-
 //-----------------------------------------------------------------------------
 __global__ void k_initRofSolver(Pixel32fC1* d_u, Pixel32fC1* d_u_prev, size_t stride_u,
                                 Pixel32fC2* d_p, size_t stride_p,
@@ -148,26 +131,16 @@ void RofDenoising<Pixel, pixel_type>::init(Size2u size)
   Base::init(size);
   IMP_CUDA_CHECK();
 
-
   // setup textures
-  this->f_tex_ = this->f_->genTexture(false,
-                                      cudaFilterModeLinear,
-                                      cudaAddressModeClamp,
-                                      (this->f_->bitDepth()==8) ?
-                                        cudaReadModeNormalizedFloat :
-                                        cudaReadModeElementType);
-  this->u_tex_ = this->u_->genTexture(false,
-                                      cudaFilterModeLinear,
-                                      cudaAddressModeClamp,
-                                      cudaReadModeElementType);
-  this->u_prev_tex_ = this->u_prev_->genTexture(false,
-                                                cudaFilterModeLinear,
-                                                cudaAddressModeClamp,
+  f_tex_ = f_->genTexture(false, cudaFilterModeLinear, cudaAddressModeClamp,
+                          (f_->bitDepth()==8) ? cudaReadModeNormalizedFloat :
                                                 cudaReadModeElementType);
-  this->p_tex_ = this->p_->genTexture(false,
-                                      cudaFilterModeLinear,
-                                      cudaAddressModeClamp,
-                                      cudaReadModeElementType);
+  u_tex_ = u_->genTexture(false, cudaFilterModeLinear, cudaAddressModeClamp,
+                          cudaReadModeElementType);
+  u_prev_tex_ = u_prev_->genTexture(false, cudaFilterModeLinear,
+                                    cudaAddressModeClamp, cudaReadModeElementType);
+  p_tex_ = p_->genTexture(false, cudaFilterModeLinear, cudaAddressModeClamp,
+                          cudaReadModeElementType);
   IMP_CUDA_CHECK();
 }
 
@@ -184,19 +157,18 @@ void RofDenoising<Pixel, pixel_type>::denoise(std::shared_ptr<imp::ImageBase> ds
                              __FILE__, __FUNCTION__, __LINE__);
   }
 
-  this->f_ = std::dynamic_pointer_cast<Image>(src);
+  f_ = std::dynamic_pointer_cast<Image>(src);
 
 
-  if (this->size_ != this->f_->size())
+  if (size_ != f_->size())
   {
-    this->init(this->f_->size());
+    this->init(f_->size());
 
     // init internal vars
     k_initRofSolver
-        <<< this->dimGrid(), this->dimBlock() >>> (
-        this->u_->data(), this->u_prev_->data(), this->u_->stride(),
-        this->p_->data(), this->p_->stride(),
-        *this->f_tex_, this->size_.width(), this->size_.height());
+        <<< dimGrid(), dimBlock() >>> (u_->data(), u_prev_->data(), u_->stride(),
+                                       p_->data(), p_->stride(),
+                                       *f_tex_, size_.width(), size_.height());
     IMP_CUDA_CHECK();
 
     // internal params
@@ -212,22 +184,22 @@ void RofDenoising<Pixel, pixel_type>::denoise(std::shared_ptr<imp::ImageBase> ds
       else
         theta = 1.0f;
 
-      std::cout << "iter: " << iter << "; tau: " << tau
-                << "; sigma: " << sigma << "; theta: " << theta << std::endl;
-
+      if (params_.verbose)
+      {
+        std::cout << "(rof solver) iter: " << iter << "; tau: " << tau
+                  << "; sigma: " << sigma << "; theta: " << theta << std::endl;
+      }
 
       k_rofDualUpdate
-          <<< this->dimGrid(), this->dimBlock() >>> (
-          this->p_->data(), this->p_->stride(),
-          *this->p_tex_, *this->u_prev_tex_,
-          sigma, this->size_.width(), this->size_.height());
+          <<< dimGrid(), dimBlock() >>> (p_->data(), p_->stride(),
+                                         *p_tex_, *u_prev_tex_,
+                                         sigma, size_.width(), size_.height());
 
       k_rofPrimalUpdate
-          <<< this->dimGrid(), this->dimBlock() >>> (
-          this->u_->data(), this->u_prev_->data(), this->u_->stride(),
-          *this->f_tex_, *this->u_tex_, *this->p_tex_,
-          this->params_.lambda, tau, theta,
-          this->size_.width(), this->size_.height());
+          <<< dimGrid(), dimBlock() >>> (u_->data(), u_prev_->data(), u_->stride(),
+                                         *f_tex_, *u_tex_, *p_tex_,
+                                         params_.lambda, tau, theta,
+                                         size_.width(), size_.height());
 
       sigma /= theta;
       tau *= theta;
@@ -240,9 +212,8 @@ void RofDenoising<Pixel, pixel_type>::denoise(std::shared_ptr<imp::ImageBase> ds
     {
       std::shared_ptr<ImageGpu8uC1> u(std::dynamic_pointer_cast<ImageGpu8uC1>(dst));
       k_convertResult8uC1
-          <<< this->dimGrid(), this->dimBlock() >>> (
-          u->data(), u->stride(),
-          *this->u_tex_, this->size_.width(), this->size_.height());
+          <<< dimGrid(), dimBlock() >>> (u->data(), u->stride(),
+                                         *u_tex_, size_.width(), size_.height());
     }
     break;
     case PixelType::i32fC1:
@@ -252,14 +223,6 @@ void RofDenoising<Pixel, pixel_type>::denoise(std::shared_ptr<imp::ImageBase> ds
     }
     break;
     }
-
-
-    //    // call test kernel
-    //    k_simpleTextureObjectTest <<< this->fragmentation_->dimGrid, this->fragmentation_->dimBlock >>> (
-    //      this->u_->data(), this->u_->stride(), *(this->f_tex_.get()),
-    //      this->f_->data(), this->f_->stride(),
-    //      this->size_.width(), this->size_.height());
-
   }
 }
 
