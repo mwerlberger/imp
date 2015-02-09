@@ -97,6 +97,10 @@ endif(WIN32)
 ##-----------------------------------------------------------------------------
 ## settings / options
 option(IMP_BUILD_SHARED_LIBS "Build shared libraries if ON (default) or static ones if OFF." ON)
+option(IMP_THROW_ON_CUDA_ERROR "Throws an exception when cuda errors are checked with the internal macro." ON)
+if (${IMP_THROW_ON_CUDA_ERROR})
+   add_definitions(-DIMP_THROW_ON_CUDA_ERROR)
+endif()
 
 ##-----------------------------------------------------------------------------
 ## 3rd party dependencies

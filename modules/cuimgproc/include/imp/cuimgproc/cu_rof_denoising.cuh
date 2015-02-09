@@ -6,15 +6,16 @@
 #include <memory>
 #include <cuda_runtime_api.h>
 
+#include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cucore/cu_utils.hpp>
 
 namespace imp { namespace cu {
 
 template<typename Pixel, imp::PixelType pixel_type>
-class RofDenoising  : public imp::cu::VariationalDenoising<Pixel, pixel_type>
+class RofDenoising  : public imp::cu::VariationalDenoising
 {
 public:
-  typedef VariationalDenoising<Pixel, pixel_type> Base;
+  typedef VariationalDenoising Base;
   typedef imp::cu::ImageGpu<Pixel, pixel_type> Image;
   typedef std::shared_ptr<Image> ImagePtr;
 
@@ -23,10 +24,15 @@ public:
   virtual ~RofDenoising() = default;
   using Base::VariationalDenoising;
 
-  virtual __host__ void denoise(ImagePtr f, ImagePtr u) override;
+  virtual __host__ void init(Size2u size) override;
+  virtual __host__ void denoise(std::shared_ptr<imp::ImageBase> dst,
+                                std::shared_ptr<imp::ImageBase> src) override;
 
 protected:
-  std::unique_ptr<Fragmentation<16>> fragmentation_;
+  virtual void print(std::ostream &os) const override;
+
+private:
+  ImagePtr f_;
 
 };
 

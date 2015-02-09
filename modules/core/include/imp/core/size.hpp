@@ -135,6 +135,21 @@ inline bool operator!=(const SizeBase<T, DIM, Derived>& lhs,
 //}
 
 
+template<typename T, std::uint8_t DIM, typename Derived>
+inline std::ostream& operator<<(std::ostream &os, const SizeBase<T, DIM, Derived>& rhs)
+{
+  auto it = rhs.array().begin();
+  os << "(" << *it;
+  ++it;
+  for (; it != rhs.array().end(); ++it)
+  {
+    os << "," << *it;
+  }
+  os << ")";
+  return os;
+}
+
+
 //------------------------------------------------------------------------------
 /**
  * @brief The class Size defines a generic size implementation for \a DIM dimensions

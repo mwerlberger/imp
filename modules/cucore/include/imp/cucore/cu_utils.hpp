@@ -3,8 +3,10 @@
 
 #include <cuda_runtime_api.h>
 #include <cstdint>
+
 #include <imp/core/size.hpp>
 #include <imp/core/roi.hpp>
+#include <imp/cucore/cu_exception.hpp>
 
 namespace imp { namespace cu {
 
@@ -47,6 +49,60 @@ struct Fragmentation
   {
   }
 };
+
+//##############################################################################
+
+/** Check for CUDA error */
+static inline void checkCudaErrorState(const char* file, const char* function,
+                                       const int line)
+{
+  cudaDeviceSynchronize();
+  cudaError_t err = cudaGetLastError();
+  if( err != cudaSuccess )
+    throw imp::cu::Exception("error state check", err, file, function, line);
+}
+
+/** Macro for checking on cuda errors
+ * @note This check is only enabled when the compile time flag is set
+ */
+#ifdef IMP_THROW_ON_CUDA_ERROR
+  #define IMP_CUDA_CHECK() checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__)
+#else
+  #define IMP_CUDA_CHECK() do{}while(0)
+#endif
+
+static inline float getTotalGPUMemory()
+{
+  size_t total = 0;
+  size_t free = 0;
+  cudaMemGetInfo(&free, &total);
+  return total/(1024.0f*1024.0f);   // return value in Megabytes
+}
+
+static inline float getFreeGPUMemory()
+{
+  size_t total = 0;
+  size_t free = 0;
+  cudaMemGetInfo(&free, &total);
+  return free/(1024.0f*1024.0f);   // return value in Megabytes
+}
+
+static inline void printGPUMemoryUsage()
+{
+  float total = imp::cu::getTotalGPUMemory();
+  float free = imp::cu::getFreeGPUMemory();
+
+  printf("GPU memory usage\n");
+  printf("----------------\n");
+  printf("   Total memory: %.2f MiB\n", total);
+  printf("   Used memory:  %.2f MiB\n", total-free);
+  printf("   Free memory:  %.2f MiB\n", free);
+}
+
+/** @} */ // end of Error Handling
+
+/** @} */ // end of Cuda Utilities
+
 
 } // namespace cu
 } // namespace imp

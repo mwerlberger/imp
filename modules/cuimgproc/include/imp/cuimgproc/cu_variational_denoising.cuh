@@ -3,28 +3,53 @@
 
 #include <memory>
 #include <cuda_runtime_api.h>
-#include <imp/cucore/cu_image_gpu.cuh>
+#include <imp/core/image_base.hpp>
 #include <imp/cucore/cu_texture.cuh>
+#include <imp/cucore/cu_utils.hpp>
 
 namespace imp { namespace cu {
 
-template<typename Pixel, imp::PixelType pixel_type>
 class VariationalDenoising
 {
 public:
-  typedef imp::cu::ImageGpu<Pixel, pixel_type> Image;
-  typedef std::shared_ptr<Image> ImagePtr;
+  typedef imp::cu::Fragmentation<16> CuFrag;
+  typedef std::shared_ptr<CuFrag> CuFragPtr;
 
 public:
   VariationalDenoising() = default;
   virtual ~VariationalDenoising() = default;
 
-  virtual __host__ void denoise(ImagePtr f, ImagePtr u) = 0;
+  inline virtual __host__ void init(Size2u size)
+  {
+    size_ = size;
+    fragmentation_.reset(new CuFrag(size));
+
+    // setup internal memory
+    this->u_.reset(new ImageGpu32fC1(size));
+    this->u_prev_.reset(new ImageGpu32fC1(size));
+    this->p_.reset(new ImageGpu32fC2(size));
+  }
+
+  virtual __host__ void denoise(std::shared_ptr<imp::ImageBase> dst,
+                                std::shared_ptr<imp::ImageBase> src) = 0;
+
+  inline __host__ __device__ dim3 dimGrid() {return fragmentation_->dimGrid;}
+  inline __host__ __device__ dim3 dimBlock() {return fragmentation_->dimBlock;}
+
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const VariationalDenoising& rhs);
 
 protected:
-  ImagePtr f_;
-  std::shared_ptr<imp::cu::ImageGpu32fC1> u_;
 
+  inline virtual void print(std::ostream& os) const
+  {
+    os << "size: " << this->size_
+       << "; lambda: " << this->params_.lambda
+       << "; max_iter: " << this->params_.max_iter;
+  }
+
+
+  std::shared_ptr<imp::cu::ImageGpu32fC1> u_;
   std::shared_ptr<imp::cu::ImageGpu32fC1> u_prev_;
   std::shared_ptr<imp::cu::ImageGpu32fC2> p_;
 
@@ -35,16 +60,25 @@ protected:
   std::shared_ptr<imp::cu::Texture2D> p_tex_;
 
   Size2u size_;
+  CuFragPtr fragmentation_;
 
   // algorithm parameters
   struct Parameters
   {
     float lambda = 1.0f;
-    std::uint16_t max_iter = 100;
+    std::uint16_t max_iter = 200;
   };
   Parameters params_;
 
 };
+
+inline std::ostream& operator<<(std::ostream& os,
+                                const VariationalDenoising& rhs)
+{
+  rhs.print(os);
+  return os;
+}
+
 
 } // namespace cu
 } // namespace imp
