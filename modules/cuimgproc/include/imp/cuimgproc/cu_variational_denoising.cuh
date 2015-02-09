@@ -65,8 +65,8 @@ protected:
   // algorithm parameters
   struct Parameters
   {
-    float lambda = 1.0f;
-    std::uint16_t max_iter = 200;
+    float lambda = 10.f;
+    std::uint16_t max_iter = 100;
   };
   Parameters params_;
 

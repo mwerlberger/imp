@@ -14,20 +14,12 @@ namespace imp { namespace cu {
 //-----------------------------------------------------------------------------
 /** compute forward differences in x- and y- direction */
 static __device__ __forceinline__ float2 dp(
-    const imp::cu::Texture2D& tex, float x, float y, size_t width, size_t height)
+    const imp::cu::Texture2D& tex, size_t x, size_t y)
 {
-  x+=0.5f;
-  y+=0.5f;
   float2 grad = make_float2(0.0f, 0.0f);
-  float cval = tex2D<float>(tex, x, y);
-  if (x<width-1)
-  {
-    grad.x = tex2D<float>(tex, x+1.f, y) - cval;
-  }
-  if (y<height-1)
-  {
-    grad.y = tex2D<float>(tex, x, y+1.f) - cval;
-  }
+  float cval = tex2D<float>(tex, x+.5f, y+.5f);
+  grad.x = tex2D<float>(tex, x+1.5f, y+0.5f) - cval;
+  grad.y = tex2D<float>(tex, x+0.5f, y+1.5f) - cval;
   return grad;
 }
 
@@ -45,7 +37,6 @@ float dpAd(const imp::cu::Texture2D& tex,
     wval.x = 0.0f;
   else if (x >= width-1)
     cval.x = 0.0f;
-
 
   if (y == 0)
     nval.y = 0.0f;
@@ -73,8 +64,8 @@ float dpAd(const imp::cu::Texture2D& tex,
 //}
 
 //-----------------------------------------------------------------------------
-__global__ void k_initRofSolver(float* d_u, float* d_u_prev, size_t stride_u,
-                                float2* d_p, size_t stride_p,
+__global__ void k_initRofSolver(Pixel32fC1* d_u, Pixel32fC1* d_u_prev, size_t stride_u,
+                                Pixel32fC2* d_p, size_t stride_p,
                                 imp::cu::Texture2D f_tex,
                                 size_t width, size_t height)
 {
@@ -86,13 +77,13 @@ __global__ void k_initRofSolver(float* d_u, float* d_u_prev, size_t stride_u,
     float val = tex2D<float>(f_tex, x+.5f, y+.5f);
     d_u[y*stride_u + x] = val;
     d_u_prev[y*stride_u + x] = val;
-    d_p[y*stride_p + x] = make_float2(0.0f, 0.0f);
+    d_p[y*stride_p + x] = Pixel32fC2(0.0f, 0.0f);
   }
 }
 
 //-----------------------------------------------------------------------------
-__global__ void k_solveRofPrimalIteration(
-    float* d_u, float* d_u_prev, size_t stride_u,
+__global__ void k_rofPrimalUpdate(
+    Pixel32fC1* d_u, Pixel32fC1* d_u_prev, size_t stride_u,
     Texture2D f_tex, Texture2D u_tex, Texture2D p_tex,
     float lambda, float tau, float theta, size_t width, size_t height)
 {
@@ -117,8 +108,8 @@ __global__ void k_solveRofPrimalIteration(
 }
 
 //-----------------------------------------------------------------------------
-__global__ void k_solveRofDualIteration(
-    float2* d_p, size_t stride_p, Texture2D p_tex, Texture2D u_prev_tex,
+__global__ void k_rofDualUpdate(
+    Pixel32fC2* d_p, size_t stride_p, Texture2D p_tex, Texture2D u_prev_tex,
     float sigma, size_t width, size_t height)
 {
   int x = blockIdx.x*blockDim.x + threadIdx.x;
@@ -127,16 +118,16 @@ __global__ void k_solveRofDualIteration(
   if (x<width && y<height)
   {
     float2 p = tex2D<float2>(p_tex, x+.5f, y+.5f);
-    float2 dp_u = dp(u_prev_tex, x, y, width, height);
+    float2 dp_u = dp(u_prev_tex, x, y);
 
-    p += sigma*dp_u;
-    p /= max(1.0f, length(p));
-    d_p[y*stride_p + x] = p;
+    p = p + sigma*dp_u;
+    p = p / max(1.0f, length(p));
+    d_p[y*stride_p + x] = {p.x, p.y};
   }
 }
 
 //-----------------------------------------------------------------------------
-__global__ void k_convertResult8uC1(unsigned char* d_u, size_t stride_u,
+__global__ void k_convertResult8uC1(Pixel8uC1* d_u, size_t stride_u,
                                     imp::cu::Texture2D u_tex,
                                     size_t width, size_t height)
 {
@@ -145,7 +136,7 @@ __global__ void k_convertResult8uC1(unsigned char* d_u, size_t stride_u,
 
   if (x<width && y<height)
   {
-    d_u[y*stride_u + x] = static_cast<unsigned char>(
+    d_u[y*stride_u + x] = static_cast<std::uint8_t>(
           255.0f * tex2D<float>(u_tex, x+.5f, y+.5f));
   }
 }
@@ -203,10 +194,9 @@ void RofDenoising<Pixel, pixel_type>::denoise(std::shared_ptr<imp::ImageBase> ds
     // init internal vars
     k_initRofSolver
         <<< this->dimGrid(), this->dimBlock() >>> (
-                                                  reinterpret_cast<float*>(this->u_->data()),
-                                                  reinterpret_cast<float*>(this->u_prev_->data()), this->u_->stride(),
-                                                  reinterpret_cast<float2*>(this->p_->data()), this->p_->stride(),
-                                                  *this->f_tex_, this->size_.width(), this->size_.height());
+        this->u_->data(), this->u_prev_->data(), this->u_->stride(),
+        this->p_->data(), this->p_->stride(),
+        *this->f_tex_, this->size_.width(), this->size_.height());
     IMP_CUDA_CHECK();
 
     // internal params
@@ -217,27 +207,30 @@ void RofDenoising<Pixel, pixel_type>::denoise(std::shared_ptr<imp::ImageBase> ds
 
     for(int iter = 0; iter < this->params_.max_iter; ++iter)
     {
-      k_solveRofDualIteration
-          <<< this->dimGrid(), this->dimBlock() >>> (
-                                                    reinterpret_cast<float2*>(this->p_->data()), this->p_->stride(),
-                                                    *this->p_tex_, *this->u_prev_tex_,
-                                                    sigma, this->size_.width(), this->size_.height());
-
       if (sigma < 1000.0f)
         theta = 1.f/sqrtf(1.0f+0.7f*this->params_.lambda*tau);
       else
         theta = 1.0f;
 
-      k_solveRofPrimalIteration
+      std::cout << "iter: " << iter << "; tau: " << tau
+                << "; sigma: " << sigma << "; theta: " << theta << std::endl;
+
+
+      k_rofDualUpdate
           <<< this->dimGrid(), this->dimBlock() >>> (
-                                                    reinterpret_cast<float*>(this->u_->data()),
-                                                    reinterpret_cast<float*>(this->u_prev_->data()), this->u_->stride(),
-                                                    *this->f_tex_, *this->u_tex_, *this->p_tex_,
-                                                    this->params_.lambda, tau, theta,
-                                                    this->size_.width(), this->size_.height());
+          this->p_->data(), this->p_->stride(),
+          *this->p_tex_, *this->u_prev_tex_,
+          sigma, this->size_.width(), this->size_.height());
+
+      k_rofPrimalUpdate
+          <<< this->dimGrid(), this->dimBlock() >>> (
+          this->u_->data(), this->u_prev_->data(), this->u_->stride(),
+          *this->f_tex_, *this->u_tex_, *this->p_tex_,
+          this->params_.lambda, tau, theta,
+          this->size_.width(), this->size_.height());
 
       sigma /= theta;
-      theta *= theta;
+      tau *= theta;
     }
     IMP_CUDA_CHECK();
 
@@ -248,8 +241,8 @@ void RofDenoising<Pixel, pixel_type>::denoise(std::shared_ptr<imp::ImageBase> ds
       std::shared_ptr<ImageGpu8uC1> u(std::dynamic_pointer_cast<ImageGpu8uC1>(dst));
       k_convertResult8uC1
           <<< this->dimGrid(), this->dimBlock() >>> (
-                                                    reinterpret_cast<unsigned char*>(u->data()), u->stride(),
-                                                    *this->u_tex_, this->size_.width(), this->size_.height());
+          u->data(), u->stride(),
+          *this->u_tex_, this->size_.width(), this->size_.height());
     }
     break;
     case PixelType::i32fC1:
