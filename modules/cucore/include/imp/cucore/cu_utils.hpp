@@ -21,31 +21,32 @@ std::uint32_t divUp(std::uint32_t a, std::uint32_t b)
   return (a % b != 0) ? (a / b + 1) : (a / b);
 }
 
-template <std::uint16_t _block_size=16>
+template <std::uint16_t block_size_x=16,
+          std::uint16_t block_size_y=16,
+          std::uint16_t block_size_z=1>
 struct Fragmentation
 {
-  const std::uint16_t block_size = _block_size;
-  imp::Size2u size;
-  imp::Roi2u roi;
-  dim3 dimBlock;
+//  imp::Size2u size;
+//  imp::Roi2u roi;
+  dim3 dimBlock = dim3(block_size_x, block_size_y, block_size_z);
   dim3 dimGrid;
 
 
   Fragmentation() = delete;
 
   Fragmentation(imp::Size2u sz)
-    : size(sz.width(), sz.height())
-    , roi(0,0,sz.width(),sz.height())
-    , dimBlock(block_size, block_size)
-    , dimGrid(divUp(sz.width(), block_size), divUp(sz.height(), block_size))
+    : dimGrid(divUp(sz.width(), dimBlock.x), divUp(sz.height(), dimBlock.y))
   {
   }
 
   Fragmentation(std::uint32_t width, std::uint32_t height)
-    : size(width, height)
-    , roi(0,0,width,height)
-    , dimBlock(block_size, block_size)
-    , dimGrid(divUp(width, block_size), divUp(height, block_size))
+    : dimGrid(divUp(width, dimBlock.x), divUp(height, dimBlock.y))
+  {
+  }
+
+  Fragmentation(dim3 _dimGrid, dim3 _dimBlock)
+    : dimGrid(_dimGrid)
+    , dimBlock(_dimBlock)
   {
   }
 };

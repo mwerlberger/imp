@@ -131,7 +131,7 @@ public:
   cudaChannelFormatDesc channelFormatDesc() { return channel_format_desc_; }
 
   /** Returns a cuda texture object. */
-  std::shared_ptr<Texture2D> genTexture(
+  std::unique_ptr<Texture2D> genTexture(
       bool normalized_coords = false,
       cudaTextureFilterMode filter_mode = cudaFilterModePoint,
       cudaTextureAddressMode address_mode = cudaAddressModeClamp,

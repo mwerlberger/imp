@@ -4,9 +4,10 @@
 #include <cstring>
 #include <cuda_runtime_api.h>
 #include <imp/core/types.hpp>
-#include <imp/core/pixel_enums.hpp>
-#include <imp/cucore/cu_image_gpu.cuh>
-#include <imp/cucore/cu_pixel_conversion.hpp>
+#include <imp/core/pixel.hpp>
+//#include <imp/core/pixel_enums.hpp>
+//#include <imp/cucore/cu_image_gpu.cuh>
+//#include <imp/cucore/cu_pixel_conversion.hpp>
 
 namespace imp { namespace cu {
 
@@ -28,6 +29,7 @@ struct Texture
  */
 struct Texture2D : Texture
 {
+  using Texture::Texture;
   __host__ Texture2D(void* data, size_type pitch,
                      cudaChannelFormatDesc channel_desc,
                      imp::Size2u size,
@@ -58,7 +60,7 @@ struct Texture2D : Texture
 
   }
 
-  __host__ ~Texture2D()
+  __host__ virtual ~Texture2D()
   {
     cudaDestroyTextureObject(this->tex_object);
   }
@@ -73,8 +75,91 @@ struct Texture2D : Texture
     return tex2D<T>(tex_object, x+.5f, y+.5f);
   }
 
-};
+  /*
+   *     FETCH OVERLOADS AS TEX2D ONLY ALLOWS FOR CUDA VEC TYPES
+   */
 
+  __device__ __forceinline__ void fetch(imp::Pixel8uC1& texel, float x, float y)
+  {
+    texel = imp::Pixel8uC1(this->fetch<uchar1>(x,y).x);
+  }
+  __device__ __forceinline__ void fetch(imp::Pixel8uC2& texel, float x, float y)
+  {
+    uchar2 val = this->fetch<uchar2>(x,y);
+    texel = imp::Pixel8uC2(val.x, val.y);
+  }
+//  __device__ __forceinline__ void fetch(imp::Pixel8uC3& texel, float x, float y)
+//  {
+//    uchar3 val = this->fetch<uchar3>(x,y);
+//    texel = imp::Pixel8uC3(val.x, val.y, val.z);
+//  }
+  __device__ __forceinline__ void fetch(imp::Pixel8uC4& texel, float x, float y)
+  {
+    uchar4 val = this->fetch<uchar4>(x,y);
+    texel = imp::Pixel8uC4(val.x, val.y, val.z, val.w);
+  }
+
+  __device__ __forceinline__ void fetch(imp::Pixel16uC1& texel, float x, float y)
+  {
+    texel = imp::Pixel16uC1(this->fetch<ushort1>(x,y).x);
+  }
+  __device__ __forceinline__ void fetch(imp::Pixel16uC2& texel, float x, float y)
+  {
+    ushort2 val = this->fetch<ushort2>(x,y);
+    texel = imp::Pixel16uC2(val.x, val.y);
+  }
+//  __device__ __forceinline__ void fetch(imp::Pixel16uC3& texel, float x, float y)
+//  {
+//    ushort3 val = this->fetch<ushort3>(x,y);
+//    texel = imp::Pixel16uC3(val.x, val.y, val.z);
+//  }
+  __device__ __forceinline__ void fetch(imp::Pixel16uC4& texel, float x, float y)
+  {
+    ushort4 val = this->fetch<ushort4>(x,y);
+    texel = imp::Pixel16uC4(val.x, val.y, val.z, val.w);
+  }
+
+  __device__ __forceinline__ void fetch(imp::Pixel32sC1& texel, float x, float y)
+  {
+    texel = imp::Pixel32sC1(this->fetch<int1>(x,y).x);
+  }
+  __device__ __forceinline__ void fetch(imp::Pixel32sC2& texel, float x, float y)
+  {
+    int2 val = this->fetch<int2>(x,y);
+    texel = imp::Pixel32sC2(val.x, val.y);
+  }
+//  __device__ __forceinline__ void fetch(imp::Pixel32sC3& texel, float x, float y)
+//  {
+//    int3 val = this->fetch<int3>(x,y);
+//    texel = imp::Pixel32sC3(val.x, val.y, val.z);
+//  }
+  __device__ __forceinline__ void fetch(imp::Pixel32sC4& texel, float x, float y)
+  {
+    int4 val = this->fetch<int4>(x,y);
+    texel = imp::Pixel32sC4(val.x, val.y, val.z, val.w);
+  }
+
+  __device__ __forceinline__ void fetch(imp::Pixel32fC1& texel, float x, float y)
+  {
+    texel = imp::Pixel32fC1(this->fetch<float1>(x,y).x);
+  }
+  __device__ __forceinline__ void fetch(imp::Pixel32fC2& texel, float x, float y)
+  {
+    float2 val = this->fetch<float2>(x,y);
+    texel = imp::Pixel32fC2(val.x, val.y);
+  }
+//  __device__ __forceinline__ void fetch(imp::Pixel32fC3& texel, float x, float y)
+//  {
+//    float3 val = this->fetch<float3>(x,y);
+//    texel = imp::Pixel32fC3(val.x, val.y, val.z);
+//  }
+  __device__ __forceinline__ void fetch(imp::Pixel32fC4& texel, float x, float y)
+  {
+    float4 val = this->fetch<float4>(x,y);
+    texel = imp::Pixel32fC4(val.x, val.y, val.z, val.w);
+  }
+
+};
 
 
 
