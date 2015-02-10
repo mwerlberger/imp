@@ -24,9 +24,9 @@ public:
   virtual ~RofDenoising() = default;
   using Base::VariationalDenoising;
 
-  virtual __host__ void init(Size2u size) override;
-  virtual __host__ void denoise(std::shared_ptr<imp::ImageBase> dst,
-                                std::shared_ptr<imp::ImageBase> src) override;
+  virtual __host__ void init(const Size2u& size) override;
+  virtual __host__ void denoise(const std::shared_ptr<imp::ImageBase>& dst,
+                                const std::shared_ptr<imp::ImageBase>& src) override;
 
 protected:
   virtual void print(std::ostream &os) const override;

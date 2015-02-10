@@ -9,12 +9,13 @@ imp_include_module(cucore)
 imp_include(${IMP_${module}_INCLUDE_PATH})
 
 set(HEADERS
-   include/imp/cuimgproc/cu_variational_denoising.cuh
-   include/imp/cuimgproc/cu_rof_denoising.cuh
+  include/imp/cuimgproc/cu_variational_denoising.cuh
+  include/imp/cuimgproc/cu_rof_denoising.cuh
   )
 
 set(SOURCES
-   src/cu_rof_denoising.cu
+  src/cu_variational_denoising.cu
+  src/cu_rof_denoising.cu
   )
 
 imp_create_cuda_module(${SOURCES} ${HEADERS})

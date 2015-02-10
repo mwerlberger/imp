@@ -17,7 +17,7 @@ namespace cu {
  * @brief
  */
 #if 0
-template<class Pixel>
+template<typename Pixel>
 __global__ void k_setValue(GpuData2D<Pixel>* dst, const Pixel value)
 {
   int x = blockIdx.x*blockDim.x + threadIdx.x;
@@ -34,7 +34,7 @@ __global__ void k_setValue(GpuData2D<Pixel>* dst, const Pixel value)
 }
 #endif
 
-template<class Pixel>
+template<typename Pixel>
 __global__ void k_setValue(Pixel* dst, size_t stride, const Pixel value,
                            size_t width, size_t height)
 {

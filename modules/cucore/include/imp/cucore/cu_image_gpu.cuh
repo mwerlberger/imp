@@ -9,7 +9,8 @@
 #include <imp/cucore/cu_memory_storage.cuh>
 #include <imp/cucore/cu_gpu_data.cuh>
 
-namespace imp { namespace cu {
+namespace imp {
+namespace cu {
 
 // forward declarations
 class Texture2D;
@@ -130,7 +131,7 @@ public:
   cudaChannelFormatDesc channelFormatDesc() { return channel_format_desc_; }
 
   /** Returns a cuda texture object. */
-  std::shared_ptr<Texture2D> genTexture(
+  std::unique_ptr<Texture2D> genTexture(
       bool normalized_coords = false,
       cudaTextureFilterMode filter_mode = cudaFilterModePoint,
       cudaTextureAddressMode address_mode = cudaAddressModeClamp,

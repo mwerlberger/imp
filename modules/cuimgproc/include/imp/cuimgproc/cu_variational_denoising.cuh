@@ -7,10 +7,11 @@
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cucore/cu_utils.hpp>
 
-namespace imp { namespace cu {
+namespace imp {
+namespace cu {
 
 // forward declarations
-class Texture2D;
+struct Texture2D;
 
 /**
  * @brief The VariationalDenoising class
@@ -22,25 +23,16 @@ public:
   typedef std::shared_ptr<CuFrag> CuFragPtr;
 
 public:
-  VariationalDenoising() = default;
-  virtual ~VariationalDenoising() = default;
+  VariationalDenoising();
+  virtual ~VariationalDenoising();
 
-  inline virtual __host__ void init(Size2u size)
-  {
-    size_ = size;
-    fragmentation_.reset(new CuFrag(size));
+  virtual __host__ void init(const Size2u& size);
 
-    // setup internal memory
-    this->u_.reset(new ImageGpu32fC1(size));
-    this->u_prev_.reset(new ImageGpu32fC1(size));
-    this->p_.reset(new ImageGpu32fC2(size));
-  }
+  virtual __host__ void denoise(const std::shared_ptr<imp::ImageBase>& dst,
+                                const std::shared_ptr<imp::ImageBase>& src) = 0;
 
-  virtual __host__ void denoise(std::shared_ptr<imp::ImageBase> dst,
-                                std::shared_ptr<imp::ImageBase> src) = 0;
-
-  inline __host__ __device__ dim3 dimGrid() {return fragmentation_->dimGrid;}
-  inline __host__ __device__ dim3 dimBlock() {return fragmentation_->dimBlock;}
+  __forceinline__ __host__ __device__ dim3 dimGrid() {return fragmentation_->dimGrid;}
+  __forceinline__ __host__ __device__ dim3 dimBlock() {return fragmentation_->dimBlock;}
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const VariationalDenoising& rhs);
@@ -60,10 +52,10 @@ protected:
   std::shared_ptr<imp::cu::ImageGpu32fC2> p_;
 
   // cuda textures
-  std::shared_ptr<imp::cu::Texture2D> f_tex_;
-  std::shared_ptr<imp::cu::Texture2D> u_tex_;
-  std::shared_ptr<imp::cu::Texture2D> u_prev_tex_;
-  std::shared_ptr<imp::cu::Texture2D> p_tex_;
+  std::unique_ptr<imp::cu::Texture2D> f_tex_;
+  std::unique_ptr<imp::cu::Texture2D> u_tex_;
+  std::unique_ptr<imp::cu::Texture2D> u_prev_tex_;
+  std::unique_ptr<imp::cu::Texture2D> p_tex_;
 
   Size2u size_;
   CuFragPtr fragmentation_;
@@ -74,8 +66,7 @@ protected:
     float lambda = 10.f;
     std::uint16_t max_iter = 100;
     bool verbose = false;
-  };
-  Parameters params_;
+  } params_;
 
 };
 

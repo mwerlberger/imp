@@ -1,11 +1,13 @@
 #include <imp/cucore/cu_image_gpu.cuh>
 
 #include <iostream>
+#include <memory>
 
 #include <imp/cucore/cu_exception.hpp>
 #include <imp/cucore/cu_utils.hpp>
 #include <imp/cucore/cu_linearmemory.cuh>
 #include <imp/cucore/cu_texture.cuh>
+#include <imp/cucore/cu_pixel_conversion.hpp>
 
 // kernel includes
 #include <imp/cucore/cu_k_setvalue.cuh>
@@ -93,7 +95,7 @@ ImageGpu<Pixel, pixel_type>::ImageGpu(const Image<Pixel, pixel_type>& from)
 template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>::~ImageGpu()
 {
-//  delete gpu_data_;
+  //  delete gpu_data_;
 }
 
 //-----------------------------------------------------------------------------
@@ -109,7 +111,7 @@ template<typename Pixel, imp::PixelType pixel_type>
 void ImageGpu<Pixel, pixel_type>::setRoi(const imp::Roi2u& roi)
 {
   this->roi_ = roi;
-//  gpu_data_.roi = roi;
+  //  gpu_data_.roi = roi;
 }
 
 //-----------------------------------------------------------------------------
@@ -158,10 +160,10 @@ template<typename Pixel, imp::PixelType pixel_type>
 Pixel* ImageGpu<Pixel, pixel_type>::data(
     std::uint32_t ox, std::uint32_t oy)
 {
-//  if (ox > this->width() || oy > this->height())
-//  {
-//    throw imp::cu::Exception("Request starting offset is outside of the image.", __FILE__, __FUNCTION__, __LINE__);
-//  }
+  //  if (ox > this->width() || oy > this->height())
+  //  {
+  //    throw imp::cu::Exception("Request starting offset is outside of the image.", __FILE__, __FUNCTION__, __LINE__);
+  //  }
 
   if (ox != 0 || oy != 0)
   {
@@ -181,7 +183,7 @@ const Pixel* ImageGpu<Pixel, pixel_type>::data(
     throw imp::cu::Exception("Device memory pointer offset is not possible from host function");
   }
 
-//  return reinterpreft_cast<const pixel_container_t>(data_.get());
+  //  return reinterpreft_cast<const pixel_container_t>(data_.get());
   return data_.get();
 }
 
@@ -203,30 +205,27 @@ void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
   else
   {
     // fragmentation
-    const unsigned int block_size = 16;
-    dim3 dimBlock(block_size, block_size);
-    dim3 dimGrid(divUp(this->width(), dimBlock.x),
-                 divUp(this->height(), dimBlock.y));
+    cu::Fragmentation<16> frag(this->size());
+
     // todo add roi to kernel!
     imp::cu::k_setValue
-        <<< dimGrid, dimBlock >>> (this->data(), this->stride(), value,
-                                   this->width(), this->height());
+        <<< frag.dimGrid, frag.dimBlock >>> (this->data(), this->stride(), value,
+                                             this->width(), this->height());
   }
 }
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-std::shared_ptr<Texture2D>
-ImageGpu<Pixel, pixel_type>::genTexture(bool normalized_coords,
-                                        cudaTextureFilterMode filter_mode,
-                                        cudaTextureAddressMode address_mode,
-                                        cudaTextureReadMode read_mode)
+//std::shared_ptr<Texture2D>
+std::unique_ptr<Texture2D> ImageGpu<Pixel, pixel_type>::genTexture(bool normalized_coords,
+                                                                   cudaTextureFilterMode filter_mode,
+                                                                   cudaTextureAddressMode address_mode,
+                                                                   cudaTextureReadMode read_mode)
 {
-  std::shared_ptr<Texture2D> texture(
-        new Texture2D(this->cuData(), this->pitch(),
-                      channel_format_desc_, this->size(),
-                      normalized_coords, filter_mode, address_mode, read_mode));
-  return texture;
+  return std::unique_ptr<Texture2D>(new Texture2D(this->cuData(), this->pitch(),
+                                                  channel_format_desc_, this->size(),
+                                                  normalized_coords, filter_mode,
+                                                  address_mode, read_mode));
 }
 
 
@@ -255,4 +254,4 @@ template class ImageGpu<imp::Pixel32fC3, imp::PixelType::i32fC3>;
 template class ImageGpu<imp::Pixel32fC4, imp::PixelType::i32fC4>;
 
 } // namespace cu
-} // namespace imp
+              } // namespace imp

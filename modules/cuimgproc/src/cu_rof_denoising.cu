@@ -8,6 +8,7 @@
 #include <imp/core/pixel.hpp>
 #include <imp/cucore/cu_texture.cuh>
 #include <imp/cucore/cu_k_derivative.cuh>
+#include <imp/cucore/cu_math.cuh>
 
 
 namespace imp {
@@ -92,7 +93,7 @@ __global__ void k_convertResult8uC1(Pixel8uC1* d_u, size_t stride_u,
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void RofDenoising<Pixel, pixel_type>::init(Size2u size)
+void RofDenoising<Pixel, pixel_type>::init(const Size2u& size)
 {
   Base::init(size);
   IMP_CUDA_CHECK();
@@ -119,8 +120,8 @@ void RofDenoising<Pixel, pixel_type>::init(Size2u size)
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void RofDenoising<Pixel, pixel_type>::denoise(std::shared_ptr<imp::ImageBase> dst,
-                                              std::shared_ptr<imp::ImageBase> src)
+void RofDenoising<Pixel, pixel_type>::denoise(const std::shared_ptr<ImageBase>& dst,
+                                              const std::shared_ptr<ImageBase>& src)
 {
   if (params_.verbose)
   {
@@ -134,7 +135,7 @@ void RofDenoising<Pixel, pixel_type>::denoise(std::shared_ptr<imp::ImageBase> ds
   }
 
   f_ = std::dynamic_pointer_cast<Image>(src);
-
+  //! @todo (MWE) we could use dst for u_ if pixel_type is consistent
 
   if (size_ != f_->size())
   {
@@ -174,6 +175,11 @@ void RofDenoising<Pixel, pixel_type>::denoise(std::shared_ptr<imp::ImageBase> ds
       tau *= theta;
     }
     IMP_CUDA_CHECK();
+
+    Pixel32fC1 min, max;
+    imp::cu::minMax<imp::Pixel32fC1, imp::PixelType::i32fC1>(u_, min, max);
+    std::cout << "~~~~~~~ ROF solution min/max: " << min << ", " << max << std::endl;
+
 
     switch (dst->pixelType())
     {

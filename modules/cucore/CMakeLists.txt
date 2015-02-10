@@ -23,6 +23,7 @@ set(HEADERS
   include/imp/cucore/cu_gpu_data.cuh
   include/imp/cucore/cu_image_gpu.cuh
   include/imp/cucore/cu_texture.cuh
+  include/imp/cucore/cu_math.cuh
   include/imp/cucore/cu_k_setvalue.cuh
   include/imp/cucore/cu_k_derivative.cuh
   )
@@ -30,7 +31,7 @@ set(HEADERS
 set(SOURCES
   src/cu_linearmemory.cu
   src/cu_image_gpu.cu
-  #include/imp/cucore/cu_k_setvalue.cu
+  src/cu_math.cu
   )
 
 imp_create_cuda_module(${SOURCES} ${HEADERS})
