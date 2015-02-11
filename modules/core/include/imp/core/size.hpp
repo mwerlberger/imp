@@ -41,6 +41,23 @@ struct SizeBase
     return *this;
   }
 
+//  SizeBase& operator* (const double factor) const
+//  {
+//    std::array<T,Dim> arr;
+//    for(std::size_t i=0; i<sz.size(); ++i)
+//    {
+//      arr[i] = static_cast<T>(sz[i] * factor);
+//    }
+//  }
+
+//  IuSize operator/ (const double factor) const
+//  {
+//    IU_ASSERT(factor != 0);
+//    double invFactor = 1 / factor;
+//    return IuSize(this->width, this->height, this->depth) * invFactor;
+//  }
+
+
   /**
    * @brief operator [] returns the reference to the element storing the size
    *        of the \a n-the dimension
