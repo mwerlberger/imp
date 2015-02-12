@@ -15,6 +15,9 @@
 
 namespace imp { namespace cu {
 
+//template<typename Pixel, imp::PixelType pixel_type>
+//const double ImageGpu<Pixel, pixel_type>::BLA = 3.18;
+
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>::ImageGpu(std::uint32_t width, std::uint32_t height)
@@ -193,6 +196,13 @@ void* ImageGpu<Pixel, pixel_type>::cuData()
 {
   return (void*)data_.get();
 }
+
+//-----------------------------------------------------------------------------
+//template<typename Pixel, imp::PixelType pixel_type>
+//const void* ImageGpu<Pixel, pixel_type>::cuData() const
+//{
+//  return (const void*)data_.get();
+//}
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>

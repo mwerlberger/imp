@@ -4,9 +4,11 @@
 #include <memory>
 #include <algorithm>
 
-#include <imp/core/image.hpp>
+#include <imp/core/types.hpp>
+#include <imp/core/pixel_enums.hpp>
 #include <imp/cucore/cu_exception.hpp>
 #include <imp/cucore/cu_memory_storage.cuh>
+#include <imp/core/image.hpp>
 #include <imp/cucore/cu_gpu_data.cuh>
 
 namespace imp {
@@ -109,7 +111,8 @@ public:
   /** Returns a void* that is pointing to the beginning for the data buffer.
    * @note this is mainly for convenience when calling cuda functions.
    */
-  void* cuData();
+  virtual void* cuData();
+//  virtual const void* cuData() const;
 
   /**
    * @brief setValue Sets image data to the specified \a value.

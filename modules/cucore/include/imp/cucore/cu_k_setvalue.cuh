@@ -35,7 +35,7 @@ __global__ void k_setValue(GpuData2D<Pixel>* dst, const Pixel value)
 #endif
 
 template<typename Pixel>
-__global__ void k_setValue(Pixel* dst, size_t stride, const Pixel value,
+__global__ void k_setValue(Pixel* d_dst, size_t stride, const Pixel value,
                            size_t width, size_t height)
 {
   int x = blockIdx.x*blockDim.x + threadIdx.x;
@@ -43,7 +43,7 @@ __global__ void k_setValue(Pixel* dst, size_t stride, const Pixel value,
 
   if (x>=0 && y>=0 && x<width && y<height)
   {
-    dst[y*stride+x] = value;
+    d_dst[y*stride+x] = value;
   }
 }
 

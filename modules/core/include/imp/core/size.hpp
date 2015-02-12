@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <array>
 #include <algorithm>
+#include <iostream>
 
 namespace imp {
 
@@ -41,6 +42,23 @@ struct SizeBase
     return *this;
   }
 
+//  SizeBase& operator* (const double factor) const
+//  {
+//    std::array<T,Dim> arr;
+//    for(std::size_t i=0; i<sz.size(); ++i)
+//    {
+//      arr[i] = static_cast<T>(sz[i] * factor);
+//    }
+//  }
+
+//  IuSize operator/ (const double factor) const
+//  {
+//    IU_ASSERT(factor != 0);
+//    double invFactor = 1 / factor;
+//    return IuSize(this->width, this->height, this->depth) * invFactor;
+//  }
+
+
   /**
    * @brief operator [] returns the reference to the element storing the size
    *        of the \a n-the dimension
@@ -55,13 +73,13 @@ struct SizeBase
    * @param n dimension index
    * @return Reference to size element of the n-th dimension
    */
-  const T& operator[] (std::uint8_t n) const noexcept { return sz[n]; }
+  constexpr const T& operator[] (std::uint8_t n) const noexcept { return sz[n]; }
 
   /**
    * @brief dim Returns the dimension of the size object.
    * @return Dimension.
    */
-  std::uint8_t dim() const {return DIM;}
+  constexpr std::uint8_t dim() const noexcept {return DIM;}
 
 
   /**

@@ -34,4 +34,9 @@ set(SOURCES
   src/cu_math.cu
   )
 
-imp_create_cuda_module(${SOURCES} ${HEADERS})
+
+set(IMPL_FILES
+  src/math/cu_min_max_impl.cu
+  )
+
+imp_create_cuda_module(${SOURCES} ${HEADERS} ${IMPL_FILES})
