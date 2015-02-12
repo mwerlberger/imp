@@ -198,6 +198,13 @@ void* ImageGpu<Pixel, pixel_type>::cuData()
 }
 
 //-----------------------------------------------------------------------------
+//template<typename Pixel, imp::PixelType pixel_type>
+//const void* ImageGpu<Pixel, pixel_type>::cuData() const
+//{
+//  return (const void*)data_.get();
+//}
+
+//-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
 {

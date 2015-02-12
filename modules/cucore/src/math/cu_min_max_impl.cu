@@ -1,13 +1,14 @@
 #ifndef IMP_CU_MIN_MAX_IMPL_CU
 #define IMP_CU_MIN_MAX_IMPL_CU
 
+#include <imp/core/linearmemory.hpp>
+#include <imp/core/image.hpp>
 #include <imp/cucore/cu_math.cuh>
 #include <imp/cucore/cu_exception.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cucore/cu_texture.cuh>
 #include <imp/cucore/cu_utils.hpp>
 #include <imp/cucore/cu_linearmemory.cuh>
-#include <imp/core/linearmemory.hpp>
 
 namespace imp {
 namespace cu {
@@ -46,26 +47,26 @@ __global__ void k_minMax(Pixel* d_col_mins, Pixel* d_col_maxs,
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void minMax(const std::shared_ptr<Image<Pixel, pixel_type>>& img,
+void minMax(const std::shared_ptr<ImageGpu<Pixel, pixel_type>>& img,
             Pixel& min_val, Pixel& max_val)
 {
-  if (!img->isGpuMemory())
-  {
-    // TODO copy to gpu
-    throw imp::cu::Exception("CPU memory not yet supported.", __FILE__, __FUNCTION__, __LINE__);
-  }
+//  if (!img->isGpuMemory())
+//  {
+//    // TODO copy to gpu
+//    throw imp::cu::Exception("CPU memory not yet supported.", __FILE__, __FUNCTION__, __LINE__);
+//  }
 
-  const std::shared_ptr<ImageGpu<Pixel,pixel_type>> gpu_img(
-        std::dynamic_pointer_cast<ImageGpu<Pixel,pixel_type>>(img));
+//  const std::shared_ptr<ImageGpu<Pixel,pixel_type>> img(
+//        std::dynamic_pointer_cast<ImageGpu<Pixel,pixel_type>>(img));
 
-  if (!gpu_img)
+  if (!img)
   {
     throw Exception("Image can't be intepreted as ImageGpu but isGpuMemory flag is set.",
                     __FILE__, __FUNCTION__, __LINE__);
   }
 
-  std::unique_ptr<Texture2D> img_tex = gpu_img->genTexture();
-  imp::Roi2u roi = gpu_img->roi();
+  std::unique_ptr<Texture2D> img_tex = img->genTexture();
+  imp::Roi2u roi = img->roi();
   Fragmentation<512,1,1> frag(roi.width(), 1);
 
   imp::cu::LinearMemory<Pixel> d_col_mins(roi.width());
@@ -93,25 +94,25 @@ void minMax(const std::shared_ptr<Image<Pixel, pixel_type>>& img,
 }
 
 // template instantiations for all our image types
-template void minMax(const std::shared_ptr<imp::Image8uC1>& img, imp::Pixel8uC1& min, imp::Pixel8uC1& max);
-template void minMax(const std::shared_ptr<imp::Image8uC2>& img, imp::Pixel8uC2& min, imp::Pixel8uC2& max);
-//template void minMax(const std::shared_ptr<imp::Image8uC3>& img, imp::Pixel8uC3& min, imp::Pixel8uC3& max);
-template void minMax(const std::shared_ptr<imp::Image8uC4>& img, imp::Pixel8uC4& min, imp::Pixel8uC4& max);
+template void minMax(const std::shared_ptr<ImageGpu8uC1>& img, imp::Pixel8uC1& min, imp::Pixel8uC1& max);
+template void minMax(const std::shared_ptr<ImageGpu8uC2>& img, imp::Pixel8uC2& min, imp::Pixel8uC2& max);
+//template void minMax(const std::shared_ptr<ImageGpu8uC3>& img, imp::Pixel8uC3& min, imp::Pixel8uC3& max);
+template void minMax(const std::shared_ptr<ImageGpu8uC4>& img, imp::Pixel8uC4& min, imp::Pixel8uC4& max);
 
-template void minMax(const std::shared_ptr<imp::Image16uC1>& img, imp::Pixel16uC1& min, imp::Pixel16uC1& max);
-template void minMax(const std::shared_ptr<imp::Image16uC2>& img, imp::Pixel16uC2& min, imp::Pixel16uC2& max);
-//template void minMax(const std::shared_ptr<imp::Image16uC3>& img, imp::Pixel16uC3& min, imp::Pixel16uC3& max);
-template void minMax(const std::shared_ptr<imp::Image16uC4>& img, imp::Pixel16uC4& min, imp::Pixel16uC4& max);
+template void minMax(const std::shared_ptr<ImageGpu16uC1>& img, imp::Pixel16uC1& min, imp::Pixel16uC1& max);
+template void minMax(const std::shared_ptr<ImageGpu16uC2>& img, imp::Pixel16uC2& min, imp::Pixel16uC2& max);
+//template void minMax(const std::shared_ptr<ImageGpu16uC3>& img, imp::Pixel16uC3& min, imp::Pixel16uC3& max);
+template void minMax(const std::shared_ptr<ImageGpu16uC4>& img, imp::Pixel16uC4& min, imp::Pixel16uC4& max);
 
-template void minMax(const std::shared_ptr<imp::Image32sC1>& img, imp::Pixel32sC1& min, imp::Pixel32sC1& max);
-template void minMax(const std::shared_ptr<imp::Image32sC2>& img, imp::Pixel32sC2& min, imp::Pixel32sC2& max);
-//template void minMax(const std::shared_ptr<imp::Image32sC3>& img, imp::Pixel32sC3& min, imp::Pixel32sC3& max);
-template void minMax(const std::shared_ptr<imp::Image32sC4>& img, imp::Pixel32sC4& min, imp::Pixel32sC4& max);
+template void minMax(const std::shared_ptr<ImageGpu32sC1>& img, imp::Pixel32sC1& min, imp::Pixel32sC1& max);
+template void minMax(const std::shared_ptr<ImageGpu32sC2>& img, imp::Pixel32sC2& min, imp::Pixel32sC2& max);
+//template void minMax(const std::shared_ptr<ImageGpu32sC3>& img, imp::Pixel32sC3& min, imp::Pixel32sC3& max);
+template void minMax(const std::shared_ptr<ImageGpu32sC4>& img, imp::Pixel32sC4& min, imp::Pixel32sC4& max);
 
-template void minMax<imp::Pixel32fC1, imp::PixelType::i32fC1>(const std::shared_ptr<imp::Image32fC1>& img, imp::Pixel32fC1& min, imp::Pixel32fC1& max);
-template void minMax(const std::shared_ptr<imp::Image32fC2>& img, imp::Pixel32fC2& min, imp::Pixel32fC2& max);
-//template void minMax(const std::shared_ptr<imp::Image32fC3>& img, imp::Pixel32fC3& min, imp::Pixel32fC3& max);
-template void minMax(const std::shared_ptr<imp::Image32fC4>& img, imp::Pixel32fC4& min, imp::Pixel32fC4& max);
+template void minMax(const std::shared_ptr<ImageGpu32fC1>& img, imp::Pixel32fC1& min, imp::Pixel32fC1& max);
+template void minMax(const std::shared_ptr<ImageGpu32fC2>& img, imp::Pixel32fC2& min, imp::Pixel32fC2& max);
+//template void minMax(const std::shared_ptr<ImageGpu32fC3>& img, imp::Pixel32fC3& min, imp::Pixel32fC3& max);
+template void minMax(const std::shared_ptr<ImageGpu32fC4>& img, imp::Pixel32fC4& min, imp::Pixel32fC4& max);
 
 
 } // namespace cu

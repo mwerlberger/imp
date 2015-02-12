@@ -32,6 +32,19 @@ int main(int /*argc*/, char** /*argv*/)
     assert(pyr.numLevels()==7);
     assert(pyr.size(pyr.numLevels()-1).width() == 8);
 
+    imp::ImagePyramid8uC1::ImageLevels levels = pyr.levels();
+
+    int level_id=0;
+    for (auto img : levels)
+    {
+      imp::ImageCv8uC1 cv_img(*img);
+
+      cv::imshow("level "+level_id, cv_img.cvMat());
+      ++level_id;
+//      cv::waitKey();
+    }
+
+
 //    // 32fC1 test
 //    imp::ImageCv32fC1 h1_lena_32fC1(h1_lena_8uC1.size());
 
@@ -56,7 +69,7 @@ int main(int /*argc*/, char** /*argv*/)
 //    cv::imshow("lena input 32f", h1_lena_32fC1.cvMat());
 //    cv::imshow("lena denoised 32f", h_lena_denoised_32fC1.cvMat());
 
-//    cv::waitKey();
+    cv::waitKey();
   }
   catch (std::exception& e)
   {

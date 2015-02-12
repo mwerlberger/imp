@@ -10,6 +10,7 @@
 
 namespace imp { namespace cu {
 
+//------------------------------------------------------------------------------
 /** Integer division rounding up to next higher integer
  * @param a Numerator
  * @param b Denominator

@@ -5,24 +5,36 @@
 #include <memory>
 
 #include <imp/core/types.hpp>
-#include <imp/core/image.hpp>
+#include <imp/core/pixel_enums.hpp>
+#include <imp/core/pixel.hpp>
+#include <imp/core/size.hpp>
 
 namespace imp {
+
+// forward declarations
+template<typename Pixel, imp::PixelType pixel_type> class Image;
+template<typename Pixel, imp::PixelType pixel_type> class ImageRaw;
+namespace cu{
+template<typename Pixel, imp::PixelType pixel_type> class ImageGpu;
+}
 
 /**
  * @brief The ImagePyramid class holds an image scale pyramid
  *
  * @todo (MWE) roi support (propagated automatically from finest to coarser level)
  */
-
 template<typename Pixel, imp::PixelType pixel_type>
 class ImagePyramid
 {
 public:
   // typedefs for convenience
-  typedef imp::Image<Pixel, pixel_type> Image;
-  typedef std::shared_ptr<Image> ImagePtr;
-  typedef std::vector<ImagePtr> ImageLevels;
+  using Image = imp::Image<Pixel, pixel_type>;
+  using ImagePtr = std::shared_ptr<Image>;
+  using ImageLevels = std::vector<ImagePtr>;
+  using ImageRaw = imp::ImageRaw<Pixel, pixel_type>;
+  using ImageRawPtr = std::shared_ptr<ImageRaw>;
+  using ImageGpu = imp::cu::ImageGpu<Pixel,pixel_type>;
+  using ImageGpuPtr = std::shared_ptr<ImageGpu>;
 
 public:
   ImagePyramid() = delete;
@@ -52,7 +64,7 @@ public:
   void init(const imp::Size2u& size);
 
   /** Initializing the images. */
-  void updateImage(ImagePtr img_level0);
+  void updateImage(ImagePtr img_level0, InterpolationMode interp);
 
   /*
    * Getters / Setters

@@ -153,24 +153,30 @@ struct Roi<T, 2>
   /**
    * @brief x returns the ROI's x coordinate of the left-upper corner
    */
-  T x() const {return this->pt[0];}
+  T& x() noexcept {return this->pt[0];}
+  constexpr const T& x() const noexcept {return this->pt[0];}
 
   /**
    * @brief y returns the ROI's y coordinate of the left-upper corner
    */
-  T y() const {return this->pt[1];}
+  T& y() noexcept {return this->pt[1];}
+  constexpr const T& y() const {return this->pt[1];}
 
   /**
    * @brief width returns the width of the 2d Roi
    */
-  T width() const {return this->sz[0];}
+  T& width() noexcept {return this->sz[0];}
+  constexpr const T& width() const noexcept {return this->sz[0];}
 
   /**
    * @brief height returns the length of the second dimension of the 2d Roi
    * @return
    */
-  T height() const {return this->sz[1];}
+  T& height() noexcept {return this->sz[1];}
+  constexpr const T& height() const noexcept {return this->sz[1];}
 };
+
+
 
 
 //------------------------------------------------------------------------------

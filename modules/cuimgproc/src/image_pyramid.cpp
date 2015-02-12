@@ -5,6 +5,7 @@
 #include <imp/core/image.hpp>
 #include <imp/core/image_raw.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
+#include <imp/cuimgproc/cu_image_transform.cuh>
 
 
 namespace imp {
@@ -20,7 +21,7 @@ ImagePyramid<Pixel,pixel_type>::ImagePyramid(ImagePtr img, float scale_factor,
   , max_num_levels_(max_num_levels)
 {
   this->init(img->size());
-  this->updateImage(img);
+  this->updateImage(img, imp::InterpolationMode::linear);
 }
 
 //------------------------------------------------------------------------------
@@ -72,7 +73,8 @@ void ImagePyramid<Pixel,pixel_type>::init(const imp::Size2u& size)
 
 //------------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void ImagePyramid<Pixel,pixel_type>::updateImage(ImagePtr img_level0)
+void ImagePyramid<Pixel,pixel_type>::updateImage(ImagePtr img_level0,
+                                                 InterpolationMode interp)
 {
   // TODO sanity checks
 
@@ -85,19 +87,22 @@ void ImagePyramid<Pixel,pixel_type>::updateImage(ImagePtr img_level0)
               static_cast<std::uint32_t>(sz0.height()*scale_factors_[i] + 0.5f));
 
     // init level memory with either ImageGpu or ImageRaw
-    ImagePtr img = nullptr;
     if(img_level0->isGpuMemory())
     {
-      img = std::make_shared<imp::cu::ImageGpu<Pixel,pixel_type>>(sz);
+      ImageGpuPtr img = std::make_shared<imp::cu::ImageGpu<Pixel,pixel_type>>(sz);
+      ImageGpuPtr prev = std::dynamic_pointer_cast<ImageGpu>(levels_.back());
+      imp::cu::reduce(img.get(), prev.get(), interp, true);
+      levels_.push_back(img);
     }
     else
     {
-      img = std::make_shared<imp::ImageRaw<Pixel,pixel_type>>(sz);
+      ImageRawPtr img = std::make_shared<imp::ImageRaw<Pixel,pixel_type>>(sz);
+      //! @todo (MWE) cpu reduction
+      levels_.push_back(img);
     }
 
-    // todo reduction
 
-    levels_.push_back(img);
+
   }
 
 }
@@ -107,22 +112,22 @@ void ImagePyramid<Pixel,pixel_type>::updateImage(ImagePtr img_level0)
 // (sync with typedefs at the end of the hpp file)
 template class ImagePyramid<imp::Pixel8uC1, imp::PixelType::i8uC1>;
 template class ImagePyramid<imp::Pixel8uC2, imp::PixelType::i8uC2>;
-template class ImagePyramid<imp::Pixel8uC3, imp::PixelType::i8uC3>;
+//template class ImagePyramid<imp::Pixel8uC3, imp::PixelType::i8uC3>;
 template class ImagePyramid<imp::Pixel8uC4, imp::PixelType::i8uC4>;
 
 template class ImagePyramid<imp::Pixel16uC1, imp::PixelType::i16uC1>;
 template class ImagePyramid<imp::Pixel16uC2, imp::PixelType::i16uC2>;
-template class ImagePyramid<imp::Pixel16uC3, imp::PixelType::i16uC3>;
+//template class ImagePyramid<imp::Pixel16uC3, imp::PixelType::i16uC3>;
 template class ImagePyramid<imp::Pixel16uC4, imp::PixelType::i16uC4>;
 
 template class ImagePyramid<imp::Pixel32sC1, imp::PixelType::i32sC1>;
 template class ImagePyramid<imp::Pixel32sC2, imp::PixelType::i32sC2>;
-template class ImagePyramid<imp::Pixel32sC3, imp::PixelType::i32sC3>;
+//template class ImagePyramid<imp::Pixel32sC3, imp::PixelType::i32sC3>;
 template class ImagePyramid<imp::Pixel32sC4, imp::PixelType::i32sC4>;
 
 template class ImagePyramid<imp::Pixel32fC1, imp::PixelType::i32fC1>;
 template class ImagePyramid<imp::Pixel32fC2, imp::PixelType::i32fC2>;
-template class ImagePyramid<imp::Pixel32fC3, imp::PixelType::i32fC3>;
+//template class ImagePyramid<imp::Pixel32fC3, imp::PixelType::i32fC3>;
 template class ImagePyramid<imp::Pixel32fC4, imp::PixelType::i32fC4>;
 
 
