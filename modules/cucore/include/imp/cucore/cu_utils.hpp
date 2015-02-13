@@ -22,6 +22,41 @@ std::uint32_t divUp(std::uint32_t a, std::uint32_t b)
   return (a % b != 0) ? (a / b + 1) : (a / b);
 }
 
+template<typename T>
+__host__ __device__ __forceinline__
+T min(const T& a, const T& b, bool check_inf_or_nan=true)
+{
+//  if (check_inf_or_nan)
+//  {
+//    if (isnan(a) || isinf(a))
+//      return b;
+//    if (isnan(b) || isinf(b))
+//      return a;
+//  }
+  return a<b ? a : b;
+}
+
+template<typename T>
+__host__ __device__ __forceinline__
+T max(const T& a, const T& b, bool check_inf_or_nan=true)
+{
+//  if (check_inf_or_nan)
+//  {
+//    if (isnan(a) || isinf(a))
+//      return b;
+//    if (isnan(b) || isinf(b))
+//      return a;
+//  }
+  return a>b ? a : b;
+}
+
+template<typename T>
+__host__ __device__ __forceinline__
+T& sqr(const T& a) {return a*a;}
+
+
+/** Fragmentation for gpu / cuda grid blocks
+ */
 template <std::uint16_t block_size_x=16,
           std::uint16_t block_size_y=16,
           std::uint16_t block_size_z=1>

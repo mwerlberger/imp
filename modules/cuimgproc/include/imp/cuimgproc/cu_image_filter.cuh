@@ -8,16 +8,17 @@
 namespace imp {
 namespace cu {
 
-/* ***************************************************************************/
+//-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 void filterMedian3x3(ImageGpu<Pixel, pixel_type>* dst,
                      ImageGpu<Pixel, pixel_type>* src);
 
-///* ***************************************************************************/
-//template<typename Pixel, imp::PixelType pixel_type>
-//void filterGauss(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* src,
-//                 float sigma, int kernel_size,
-//                 ImageGpu<Pixel, pixel_type>* temp, cudaStream_t stream);
+/* ***************************************************************************/
+template<typename Pixel, imp::PixelType pixel_type>
+void filterGauss(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* src,
+                 float sigma, int kernel_size=0,
+                 std::shared_ptr<ImageGpu<Pixel, pixel_type>> temp=nullptr);
+//                 cudaStream_t stream);
 
 ////// Gaussian filter; Volume; 32-bit; 4-channel
 ////template<typename Pixel, imp::PixelType pixel_type>

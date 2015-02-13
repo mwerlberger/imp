@@ -2,6 +2,7 @@
 
 // median filter
 #include "image_filter/cu_median3x3_impl.cu"
+#include "image_filter/cu_gauss_impl.cu"
 
 namespace imp {
 namespace cu {
