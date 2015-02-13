@@ -15,7 +15,7 @@ namespace imp {
 template<typename T, std::uint8_t DIM, typename Derived>
 struct SizeBase
 {
-  typedef std::size_t size_type;
+  using size_type = std::size_t;
 
   std::array<T, DIM> sz; //!< internal data storage for all dimensions' sizes
 
@@ -176,8 +176,8 @@ template<typename T, std::uint8_t DIM>
 struct Size
     : public SizeBase<T, DIM, Size<T, DIM> >
 {
-  typedef SizeBase<T, DIM, Size<T, DIM> > Base;
-  using Base::SizeBase;
+  using Base = SizeBase<T, DIM, Size<T, DIM> >;
+  using Base::Base;
   Size() = default;
   virtual ~Size() = default;
 };
@@ -190,9 +190,8 @@ template<typename T>
 struct Size<T, 2>
     : public SizeBase<T, 2, Size<T, 2> >
 {
-  typedef SizeBase<T, 2, Size<T, 2> > Base;
-
-  using Base::SizeBase;
+  using Base = SizeBase<T, 2, Size<T, 2> >;
+  using Base::Base;
   Size() = default;
   virtual ~Size() = default;
 
@@ -221,9 +220,8 @@ template<typename T>
 struct Size<T, 3>
     : public SizeBase<T, 3, Size<T, 3> >
 {
-  typedef SizeBase<T, 3, Size<T, 3> > Base;
-
-  using Base::SizeBase;
+  using Base = SizeBase<T, 3, Size<T, 3> >;
+  using Base::Base;
   Size() = default;
   virtual ~Size() = default;
 
