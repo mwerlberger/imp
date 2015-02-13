@@ -8,21 +8,35 @@ endif()
 
 imp_add_module(cucore)
 
-include_directories(${IMP_MODULE_core_INCLUDE_PATH})
-cuda_include_directories(${IMP_MODULE_core_INCLUDE_PATH})
-include_directories(${IMP_MODULE_${module}_INCLUDE_PATH})
-cuda_include_directories(${IMP_MODULE_${module}_INCLUDE_PATH})
+# internal module dependencies
+imp_include_module(core)
+
+include_directories(${IMP_${module}_INCLUDE_PATH})
+cuda_include_directories(${IMP_${module}_INCLUDE_PATH})
 
 set(HEADERS
+  include/imp/cucore/cu_utils.hpp
+  include/imp/cucore/cu_exception.hpp
+  include/imp/cucore/cu_pixel_conversion.hpp
   include/imp/cucore/cu_memory_storage.cuh
   include/imp/cucore/cu_linearmemory.cuh
+  include/imp/cucore/cu_gpu_data.cuh
   include/imp/cucore/cu_image_gpu.cuh
+  include/imp/cucore/cu_texture.cuh
+  include/imp/cucore/cu_math.cuh
+  include/imp/cucore/cu_k_setvalue.cuh
+  include/imp/cucore/cu_k_derivative.cuh
   )
 
 set(SOURCES
   src/cu_linearmemory.cu
   src/cu_image_gpu.cu
+  src/cu_math.cu
   )
 
-#imp_module_include_directories(${module})
-imp_create_cuda_module(${SOURCES} ${HEADERS})
+
+set(IMPL_FILES
+  src/math/cu_min_max_impl.cu
+  )
+
+imp_create_cuda_module(${SOURCES} ${HEADERS} ${IMPL_FILES})

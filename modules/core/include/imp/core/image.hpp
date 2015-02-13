@@ -33,6 +33,7 @@ protected:
   Image(const Image& from) = default;
 
 public:
+  Image() = delete;
   virtual ~Image() = default;
 
   /** Returns a pointer to the pixel data.
@@ -114,6 +115,12 @@ public:
         }
       }
     }
+  }
+
+  /** Returns the length of a row (not including the padding!) in bytes. */
+  virtual size_type rowBytes() const
+  {
+    return this->width() * sizeof(pixel_t);
   }
 
   /** Returns the distnace in pixels between starts of consecutive rows. */

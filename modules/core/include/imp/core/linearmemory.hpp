@@ -67,6 +67,11 @@ public:
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
   virtual bool isGpuMemory() const  override { return false; }
 
+  /** Pixel access with (idx). */
+   pixel_t& operator()(size_t idx) {return *this->data(idx);}
+   /** Pixel access with [idx]. */
+   pixel_t& operator[](size_t idx) {return *this->data(idx);}
+
 private:
   std::unique_ptr<pixel_t, Deallocator> data_;
 
@@ -78,9 +83,21 @@ typedef LinearMemory<imp::Pixel8uC1> LinearMemory8uC1;
 typedef LinearMemory<imp::Pixel8uC2> LinearMemory8uC2;
 typedef LinearMemory<imp::Pixel8uC2> LinearMemory8uC3;
 typedef LinearMemory<imp::Pixel8uC2> LinearMemory8uC4;
+
 typedef LinearMemory<imp::Pixel16uC1> LinearMemory16uC1;
+typedef LinearMemory<imp::Pixel16uC2> LinearMemory16uC2;
+typedef LinearMemory<imp::Pixel16uC2> LinearMemory16uC3;
+typedef LinearMemory<imp::Pixel16uC2> LinearMemory16uC4;
+
 typedef LinearMemory<imp::Pixel32sC1> LinearMemory32sC1;
+typedef LinearMemory<imp::Pixel32sC2> LinearMemory32sC2;
+typedef LinearMemory<imp::Pixel32sC2> LinearMemory32sC3;
+typedef LinearMemory<imp::Pixel32sC2> LinearMemory32sC4;
+
 typedef LinearMemory<imp::Pixel32fC1> LinearMemory32fC1;
+typedef LinearMemory<imp::Pixel32fC2> LinearMemory32fC2;
+typedef LinearMemory<imp::Pixel32fC2> LinearMemory32fC3;
+typedef LinearMemory<imp::Pixel32fC2> LinearMemory32fC4;
 
 
 
