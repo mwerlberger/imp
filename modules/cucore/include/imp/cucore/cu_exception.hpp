@@ -16,13 +16,13 @@ public:
   virtual ~Exception() throw() = default;
 
   Exception(const std::string& msg,
-            const char* file=NULL, const char* function=NULL, int line=0) throw()
+            const char* file=nullptr, const char* function=nullptr, int line=0) throw()
     : imp::Exception(msg, file, function, line)
   {
   }
 
   Exception(const std::string& msg, cudaError err,
-            const char* file=NULL, const char* function=NULL, int line=0) throw()
+            const char* file=nullptr, const char* function=nullptr, int line=0) throw()
     : msg_(msg)
     , err_(err)
     , file_(file)
@@ -31,7 +31,7 @@ public:
   {
     std::ostringstream out_msg;
 
-    out_msg << "IuException: ";
+    out_msg << "IMP Exception (CUDA): ";
     out_msg << (msg_.empty() ? "unknown error" : msg_) << "\n";
     out_msg << "      cudaError code: " << cudaGetErrorString(err_);
     out_msg << " (" << err_ << ")" << "\n";

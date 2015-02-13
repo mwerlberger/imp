@@ -5,6 +5,8 @@
 #include <imp/core/linearmemory.hpp>
 #include <imp/cucore/cu_linearmemory.cuh>
 
+#include <cuda_runtime.h>
+
 #include "default_msg.h"
 
 int main(int /*argc*/, char** /*argv*/)
@@ -115,7 +117,8 @@ int main(int /*argc*/, char** /*argv*/)
     //      }
     //    }
 
-    //    //  cleanup
+    //--------------------------------------------------------------------------
+    //  cleanup
     std::cout << "deleting 8uC1 device memory" << std::endl;
     delete(d_8u_C1);
     std::cout << "deleting 32fC1 device memory" << std::endl;

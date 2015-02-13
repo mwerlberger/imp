@@ -69,7 +69,7 @@ public:
     return *this;
   }
 
-  void setRoi(const imp::Roi2u& roi)
+  virtual void setRoi(const imp::Roi2u& roi)
   {
     roi_ = roi;
   }
@@ -106,6 +106,39 @@ public:
     return size_[1];
   }
 
+  std::uint8_t nChannels() const
+  {
+    switch (pixel_type_)
+    {
+    case PixelType::i8uC1:
+    case PixelType::i16uC1:
+    case PixelType::i32uC1:
+    case PixelType::i32sC1:
+    case PixelType::i32fC1:
+      return 1;
+    case PixelType::i8uC2:
+    case PixelType::i16uC2:
+    case PixelType::i32uC2:
+    case PixelType::i32sC2:
+    case PixelType::i32fC2:
+      return 2;
+    case PixelType::i8uC3:
+    case PixelType::i16uC3:
+    case PixelType::i32uC3:
+    case PixelType::i32sC3:
+    case PixelType::i32fC3:
+      return 3;
+    case PixelType::i8uC4:
+    case PixelType::i16uC4:
+    case PixelType::i32uC4:
+    case PixelType::i32sC4:
+    case PixelType::i32fC4:
+      return 4;
+    default:
+      return 0;
+    }
+  }
+
   /** Returns the number of pixels in the image. */
   size_type numel() const
   {
@@ -117,6 +150,9 @@ public:
   {
     return this->height() * this->pitch();
   }
+
+  /** Returns the length of a row (not including the padding!) in bytes. */
+  virtual size_type rowBytes() const = 0;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
   virtual size_type pitch() const = 0;

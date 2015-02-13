@@ -1,18 +1,29 @@
 #include <imp/cucore/cu_image_gpu.cuh>
 
 #include <iostream>
+#include <memory>
 
 #include <imp/cucore/cu_exception.hpp>
+#include <imp/cucore/cu_utils.hpp>
+#include <imp/cucore/cu_linearmemory.cuh>
+#include <imp/cucore/cu_texture.cuh>
+#include <imp/cucore/cu_pixel_conversion.hpp>
+
+// kernel includes
+#include <imp/cucore/cu_k_setvalue.cuh>
 
 
 namespace imp { namespace cu {
+
+//template<typename Pixel, imp::PixelType pixel_type>
+//const double ImageGpu<Pixel, pixel_type>::BLA = 3.18;
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>::ImageGpu(std::uint32_t width, std::uint32_t height)
   : Base(width, height)
 {
-  data_.reset(Memory::alignedAlloc(width, height, &pitch_));
+  this->initMemory();
 }
 
 //-----------------------------------------------------------------------------
@@ -20,7 +31,7 @@ template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>::ImageGpu(const imp::Size2u& size)
   : Base(size)
 {
-  data_.reset(Memory::alignedAlloc(size, &pitch_));
+  this->initMemory();
 }
 
 //-----------------------------------------------------------------------------
@@ -28,7 +39,7 @@ template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>::ImageGpu(const ImageGpu& from)
   : Base(from)
 {
-  data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
+  this->initMemory();
   this->copyFrom(from);
 }
 
@@ -37,7 +48,7 @@ template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>::ImageGpu(const Image<Pixel, pixel_type>& from)
   : Base(from)
 {
-  data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
+  this->initMemory();
   this->copyFrom(from);
 }
 
@@ -83,6 +94,28 @@ ImageGpu<Pixel, pixel_type>::ImageGpu(const Image<Pixel, pixel_type>& from)
 //  }
 //}
 
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+ImageGpu<Pixel, pixel_type>::~ImageGpu()
+{
+  //  delete gpu_data_;
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+void ImageGpu<Pixel, pixel_type>::initMemory()
+{
+  data_.reset(Memory::alignedAlloc(this->size(), &pitch_));
+  channel_format_desc_ = toCudaChannelFormatDesc(pixel_type);
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+void ImageGpu<Pixel, pixel_type>::setRoi(const imp::Roi2u& roi)
+{
+  this->roi_ = roi;
+  //  gpu_data_.roi = roi;
+}
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
@@ -96,7 +129,7 @@ void ImageGpu<Pixel, pixel_type>::copyTo(imp::Image<Pixel, pixel_type>& dst) con
                                                    cudaMemcpyDeviceToHost;
   const cudaError cu_err = cudaMemcpy2D(dst.data(), dst.pitch(),
                                         this->data(), this->pitch(),
-                                        this->width()*sizeof(Pixel),
+                                        this->rowBytes(),
                                         this->height(), memcpy_kind);
   if (cu_err != cudaSuccess)
   {
@@ -117,7 +150,7 @@ void ImageGpu<Pixel, pixel_type>::copyFrom(const Image<Pixel, pixel_type>& from)
                                                     cudaMemcpyHostToDevice;
   const cudaError cu_err = cudaMemcpy2D(this->data(), this->pitch(),
                                         from.data(), from.pitch(),
-                                        this->width()*sizeof(Pixel),
+                                        this->rowBytes(),
                                         this->height(), memcpy_kind);
   if (cu_err != cudaSuccess)
   {
@@ -130,10 +163,10 @@ template<typename Pixel, imp::PixelType pixel_type>
 Pixel* ImageGpu<Pixel, pixel_type>::data(
     std::uint32_t ox, std::uint32_t oy)
 {
-//  if (ox > this->width() || oy > this->height())
-//  {
-//    throw imp::cu::Exception("Request starting offset is outside of the image.", __FILE__, __FUNCTION__, __LINE__);
-//  }
+  //  if (ox > this->width() || oy > this->height())
+  //  {
+  //    throw imp::cu::Exception("Request starting offset is outside of the image.", __FILE__, __FUNCTION__, __LINE__);
+  //  }
 
   if (ox != 0 || oy != 0)
   {
@@ -153,15 +186,65 @@ const Pixel* ImageGpu<Pixel, pixel_type>::data(
     throw imp::cu::Exception("Device memory pointer offset is not possible from host function");
   }
 
-//  return reinterpret_cast<const pixel_container_t>(data_.get());
+  //  return reinterpreft_cast<const pixel_container_t>(data_.get());
   return data_.get();
 }
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+void* ImageGpu<Pixel, pixel_type>::cuData()
+{
+  return (void*)data_.get();
+}
+
+//-----------------------------------------------------------------------------
+//template<typename Pixel, imp::PixelType pixel_type>
+//const void* ImageGpu<Pixel, pixel_type>::cuData() const
+//{
+//  return (const void*)data_.get();
+//}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
+{
+  if (sizeof(pixel_t) == 1)
+  {
+    cudaMemset2D((void*)this->data(), this->pitch(), (int)value.c[0], this->rowBytes(), this->height());
+  }
+  else
+  {
+    // fragmentation
+    cu::Fragmentation<16> frag(this->size());
+
+    // todo add roi to kernel!
+    imp::cu::k_setValue
+        <<< frag.dimGrid, frag.dimBlock >>> (this->data(), this->stride(), value,
+                                             this->width(), this->height());
+  }
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+//std::shared_ptr<Texture2D>
+std::unique_ptr<Texture2D> ImageGpu<Pixel, pixel_type>::genTexture(bool normalized_coords,
+                                                                   cudaTextureFilterMode filter_mode,
+                                                                   cudaTextureAddressMode address_mode,
+                                                                   cudaTextureReadMode read_mode)
+{
+  return std::unique_ptr<Texture2D>(new Texture2D(this->cuData(), this->pitch(),
+                                                  channel_format_desc_, this->size(),
+                                                  normalized_coords, filter_mode,
+                                                  address_mode, read_mode));
+}
+
 
 //=============================================================================
 // Explicitely instantiate the desired classes
 // (sync with typedefs at the end of the hpp file)
 template class ImageGpu<imp::Pixel8uC1, imp::PixelType::i8uC1>;
 template class ImageGpu<imp::Pixel8uC2, imp::PixelType::i8uC2>;
+// be careful with 8uC3 images as pitch values are not divisable by 3!
 template class ImageGpu<imp::Pixel8uC3, imp::PixelType::i8uC3>;
 template class ImageGpu<imp::Pixel8uC4, imp::PixelType::i8uC4>;
 
@@ -181,4 +264,4 @@ template class ImageGpu<imp::Pixel32fC3, imp::PixelType::i32fC3>;
 template class ImageGpu<imp::Pixel32fC4, imp::PixelType::i32fC4>;
 
 } // namespace cu
-} // namespace imp
+              } // namespace imp

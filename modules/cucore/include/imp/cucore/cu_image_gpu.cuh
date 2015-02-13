@@ -1,14 +1,21 @@
-#ifndef IMP_CU_IMAGE_GPU_HPP
-#define IMP_CU_IMAGE_GPU_HPP
+#ifndef IMP_CU_IMAGE_GPU_CUH
+#define IMP_CU_IMAGE_GPU_CUH
 
 #include <memory>
 #include <algorithm>
 
-#include <imp/core/image.hpp>
+#include <imp/core/types.hpp>
+#include <imp/core/pixel_enums.hpp>
 #include <imp/cucore/cu_exception.hpp>
 #include <imp/cucore/cu_memory_storage.cuh>
+#include <imp/core/image.hpp>
+#include <imp/cucore/cu_gpu_data.cuh>
 
-namespace imp { namespace cu {
+namespace imp {
+namespace cu {
+
+// forward declarations
+class Texture2D;
 
 /**
  * @brief The ImageGpu class is an image (surprise) holding raw memory
@@ -24,37 +31,48 @@ namespace imp { namespace cu {
  * The template parameters are as follows:
  *   - Pixel: The pixel's memory representation (e.g. imp::Pixel8uC1 for single-channel unsigned 8-bit images)
  *   - pixel_type: The internal enum for specifying the pixel's type more specificly
+ *
+ * @warning Be careful with 8-bit 3-channel GPU memory as the stride is not divisable by 3!
  */
 template<typename Pixel, imp::PixelType pixel_type>
 class ImageGpu : public imp::Image<Pixel, pixel_type>
 {
 public:
   typedef imp::Image<Pixel, pixel_type> Base;
-  typedef imp::cu::MemoryStorage<Pixel> Memory;
+  typedef imp::cu::MemoryStorage<Pixel, pixel_type> Memory;
   typedef imp::cu::MemoryDeallocator<Pixel> Deallocator;
   typedef Pixel pixel_t;
   typedef pixel_t* pixel_container_t;
 
 public:
-  ImageGpu() = default;
-  virtual ~ImageGpu() = default;
+  ImageGpu() = delete;
+  virtual ~ImageGpu();/* = default;*/
 
   /**
    * @brief ImageGpu construcs an image of given size \a width x \a height
    */
   ImageGpu(std::uint32_t width, std::uint32_t height);
+
   /**
    * @brief ImageGpu construcs an image of given \a size
    */
   ImageGpu(const imp::Size2u& size);
+
   /**
    * @brief ImageGpu copy constructs an image from the given image \a from
    */
   ImageGpu(const ImageGpu& from);
+
   /**
-   * @brief ImageGpu copy constructs an arbitrary base image \a from (not necessarily am \a ImageGpu)
+   * @brief ImageGpu copy construcs a GPU image from an arbitrary base image \a from (not necessarily am \a ImageGpu)
    */
   ImageGpu(const Base& from);
+
+  /**
+   * @brief ImageGpu copy constructs a GPU image from the 8-bit (cpu) image \a from
+   */
+  //ImageGpu(const Image8uC3& from);
+
   /**
    * @brief ImageGpu constructs an image with the given data (copied or refererenced!)
    * @param data Pointer to the image data.
@@ -63,8 +81,11 @@ public:
    * @param pitch Length of a row in bytes (including padding).
    * @param use_ext_data_pointer Flagg if the image should be copied (true) or if the data is just safed as 'reference' (false)
    */
-  ImageGpu(pixel_container_t data, std::uint32_t width, std::uint32_t height,
-           size_type pitch, bool use_ext_data_pointer = false);
+//  ImageGpu(pixel_container_t data, std::uint32_t width, std::uint32_t height,
+//           size_type pitch, bool use_ext_data_pointer = false);
+
+  /** sets a region of interest */
+  virtual void setRoi(const imp::Roi2u& roi) override;
 
   /**
    * @brief copyTo copies the internal image data to another class instance
@@ -72,13 +93,11 @@ public:
    */
   virtual void copyTo(Base& dst) const override;
 
-
   /**
    * @brief copyFrom copies the image data from another class instance to this image
    * @param from Image class providing the image data.
    */
   virtual void copyFrom(const Base& from) override;
-
 
   /** Returns a pointer to the pixel data.
    * The pointer can be offset to position \a (ox/oy).
@@ -89,15 +108,48 @@ public:
   virtual Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
   virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
 
+  /** Returns a void* that is pointing to the beginning for the data buffer.
+   * @note this is mainly for convenience when calling cuda functions.
+   */
+  virtual void* cuData();
+//  virtual const void* cuData() const;
+
+  /**
+   * @brief setValue Sets image data to the specified \a value.
+   * @param value Value to be set to the whole image data.
+   * @note @todo (MWE) TBD: region-of-interest is considered
+   */
+  virtual void setValue(const pixel_t& value);
+
   /** Returns the distance in bytes between starts of consecutive rows. */
   virtual size_type pitch() const override { return pitch_; }
 
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
   virtual bool isGpuMemory() const override { return true; }
 
+  /** Returns a data structure to operate within a cuda kernel (does not copy any memory!). */
+//  std::unique_ptr<GpuData2D<pixel_t>> gpuData() { return gpu_data_; }
+
+  /** Returns the channel descriptor for Cuda's texture memory. */
+  cudaChannelFormatDesc channelFormatDesc() { return channel_format_desc_; }
+
+  /** Returns a cuda texture object. */
+  std::unique_ptr<Texture2D> genTexture(
+      bool normalized_coords = false,
+      cudaTextureFilterMode filter_mode = cudaFilterModePoint,
+      cudaTextureAddressMode address_mode = cudaAddressModeClamp,
+      cudaTextureReadMode read_mode = cudaReadModeElementType);
+
 protected:
   std::unique_ptr<pixel_t, Deallocator> data_; //!< the actual image data
   size_type pitch_ = 0; //!< Row alignment in bytes.
+
+private:
+  void initMemory();
+  cudaChannelFormatDesc channel_format_desc_;
+
+  //std::unique_ptr<GpuData2D<pixel_t>> gpu_data_; //!< data collection that can be directly used within a kernel.
+//  GpuData2D<Pixel>* gpu_data_;
 };
 
 //-----------------------------------------------------------------------------
@@ -127,4 +179,4 @@ typedef ImageGpu<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageGpu32fC4;
 } // namespace imp
 
 
-#endif // IMP_CU_IMAGE_GPU_HPP
+#endif // IMP_CU_IMAGE_GPU_CUH
