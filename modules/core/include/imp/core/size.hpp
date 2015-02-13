@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <array>
 #include <algorithm>
+#include <iostream>
 
 namespace imp {
 
@@ -14,7 +15,7 @@ namespace imp {
 template<typename T, std::uint8_t DIM, typename Derived>
 struct SizeBase
 {
-  typedef std::size_t size_type;
+  using size_type = std::size_t;
 
   std::array<T, DIM> sz; //!< internal data storage for all dimensions' sizes
 
@@ -41,6 +42,23 @@ struct SizeBase
     return *this;
   }
 
+//  SizeBase& operator* (const double factor) const
+//  {
+//    std::array<T,Dim> arr;
+//    for(std::size_t i=0; i<sz.size(); ++i)
+//    {
+//      arr[i] = static_cast<T>(sz[i] * factor);
+//    }
+//  }
+
+//  IuSize operator/ (const double factor) const
+//  {
+//    IU_ASSERT(factor != 0);
+//    double invFactor = 1 / factor;
+//    return IuSize(this->width, this->height, this->depth) * invFactor;
+//  }
+
+
   /**
    * @brief operator [] returns the reference to the element storing the size
    *        of the \a n-the dimension
@@ -55,13 +73,13 @@ struct SizeBase
    * @param n dimension index
    * @return Reference to size element of the n-th dimension
    */
-  const T& operator[] (std::uint8_t n) const noexcept { return sz[n]; }
+  constexpr const T& operator[] (std::uint8_t n) const noexcept { return sz[n]; }
 
   /**
    * @brief dim Returns the dimension of the size object.
    * @return Dimension.
    */
-  std::uint8_t dim() const {return DIM;}
+  constexpr std::uint8_t dim() const noexcept {return DIM;}
 
 
   /**
@@ -135,6 +153,21 @@ inline bool operator!=(const SizeBase<T, DIM, Derived>& lhs,
 //}
 
 
+template<typename T, std::uint8_t DIM, typename Derived>
+inline std::ostream& operator<<(std::ostream &os, const SizeBase<T, DIM, Derived>& rhs)
+{
+  auto it = rhs.array().begin();
+  os << "(" << *it;
+  ++it;
+  for (; it != rhs.array().end(); ++it)
+  {
+    os << "," << *it;
+  }
+  os << ")";
+  return os;
+}
+
+
 //------------------------------------------------------------------------------
 /**
  * @brief The class Size defines a generic size implementation for \a DIM dimensions
@@ -143,8 +176,9 @@ template<typename T, std::uint8_t DIM>
 struct Size
     : public SizeBase<T, DIM, Size<T, DIM> >
 {
-  typedef SizeBase<T, DIM, Size<T, DIM> > Base;
-  using Base::SizeBase;
+  using Base = SizeBase<T, DIM, Size<T, DIM> >;
+  using Base::Base;
+  Size() = default;
   virtual ~Size() = default;
 };
 
@@ -156,9 +190,9 @@ template<typename T>
 struct Size<T, 2>
     : public SizeBase<T, 2, Size<T, 2> >
 {
-  typedef SizeBase<T, 2, Size<T, 2> > Base;
-
-  using Base::SizeBase;
+  using Base = SizeBase<T, 2, Size<T, 2> >;
+  using Base::Base;
+  Size() = default;
   virtual ~Size() = default;
 
   Size(const T& width, const T& height)
@@ -186,9 +220,9 @@ template<typename T>
 struct Size<T, 3>
     : public SizeBase<T, 3, Size<T, 3> >
 {
-  typedef SizeBase<T, 3, Size<T, 3> > Base;
-
-  using Base::SizeBase;
+  using Base = SizeBase<T, 3, Size<T, 3> >;
+  using Base::Base;
+  Size() = default;
   virtual ~Size() = default;
 
   Size(const T& width, const T& height, const T& depth)

@@ -5,13 +5,14 @@
 
 #include <cuda_runtime_api.h>
 
-#include <imp/cucore/cu_exception.hpp>
+#include <imp/core/pixel_enums.hpp>
 #include <imp/core/size.hpp>
+#include <imp/cucore/cu_exception.hpp>
 
 namespace imp { namespace cu {
 
 //--------------------------------------------------------------------------
-template <typename Pixel>
+template <typename Pixel, imp::PixelType pixel_type = imp::PixelType::undefined>
 struct MemoryStorage
 {
 public:
@@ -35,7 +36,7 @@ public:
     }
 
     const size_type memory_size = sizeof(pixel_t) * num_elements;
-    std::cout << "cu::MemoryStorage::alloc: memory_size=" << memory_size << "; sizeof(pixel_t)=" << sizeof(pixel_t) << std::endl;
+    //std::cout << "cu::MemoryStorage::alloc: memory_size=" << memory_size << "; sizeof(pixel_t)=" << sizeof(pixel_t) << std::endl;
 
     pixel_container_t p_data = nullptr;
     cudaError_t cu_err = cudaMalloc((void**)&p_data, memory_size);
@@ -68,10 +69,22 @@ public:
       throw imp::cu::Exception("Failed to allocate memory: width or height is zero");
     }
 
-    const size_t width_bytes = width * sizeof(pixel_t);
+    size_t width_bytes = width * sizeof(pixel_t);
+    //std::cout << "width_bytes: " << width_bytes << std::endl;
+    const int align_bytes = 1536;
+    if (pixel_type == imp::PixelType::i8uC3 && width_bytes % align_bytes)
+    {
+      width_bytes += (align_bytes-(width_bytes%align_bytes));
+    }
+    //std::cout << "width_bytes: " << width_bytes << std::endl;
+
+    size_t intern_pitch;
     pixel_container_t p_data = nullptr;
-    cudaError_t cu_err = cudaMallocPitch((void **)&p_data, (size_t*)pitch,
+    cudaError_t cu_err = cudaMallocPitch((void **)&p_data, &intern_pitch,
                                          width_bytes, (size_t)height);
+
+    *pitch = intern_pitch;
+    //("pitch: %lu, i_pitch: %lu, width_bytes: %lu\n", *pitch, intern_pitch, width_bytes);
 
     if (cu_err == cudaErrorMemoryAllocation)
     {
@@ -124,7 +137,7 @@ struct MemoryDeallocator
 
   // Default custom deleter assuming we use arrays (new PixelType[length])
   MemoryDeallocator()
-    : f([](pixel_container_t p) { printf("freeing cuda memory\n"); cudaFree(p); })
+    : f([](pixel_container_t p) { cudaFree(p); })
   { }
 
   // allow us to define a custom deallocator

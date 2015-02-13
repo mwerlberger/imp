@@ -1,8 +1,5 @@
 project(impTests CXX C)
 find_package(imp)
-include_directories("${IMP_INCLUDE_DIRS}")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
-
 
 ##-----------------------------------------------------------------------------
 ## find 3rd-party dependencies (that are desired with the IMP_WITH_*)
@@ -16,17 +13,19 @@ if (${IMP_WITH_CUDA})
   find_cuda()
 
   if (CUDA_FOUND)
-    set(CUDA_NVCC_FLAGS -std=c++11)
-    cuda_include_directories("${IMP_INCLUDE_DIRS}")
-    cuda_include_directories("${CMAKE_CURRENT_SOURCE_DIR}/common")
   else()
     set(IMP_WITH_CUDA OFF CACHE PATH "IMP library built without CUDA support (CUDA not found)." FORCE)
   endif()
 endif()
 
+
+imp_include("${IMP_INCLUDE_DIRS}")
+imp_include("${CMAKE_CURRENT_SOURCE_DIR}/common")
+
 ##-----------------------------------------------------------------------------
 add_subdirectory(core)
 
 if (${IMP_WITH_CUDA})
-  add_subdirectory(cucore)
+   add_subdirectory(cucore)
+   add_subdirectory(cuimgproc)
 endif()

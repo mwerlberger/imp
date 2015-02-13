@@ -6,7 +6,8 @@
 #include <imp/cucore/cu_exception.hpp>
 
 
-namespace imp { namespace cu {
+namespace imp {
+namespace cu {
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
@@ -181,9 +182,23 @@ void LinearMemory<Pixel>::copyFrom(imp::LinearMemory<Pixel>& from)
 // Explicitely instantiate the desired classes
 template class LinearMemory<imp::Pixel8uC1>;
 template class LinearMemory<imp::Pixel8uC2>;
+template class LinearMemory<imp::Pixel8uC3>;
+template class LinearMemory<imp::Pixel8uC4>;
+
 template class LinearMemory<imp::Pixel16uC1>;
+template class LinearMemory<imp::Pixel16uC2>;
+template class LinearMemory<imp::Pixel16uC3>;
+template class LinearMemory<imp::Pixel16uC4>;
+
 template class LinearMemory<imp::Pixel32sC1>;
+template class LinearMemory<imp::Pixel32sC2>;
+template class LinearMemory<imp::Pixel32sC3>;
+template class LinearMemory<imp::Pixel32sC4>;
+
 template class LinearMemory<imp::Pixel32fC1>;
+template class LinearMemory<imp::Pixel32fC2>;
+template class LinearMemory<imp::Pixel32fC3>;
+template class LinearMemory<imp::Pixel32fC4>;
 
 } // namespace cu
 } // namespace imp
