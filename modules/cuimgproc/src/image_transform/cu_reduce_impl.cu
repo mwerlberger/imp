@@ -1,6 +1,9 @@
+#ifndef IMP_CU_REDUCE_IMPL_CU
+#define IMP_CU_REDUCE_IMPL_CU
+
 #include <imp/cuimgproc/cu_image_transform.cuh>
 
-#include <memory>
+//#include <memory>
 #include <cstdint>
 #include <cmath>
 
@@ -11,9 +14,6 @@
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cucore/cu_utils.hpp>
 #include <imp/cucore/cu_texture.cuh>
-
-#ifndef IMP_CU_REDUCE_IMPL_CU
-#define IMP_CU_REDUCE_IMPL_CU
 
 
 namespace imp {
@@ -93,26 +93,26 @@ void reduce(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* src,
   IMP_CUDA_CHECK();
 }
 
+//==============================================================================
 //
 // template instantiations for all our image types
 //
 
-//template void reduce(ImageGpu8uC1* dst, ImageGpu8uC1* src, imp::InterpolationMode interp, bool gauss_prefilter, cudaStream_t stream);
 template void reduce(ImageGpu8uC1* dst, ImageGpu8uC1* src, InterpolationMode interp, bool gauss_prefilter);
-template void reduce(ImageGpu8uC2* src, ImageGpu8uC2* dst, InterpolationMode interp, bool gauss_prefilter);
-template void reduce(ImageGpu8uC4* src, ImageGpu8uC4* dst, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu8uC2* dst, ImageGpu8uC2* src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu8uC4* dst, ImageGpu8uC4* src, InterpolationMode interp, bool gauss_prefilter);
 
-template void reduce(ImageGpu16uC1* src, ImageGpu16uC1* dst, InterpolationMode interp, bool gauss_prefilter);
-template void reduce(ImageGpu16uC2* src, ImageGpu16uC2* dst, InterpolationMode interp, bool gauss_prefilter);
-template void reduce(ImageGpu16uC4* src, ImageGpu16uC4* dst, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu16uC1* dst, ImageGpu16uC1* src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu16uC2* dst, ImageGpu16uC2* src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu16uC4* dst, ImageGpu16uC4* src, InterpolationMode interp, bool gauss_prefilter);
 
-template void reduce(ImageGpu32sC1* src, ImageGpu32sC1* dst, InterpolationMode interp, bool gauss_prefilter);
-template void reduce(ImageGpu32sC2* src, ImageGpu32sC2* dst, InterpolationMode interp, bool gauss_prefilter);
-template void reduce(ImageGpu32sC4* src, ImageGpu32sC4* dst, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu32sC1* dst, ImageGpu32sC1* src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu32sC2* dst, ImageGpu32sC2* src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu32sC4* dst, ImageGpu32sC4* src, InterpolationMode interp, bool gauss_prefilter);
 
-template void reduce(ImageGpu32fC1* src, ImageGpu32fC1* dst, InterpolationMode interp, bool gauss_prefilter);
-template void reduce(ImageGpu32fC2* src, ImageGpu32fC2* dst, InterpolationMode interp, bool gauss_prefilter);
-template void reduce(ImageGpu32fC4* src, ImageGpu32fC4* dst, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu32fC1* dst, ImageGpu32fC1* src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu32fC2* dst, ImageGpu32fC2* src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu32fC4* dst, ImageGpu32fC4* src, InterpolationMode interp, bool gauss_prefilter);
 
 
 } // namespace cu

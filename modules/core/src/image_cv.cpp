@@ -129,7 +129,7 @@ ImageCv<Pixel, pixel_type>
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-cv::Mat ImageCv<Pixel, pixel_type>::cvMat()
+cv::Mat& ImageCv<Pixel, pixel_type>::cvMat()
 {
   return m_mat;
 }

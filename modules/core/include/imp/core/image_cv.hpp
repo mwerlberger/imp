@@ -46,7 +46,7 @@ public:
 
   /** Returns the internal OpenCV image/mat
    */
-  virtual cv::Mat cvMat();
+  virtual cv::Mat& cvMat();
   virtual const cv::Mat& cvMat() const;
 
   /** Returns a pointer to the pixel data.

@@ -226,7 +226,6 @@ void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-//std::shared_ptr<Texture2D>
 std::unique_ptr<Texture2D> ImageGpu<Pixel, pixel_type>::genTexture(bool normalized_coords,
                                                                    cudaTextureFilterMode filter_mode,
                                                                    cudaTextureAddressMode address_mode,

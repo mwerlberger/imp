@@ -40,6 +40,10 @@ struct Fragmentation
   {
   }
 
+  Fragmentation(imp::Roi2u roi)
+    : dimGrid(divUp(roi.width(), dimBlock.x), divUp(roi.height(), dimBlock.y))
+  {
+  }
   Fragmentation(std::uint32_t width, std::uint32_t height)
     : dimGrid(divUp(width, dimBlock.x), divUp(height, dimBlock.y))
   {
