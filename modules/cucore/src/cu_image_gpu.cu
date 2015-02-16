@@ -7,7 +7,7 @@
 #include <imp/cucore/cu_utils.hpp>
 #include <imp/cucore/cu_linearmemory.cuh>
 #include <imp/cucore/cu_texture.cuh>
-#include <imp/cucore/cu_pixel_conversion.hpp>
+//#include <imp/cucore/cu_pixel_conversion.hpp>
 
 // kernel includes
 #include <imp/cucore/cu_k_setvalue.cuh>
@@ -190,12 +190,12 @@ const Pixel* ImageGpu<Pixel, pixel_type>::data(
   return data_.get();
 }
 
-//-----------------------------------------------------------------------------
-template<typename Pixel, imp::PixelType pixel_type>
-void* ImageGpu<Pixel, pixel_type>::cuData()
-{
-  return (void*)data_.get();
-}
+////-----------------------------------------------------------------------------
+//template<typename Pixel, imp::PixelType pixel_type>
+//void* ImageGpu<Pixel, pixel_type>::cuData()
+//{
+//  return (void*)data_.get();
+//}
 
 //-----------------------------------------------------------------------------
 //template<typename Pixel, imp::PixelType pixel_type>
@@ -203,6 +203,12 @@ void* ImageGpu<Pixel, pixel_type>::cuData()
 //{
 //  return (const void*)data_.get();
 //}
+
+template<typename Pixel, imp::PixelType pixel_type>
+auto ImageGpu<Pixel, pixel_type>::cuData() -> decltype(imp::cu::toCudaVectorType(this->data()))
+{
+  return imp::cu::toCudaVectorType(this->data());
+}
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>

@@ -31,6 +31,7 @@ set(HEADERS
 set(SOURCES
   src/cu_linearmemory.cu
   src/cu_image_gpu.cu
+  src/cu_pixel_conversion.cpp
   src/cu_math.cu
   )
 

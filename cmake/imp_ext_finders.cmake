@@ -42,8 +42,8 @@ macro(find_cuda)
 
   # include the corresponding cuda helpers for the used cuda version
   imp_include(${IMP_PATH}/cuda_toolkit/${CUDA_VERSION_STRING}/include)
-    
-    
+
+
   # Checking cuda version
   if(CUDA_VERSION_STRING STREQUAL "7.0")
      # CUDA 7.0
