@@ -12,10 +12,16 @@ imp_include(${IMP_${module}_INCLUDE_PATH})
 set(HEADERS
   include/imp/cudepth/variational_stereo.hpp
   include/imp/cudepth/stereo_solver_enum.hpp
+  include/imp/cudepth/stereo_ctf_warping.hpp
+  include/imp/cudepth/stereo_ctf_warping.hpp
+  include/imp/cudepth/stereo_ctf_warping_level.hpp
+  include/imp/cudepth/stereo_ctf_warping_level_huber.hpp
   )
 
 set(SOURCES
   src/variational_stereo.cpp
+  src/stereo_ctf_warping.cpp
+  src/stereo_ctf_warping_level_huber.cpp
   )
 
 set(IMPL_FILES

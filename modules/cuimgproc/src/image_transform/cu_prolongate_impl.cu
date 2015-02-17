@@ -1,228 +1,131 @@
-/*
- * Copyright (c) ICG. All rights reserved.
- *
- * Institute for Computer Graphics and Vision
- * Graz University of Technology / Austria
- *
- *
- * This software is distributed WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE.  See the above copyright notices for more information.
- *
- *
- * Project     : ImageUtilities
- * Module      : Geometric Transformation
- * Class       : none
- * Language    : CUDA
- * Description : Implementation of CUDA wrappers for prolongate operations
- *
- * Author     : Manuel Werlberger
- * EMail      : werlberger@icg.tugraz.at
- *
- */
+#ifndef IMP_CU_PROLONGATE_IMPL_CU
+#define IMP_CU_PROLONGATE_IMPL_CU
 
-#include <iostream>
-#include <iudefs.h>
-#include <iucutil.h>
-#include <iucore/iutextures.cuh>
-#include "transform.cu"
+#include <imp/cuimgproc/cu_image_transform.cuh>
 
-#ifndef IUTRANSFORM_PROLONGATE_CU
-#define IUTRANSFORM_PROLONGATE_CU
+//#include <memory>
+#include <cstdint>
+#include <cmath>
 
-namespace iuprivate {
+#include <cuda_runtime.h>
 
-/* ***************************************************************************
- *  CUDA WRAPPERS
- * ***************************************************************************/
+#include <imp/core/types.hpp>
+#include <imp/core/roi.hpp>
+#include <imp/cucore/cu_image_gpu.cuh>
+#include <imp/cucore/cu_utils.hpp>
+#include <imp/cucore/cu_texture.cuh>
+#include <imp/cuimgproc/cu_image_filter.cuh>
+
+namespace imp {
+namespace cu {
 
 //-----------------------------------------------------------------------------
-void cuProlongate(iu::ImageGpu_32f_C1* src, iu::ImageGpu_32f_C1* dst,
-                      IuInterpolationType interpolation)
+template<typename Pixel>
+__global__ void k_resample(Pixel* d_dst, size_type stride,
+                           std::uint32_t dst_width, std::uint32_t dst_height,
+                           std::uint32_t roi_x, std::uint32_t roi_y,
+                           float sf_x, float sf_y, Texture2D src_tex)
 {
-  IuSize src_roi = src->size();
-  IuSize dst_roi = dst->size();
-
-  // x_/y_factor < 0 (for multiplication with dst coords in the kernel!)
-  float x_factor = static_cast<float>(src_roi.width) /
-      static_cast<float>(dst_roi.width);
-  float y_factor = static_cast<float>(src_roi.height) /
-      static_cast<float>(dst_roi.height);
-
-  tex1_32f_C1__.addressMode[0] = cudaAddressModeClamp;
-  tex1_32f_C1__.addressMode[1] = cudaAddressModeClamp;
-  tex1_32f_C1__.normalized = false;
-
-  // bind src image to texture and use as input for reduction
-  cudaChannelFormatDesc channel_desc = cudaCreateChannelDesc<float>();
-  cudaBindTexture2D(0, &tex1_32f_C1__, src->data(), &channel_desc,
-                    src->width(), src->height(), src->pitch());
-
-  // fragmentation
-  unsigned int block_size = 16;
-  dim3 dimBlock(block_size, block_size);
-  dim3 dimGridOut(iu::divUp(dst->width(), dimBlock.x),
-                  iu::divUp(dst->height(), dimBlock.y));
-
-  switch(interpolation)
+  const int x = blockIdx.x*blockDim.x + threadIdx.x + roi_x;
+  const int y = blockIdx.y*blockDim.y + threadIdx.y + roi_y;
+  if (x<dst_width && y<dst_height)
   {
-  case IU_INTERPOLATE_NEAREST:
-  case IU_INTERPOLATE_CUBIC:
-    tex1_32f_C1__.filterMode = cudaFilterModePoint;
-    break;
-  case IU_INTERPOLATE_LINEAR:
-    tex1_32f_C1__.filterMode = cudaFilterModeLinear;
-    break;
+    Pixel val;
+    src_tex.fetch(val, x, y, sf_x, sf_y);
+    d_dst[y*stride+x] = val;
   }
-
-  switch(interpolation)
-  {
-  case IU_INTERPOLATE_NEAREST:
-  case IU_INTERPOLATE_LINEAR: // fallthrough intended
-    cuTransformKernel_32f_C1 <<< dimGridOut, dimBlock >>> (
-        dst->data(), dst->stride(), dst->width(), dst->height(), x_factor, y_factor);
-    break;
-  case IU_INTERPOLATE_CUBIC:
-    cuTransformCubicKernel_32f_C1 <<< dimGridOut, dimBlock >>> (
-        dst->data(), dst->stride(), dst->width(), dst->height(), x_factor, y_factor);
-    break;
-  case IU_INTERPOLATE_CUBIC_SPLINE:
-    cuTransformCubicSplineKernel_32f_C1 <<< dimGridOut, dimBlock >>> (
-        dst->data(), dst->stride(), dst->width(), dst->height(), x_factor, y_factor);
-    break;
-  }
-
-  cudaUnbindTexture(&tex1_32f_C1__);
-
-  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
 }
 
 //-----------------------------------------------------------------------------
-void cuProlongate(iu::ImageGpu_32f_C2* src, iu::ImageGpu_32f_C2* dst,
-                      IuInterpolationType interpolation)
+template<typename Pixel, imp::PixelType pixel_type>
+void resample(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* src,
+                imp::InterpolationMode interp, bool gauss_prefilter)
 {
-  IuSize src_roi = src->size();
-  IuSize dst_roi = dst->size();
+  imp::Roi2u src_roi = src->roi();
+  imp::Roi2u dst_roi = dst->roi();
 
-  // x_/y_factor < 0 (for multiplication with dst coords in the kernel!)
-  float x_factor = static_cast<float>(src_roi.width) /
-      static_cast<float>(dst_roi.width);
-  float y_factor = static_cast<float>(src_roi.height) /
-      static_cast<float>(dst_roi.height);
+  // scale factor for x/y > 0 && < 1 (for multiplication with dst coords in the kernel!)
+  float sf_x = static_cast<float>(src_roi.width()) / static_cast<float>(dst_roi.width());
+  float sf_y = static_cast<float>(src_roi.height()) / static_cast<float>(dst_roi.height());
 
-  tex1_32f_C2__.addressMode[0] = cudaAddressModeClamp;
-  tex1_32f_C2__.addressMode[1] = cudaAddressModeClamp;
-  tex1_32f_C2__.normalized = false;
-
-  // bind src image to texture and use as input for reduction
-  cudaChannelFormatDesc channel_desc = cudaCreateChannelDesc<float2>();
-  cudaBindTexture2D(0, &tex1_32f_C2__, src->data(), &channel_desc,
-                    src->width(), src->height(), src->pitch());
-
-  // fragmentation
-  unsigned int block_size = 16;
-  dim3 dimBlock(block_size, block_size);
-  dim3 dimGridOut(iu::divUp(dst->width(), dimBlock.x),
-                  iu::divUp(dst->height(), dimBlock.y));
-
-  switch(interpolation)
+  std::unique_ptr<ImageGpu<Pixel,pixel_type>> filtered;
+  if (gauss_prefilter)
   {
-  case IU_INTERPOLATE_NEAREST:
-  case IU_INTERPOLATE_CUBIC:
-    tex1_32f_C2__.filterMode = cudaFilterModePoint;
-    break;
-  case IU_INTERPOLATE_LINEAR:
-    tex1_32f_C2__.filterMode = cudaFilterModeLinear;
-    break;
+    float sf = .5f*(sf_x+sf_y);
+
+    filtered.reset(new ImageGpu<Pixel, pixel_type>(src->size()));
+    float sigma = 1/(3*sf) ;  // empirical magic
+    std::uint16_t kernel_size = std::ceil(6.0f*sigma);
+    if (kernel_size % 2 == 0)
+      kernel_size++;
+
+    imp::cu::filterGauss(filtered.get(), src, sigma, kernel_size);
   }
 
-  switch(interpolation)
+  cudaTextureFilterMode tex_filter_mode = (interp == InterpolationMode::linear) ?
+        cudaFilterModeLinear : cudaFilterModePoint;
+  if (src->bitDepth() < 32)
+    tex_filter_mode = cudaFilterModePoint;
+
+  std::unique_ptr<Texture2D> src_tex;
+  if (filtered)
+    src_tex = filtered->genTexture(false, tex_filter_mode);
+  else
+    src_tex = src->genTexture(false, tex_filter_mode);
+
+
+  Fragmentation<16,16> dst_frag(dst_roi.size());
+
+
+  switch(interp)
   {
-  case IU_INTERPOLATE_NEAREST:
-  case IU_INTERPOLATE_LINEAR: // fallthrough intended
-    cuTransformKernel_32f_C2 <<< dimGridOut, dimBlock >>> (
-        dst->data(), dst->stride(), dst->width(), dst->height(), x_factor, y_factor);
-    break;
-//  case IU_INTERPOLATE_CUBIC:
-//    cuTransformCubicKernel_32f_C2 <<< dimGridOut, dimBlock >>> (
-//        dst->data(), dst->stride(), dst->width(), dst->height(), x_factor, y_factor);
-//    break;
-//  case IU_INTERPOLATE_CUBIC_SPLINE:
-//    cuTransformCubicSplineKernel_32f_C2 <<< dimGridOut, dimBlock >>> (
-//        dst->data(), dst->stride(), dst->width(), dst->height(), x_factor, y_factor);
-//    break;
-  default:
-    std::cerr << "Interpolation type not supported for this element type" << std::endl;
+  case InterpolationMode::point:
+  case InterpolationMode::linear:
+    // fallthrough intended
+    k_resample
+        <<<
+          dst_frag.dimGrid, dst_frag.dimBlock/*, 0, stream*/
+        >>> (dst->data(), dst->stride(), dst->width(), dst->height(),
+             dst_roi.x(), dst_roi.y(), sf_x , sf_y, *src_tex);
+  break;
+    //  case InterpolationMode::cubic:
+    //    cuTransformCubicKernel_32f_C1
+    //        <<< dimGridOut, dimBlock, 0, stream >>> (dst->data(), dst->stride(), dst->width(), dst->height(),
+    //                                      sf_x , sf_y);
+    //    break;
+    //  case InterpolationMode::cubicSpline:
+    //    cuTransformCubicSplineKernel_32f_C1
+    //        <<< dimGridOut, dimBlock, 0, stream >>> (dst->data(), dst->stride(), dst->width(), dst->height(),
+    //                                      sf_x , sf_y);
+    //    break;
   }
 
-  cudaUnbindTexture(&tex1_32f_C2__);
-
-  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
+  IMP_CUDA_CHECK();
 }
 
-//-----------------------------------------------------------------------------
-void cuProlongate(iu::ImageGpu_32f_C4* src, iu::ImageGpu_32f_C4* dst,
-                      IuInterpolationType interpolation)
-{
-  IuSize src_roi = src->size();
-  IuSize dst_roi = dst->size();
+//==============================================================================
+//
+// template instantiations for all our image types
+//
 
-  // x_/y_factor < 0 (for multiplication with dst coords in the kernel!)
-  float x_factor = static_cast<float>(src_roi.width) /
-      static_cast<float>(dst_roi.width);
-  float y_factor = static_cast<float>(src_roi.height) /
-      static_cast<float>(dst_roi.height);
+template void resample(ImageGpu8uC1* dst, ImageGpu8uC1* src, InterpolationMode interp, bool gauss_prefilter);
+template void resample(ImageGpu8uC2* dst, ImageGpu8uC2* src, InterpolationMode interp, bool gauss_prefilter);
+template void resample(ImageGpu8uC4* dst, ImageGpu8uC4* src, InterpolationMode interp, bool gauss_prefilter);
 
-  tex1_32f_C4__.addressMode[0] = cudaAddressModeClamp;
-  tex1_32f_C4__.addressMode[1] = cudaAddressModeClamp;
-  tex1_32f_C4__.normalized = false;
+template void resample(ImageGpu16uC1* dst, ImageGpu16uC1* src, InterpolationMode interp, bool gauss_prefilter);
+template void resample(ImageGpu16uC2* dst, ImageGpu16uC2* src, InterpolationMode interp, bool gauss_prefilter);
+template void resample(ImageGpu16uC4* dst, ImageGpu16uC4* src, InterpolationMode interp, bool gauss_prefilter);
 
-  // bind src image to texture and use as input for reduction
-  cudaChannelFormatDesc channel_desc = cudaCreateChannelDesc<float4>();
-  cudaBindTexture2D(0, &tex1_32f_C4__, src->data(), &channel_desc,
-                    src->width(), src->height(), src->pitch());
+template void resample(ImageGpu32sC1* dst, ImageGpu32sC1* src, InterpolationMode interp, bool gauss_prefilter);
+template void resample(ImageGpu32sC2* dst, ImageGpu32sC2* src, InterpolationMode interp, bool gauss_prefilter);
+template void resample(ImageGpu32sC4* dst, ImageGpu32sC4* src, InterpolationMode interp, bool gauss_prefilter);
 
-  // fragmentation
-  unsigned int block_size = 16;
-  dim3 dimBlock(block_size, block_size);
-  dim3 dimGridOut(iu::divUp(dst->width(), dimBlock.x),
-                  iu::divUp(dst->height(), dimBlock.y));
+template void resample(ImageGpu32fC1* dst, ImageGpu32fC1* src, InterpolationMode interp, bool gauss_prefilter);
+template void resample(ImageGpu32fC2* dst, ImageGpu32fC2* src, InterpolationMode interp, bool gauss_prefilter);
+template void resample(ImageGpu32fC4* dst, ImageGpu32fC4* src, InterpolationMode interp, bool gauss_prefilter);
 
-  switch(interpolation)
-  {
-  case IU_INTERPOLATE_NEAREST:
-  case IU_INTERPOLATE_CUBIC:
-    tex1_32f_C4__.filterMode = cudaFilterModePoint;
-    break;
-  case IU_INTERPOLATE_LINEAR:
-    tex1_32f_C4__.filterMode = cudaFilterModeLinear;
-    break;
-  }
 
-  switch(interpolation)
-  {
-  case IU_INTERPOLATE_NEAREST:
-  case IU_INTERPOLATE_LINEAR: // fallthrough intended
-    cuTransformKernel_32f_C4 <<< dimGridOut, dimBlock >>> (
-        dst->data(), dst->stride(), dst->width(), dst->height(), x_factor, y_factor);
-    break;
-//  case IU_INTERPOLATE_CUBIC:
-//    cuTransformCubicKernel_32f_C4 <<< dimGridOut, dimBlock >>> (
-//        dst->data(), dst->stride(), dst->width(), dst->height(), x_factor, y_factor);
-//    break;
-//  case IU_INTERPOLATE_CUBIC_SPLINE:
-//    cuTransformCubicSplineKernel_32f_C4 <<< dimGridOut, dimBlock >>> (
-//        dst->data(), dst->stride(), dst->width(), dst->height(), x_factor, y_factor);
-//    break;
-  default:
-    std::cerr << "Interpolation type not supported for this element type" << std::endl;
-  }
+} // namespace cu
+} // namespace imp
 
-  cudaUnbindTexture(&tex1_32f_C4__);
-
-  iu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__);
-}
-
-} // namespace iuprivate
-
-#endif // IUTRANSFORM_PROLONGATE_CU
+#endif // IMP_CU_REDUCE_IMPL_CU

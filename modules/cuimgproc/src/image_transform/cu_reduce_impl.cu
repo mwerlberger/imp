@@ -14,7 +14,7 @@
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cucore/cu_utils.hpp>
 #include <imp/cucore/cu_texture.cuh>
-
+#include <imp/cuimgproc/cu_image_filter.cuh>
 
 namespace imp {
 namespace cu {
@@ -47,26 +47,33 @@ void reduce(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* src,
   // scale factor for x/y > 0 && < 1 (for multiplication with dst coords in the kernel!)
   float sf_x = static_cast<float>(src_roi.width()) / static_cast<float>(dst_roi.width());
   float sf_y = static_cast<float>(src_roi.height()) / static_cast<float>(dst_roi.height());
-  float sf = .5f*(sf_x+sf_y);
 
+  std::unique_ptr<ImageGpu<Pixel,pixel_type>> filtered;
   if (gauss_prefilter)
   {
-        float sigma = 1/(3*sf) ;  // empirical magic
-        std::uint16_t kernel_size = std::ceil(6.0f*sigma);
-        if (kernel_size % 2 == 0)
-          kernel_size++;
+    float sf = .5f*(sf_x+sf_y);
 
-    //! @todo (MWE) implement gaussian filter
-        std::cerr << "(gpu) reduce: Gaussian prefilter not implemented! (continuing)" << std::endl;
+    filtered.reset(new ImageGpu<Pixel, pixel_type>(src->size()));
+    float sigma = 1/(3*sf) ;  // empirical magic
+    std::uint16_t kernel_size = std::ceil(6.0f*sigma);
+    if (kernel_size % 2 == 0)
+      kernel_size++;
+
+    imp::cu::filterGauss(filtered.get(), src, sigma, kernel_size);
   }
 
   cudaTextureFilterMode tex_filter_mode = (interp == InterpolationMode::linear) ?
         cudaFilterModeLinear : cudaFilterModePoint;
   if (src->bitDepth() < 32)
     tex_filter_mode = cudaFilterModePoint;
-  std::unique_ptr<Texture2D> src_tex = src->genTexture(false, tex_filter_mode);
 
-  std::cout << "sf: " << sf << "; roi_size: " << dst_roi.size() << std::endl;
+  std::unique_ptr<Texture2D> src_tex;
+  if (filtered)
+    src_tex = filtered->genTexture(false, tex_filter_mode);
+  else
+    src_tex = src->genTexture(false, tex_filter_mode);
+
+
   Fragmentation<16,16> dst_frag(dst_roi.size());
 
   switch(interp)
@@ -74,20 +81,22 @@ void reduce(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* src,
   case InterpolationMode::point:
   case InterpolationMode::linear:
     // fallthrough intended
-    k_reduce <<< dst_frag.dimGrid, dst_frag.dimBlock/*, 0, stream*/
+    k_reduce
+        <<<
+          dst_frag.dimGrid, dst_frag.dimBlock/*, 0, stream*/
         >>> (dst->data(), dst->stride(), dst->width(), dst->height(),
              dst_roi.x(), dst_roi.y(), sf_x , sf_y, *src_tex);
-    break;
-//  case InterpolationMode::cubic:
-//    cuTransformCubicKernel_32f_C1
-//        <<< dimGridOut, dimBlock, 0, stream >>> (dst->data(), dst->stride(), dst->width(), dst->height(),
-//                                      sf_x , sf_y);
-//    break;
-//  case InterpolationMode::cubicSpline:
-//    cuTransformCubicSplineKernel_32f_C1
-//        <<< dimGridOut, dimBlock, 0, stream >>> (dst->data(), dst->stride(), dst->width(), dst->height(),
-//                                      sf_x , sf_y);
-//    break;
+  break;
+    //  case InterpolationMode::cubic:
+    //    cuTransformCubicKernel_32f_C1
+    //        <<< dimGridOut, dimBlock, 0, stream >>> (dst->data(), dst->stride(), dst->width(), dst->height(),
+    //                                      sf_x , sf_y);
+    //    break;
+    //  case InterpolationMode::cubicSpline:
+    //    cuTransformCubicSplineKernel_32f_C1
+    //        <<< dimGridOut, dimBlock, 0, stream >>> (dst->data(), dst->stride(), dst->width(), dst->height(),
+    //                                      sf_x , sf_y);
+    //    break;
   }
 
   IMP_CUDA_CHECK();

@@ -14,7 +14,17 @@ namespace cu {
 template<typename Pixel, imp::PixelType pixel_type>
 void reduce(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* src,
             InterpolationMode interp = InterpolationMode::linear,
-            bool gauss_prefilter=false);
+            bool gauss_prefilter=true);
+
+
+/**
+ * @brief Image reduction from \a src to \a dst image
+ */
+template<typename Pixel, imp::PixelType pixel_type>
+void resample(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* src,
+              InterpolationMode interp = InterpolationMode::linear,
+              bool gauss_prefilter=false);
+
 
 } // namespace cu
 } // namespace imp

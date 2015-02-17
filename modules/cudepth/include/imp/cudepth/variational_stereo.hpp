@@ -1,67 +1,57 @@
 #ifndef IMP_CU_STEREO_HPP
 #define IMP_CU_STEREO_HPP
 
-#include <imp/cudepth/stereo_solver_enum.hpp>
 
 #include <cstdint>
+#include <memory>
+
+#include <imp/cucore/cu_image_gpu.cuh>
+#include <imp/cudepth/variational_stereo_parameters.hpp>
 
 namespace imp {
 namespace cu {
 
-// forward declarations
-template<typename Pixel, imp::PixelType pixel_type>
-class ImageGpu<Pixel, pixel_type>;
+//// forward declarations
+//template<typename Pixel, imp::PixelType pixel_type>
+//class ImageGpu<Pixel, pixel_type>;
 
-class CTFWarpingSolver;
+class StereoCtFWarping;
+
 
 /**
  * @brief The Stereo class takes a stereo image pair and estimates the disparity map
  */
-template<typename Pixel, imp::PixelType pixel_type>
+//template<typename Pixel, imp::PixelType pixel_type>
 class VariationalStereo
 {
 public:
-  using Image = imp::cu::ImageGpu<Pixel, pixel_type>;
+  //! @todo (MWE) first do the implementation with specific type (32fC1) and later generalize
+//  using Image = imp::cu::ImageGpu<Pixel, pixel_type>;
+  using Image = imp::cu::ImageGpu32fC1;
   using ImagePtr = std::shared_ptr<Image>;
   using ConstImagePtrRef = const std::shared_ptr<Image>&;
-
-
-  // nested parameter struct combining all available settings
-  struct Parameters
-  {
-    int verbose=0; //!< verbosity level (the higher, the more the Stereo algorithm talks to us)
-    StereoPDSolver solver=StereoPDSolver::HuberL1; //!< selected primal-dual solver / model
-    float lambda = 50.0f; //!< tradeoff between regularization and matching term
-
-    struct CTF // we might want to define this externally for all ctf approaches?
-    {
-      float scale_factor = 0.5f; //!< multiplicative scale factor between coarse-to-fine pyramid levels
-      std::uint32_t iters = 100;
-      std::uint32_t warps =  10;
-      std::uint32_t levels= UINT32_MAX;
-      std::uint32_t coarsest_level = UINT32_MAX;
-      std::uint32_t finest_level = UINT32_MAX;
-      bool apply_median_filter = true;
-    };
-
-    CTF ctf;
-
-    friend std::ostream& operator<<(std::ostream& stream, const Parameters& p);
-
-  };
+  using Parameters = VariationalStereoParameters;
+  using ParametersPtr = std::shared_ptr<Parameters>;
 
 public:
-  VariationalStereo();
-  virtual ~VariationalStereo() = default;
+  VariationalStereo(ParametersPtr params=nullptr);
+  virtual ~VariationalStereo(); //= default;
 
-  void addImage(ConstImagePtrRef image);
+  void addImage(ImagePtr image);
 
-  std::unique_ptr<CTFWarpingSolver> ctf_;
+  void solve();
+
+  // getters / setters
+
+  inline ParametersPtr parmeters() {return params_;}
 
 private:
-
-  Parameters params_;
+  ParametersPtr params_;  //!< configuration parameters
+  std::unique_ptr<StereoCtFWarping> ctf_;  //!< performing a coarse-to-fine warping scheme
 };
+
+
+
 
 } // namespace cu
 } // namespace imp

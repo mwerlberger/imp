@@ -51,7 +51,7 @@ int main(int /*argc*/, char** /*argv*/)
       h1_lena_32fC1.cvMat() /= 255.f;
       std::shared_ptr<imp::cu::ImageGpu32fC1> d1_lena_32fC1(
             new imp::cu::ImageGpu32fC1(h1_lena_32fC1));
-      imp::ImagePyramid32fC1 pyr(d1_lena_32fC1, 0.8f);
+      imp::ImagePyramid32fC1 pyr(d1_lena_32fC1, 0.5f);
       imp::ImagePyramid32fC1::ImageLevels levels = pyr.levels();
 
       int level_id=0;
