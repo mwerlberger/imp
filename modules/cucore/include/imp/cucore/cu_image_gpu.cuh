@@ -111,11 +111,9 @@ public:
   virtual Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
   virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
 
-  /** Returns a void* that is pointing to the beginning for the data buffer.
-   * @note this is mainly for convenience when calling cuda functions.
+  /** Returns a cuda vector* that is pointing to the beginning for the data buffer.
+   * @note this is mainly for convenience when calling cuda functions / kernels.
    */
-//  virtual void* cuData();
-
   auto cuData() -> decltype(imp::cu::toCudaVectorType(this->data()));
 
 

@@ -13,10 +13,8 @@
 #include <imp/cucore/cu_k_setvalue.cuh>
 
 
-namespace imp { namespace cu {
-
-//template<typename Pixel, imp::PixelType pixel_type>
-//const double ImageGpu<Pixel, pixel_type>::BLA = 3.18;
+namespace imp {
+namespace cu {
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
@@ -190,20 +188,6 @@ const Pixel* ImageGpu<Pixel, pixel_type>::data(
   return data_.get();
 }
 
-////-----------------------------------------------------------------------------
-//template<typename Pixel, imp::PixelType pixel_type>
-//void* ImageGpu<Pixel, pixel_type>::cuData()
-//{
-//  return (void*)data_.get();
-//}
-
-//-----------------------------------------------------------------------------
-//template<typename Pixel, imp::PixelType pixel_type>
-//const void* ImageGpu<Pixel, pixel_type>::cuData() const
-//{
-//  return (const void*)data_.get();
-//}
-
 template<typename Pixel, imp::PixelType pixel_type>
 auto ImageGpu<Pixel, pixel_type>::cuData() -> decltype(imp::cu::toCudaVectorType(this->data()))
 {
@@ -269,4 +253,4 @@ template class ImageGpu<imp::Pixel32fC3, imp::PixelType::i32fC3>;
 template class ImageGpu<imp::Pixel32fC4, imp::PixelType::i32fC4>;
 
 } // namespace cu
-              } // namespace imp
+} // namespace imp
