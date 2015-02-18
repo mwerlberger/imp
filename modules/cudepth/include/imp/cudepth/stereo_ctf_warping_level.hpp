@@ -28,7 +28,7 @@ public:
 
 public:
   StereoCtFWarpingLevel() = delete;
-  virtual ~StereoCtFWarpingLevel() = default;
+  virtual ~StereoCtFWarpingLevel() { } // = default;
 
   StereoCtFWarpingLevel(std::shared_ptr<Parameters> params,
                         imp::Size2u size, std::uint16_t level)
@@ -39,7 +39,7 @@ public:
   }
 
   virtual void init() = 0;
-  virtual void init(const StereoCtFWarpingLevel& from) = 0;
+  virtual void init(const StereoCtFWarpingLevel& rhs) = 0;
   virtual void solve(std::vector<ImagePtr> images) = 0;
 
 

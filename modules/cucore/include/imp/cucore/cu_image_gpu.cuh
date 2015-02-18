@@ -143,6 +143,11 @@ public:
       cudaTextureAddressMode address_mode = cudaAddressModeClamp,
       cudaTextureReadMode read_mode = cudaReadModeElementType);
 
+  // operators
+  /** Pixel-wise multiplication. */
+  ImageGpu<Pixel, pixel_type>& operator*=(const Pixel& rhs);
+
+
 protected:
   std::unique_ptr<pixel_t, Deallocator> data_; //!< the actual image data
   size_type pitch_ = 0; //!< Row alignment in bytes.

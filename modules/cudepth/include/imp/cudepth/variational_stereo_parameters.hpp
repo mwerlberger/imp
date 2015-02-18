@@ -2,6 +2,7 @@
 #define VARIATIONAL_STEREO_PARAMETERS_HPP
 
 #include <cstdint>
+#include <imp/core/types.hpp>
 #include <imp/cudepth/stereo_solver_enum.hpp>
 
 namespace imp {
@@ -20,9 +21,9 @@ struct VariationalStereoParameters
     float scale_factor = 0.5f; //!< multiplicative scale factor between coarse-to-fine pyramid levels
     std::uint32_t iters = 100;
     std::uint32_t warps =  10;
-    std::uint32_t levels = UINT32_MAX;
-    std::uint32_t coarsest_level = UINT32_MAX;
-    std::uint32_t finest_level = UINT32_MAX;
+    size_type levels = UINT32_MAX;
+    size_type coarsest_level = UINT32_MAX;
+    size_type finest_level = 0;
     bool apply_median_filter = true;
   };
 

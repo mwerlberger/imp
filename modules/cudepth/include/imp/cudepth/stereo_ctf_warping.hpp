@@ -8,13 +8,14 @@
 #include <imp/cuimgproc/image_pyramid.hpp>
 
 #include <imp/cudepth/variational_stereo_parameters.hpp>
+//#include <imp/cudepth/stereo_ctf_warping_level.hpp>
 
 
 namespace imp {
 namespace cu {
 
 // forward declarations
-class CtFWarpingLevel;
+class StereoCtFWarpingLevel;
 
 /**
  * @brief The StereoCtFWarping class
@@ -33,11 +34,12 @@ public:
 
 public:
   StereoCtFWarping() = delete;
-  virtual ~StereoCtFWarping() = default;
+  virtual ~StereoCtFWarping();// = default;
 //  StereoCtFWarping(const StereoCtFWarping&);
 //  StereoCtFWarping(StereoCtFWarping&&);
 
   StereoCtFWarping(std::shared_ptr<Parameters> params);
+  void init();
 
   void addImage(ImagePtr image);
   void solve();
@@ -50,7 +52,7 @@ private:
   std::shared_ptr<Parameters> params_; //!< configuration parameters
   std::vector<ImagePtr> images_; //!< all unprocessed input images
   std::vector<ImagePyramidPtr> image_pyramids_; //!< image pyramids corresponding to the unprocesed input images
-  std::vector<std::unique_ptr<CtFWarpingLevel>> levels_;
+  std::vector<std::unique_ptr<StereoCtFWarpingLevel>> levels_;
 };
 
 } // namespace cu

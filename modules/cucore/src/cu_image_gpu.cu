@@ -227,6 +227,20 @@ std::unique_ptr<Texture2D> ImageGpu<Pixel, pixel_type>::genTexture(bool normaliz
                                                   address_mode, read_mode));
 }
 
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+ImageGpu<Pixel, pixel_type>& ImageGpu<Pixel, pixel_type>::operator*=(const Pixel& rhs)
+{
+  // fragmentation
+  cu::Fragmentation<16> frag(this->size());
+
+  // todo add roi to kernel!
+  imp::cu::k_pixelWiseMul
+      <<< frag.dimGrid, frag.dimBlock >>> (this->data(), this->stride(), rhs,
+                                           this->width(), this->height());
+  return *this;
+
+}
 
 //=============================================================================
 // Explicitely instantiate the desired classes

@@ -32,11 +32,11 @@ public:
   StereoCtFWarpingLevelHuber() = delete;
   virtual ~StereoCtFWarpingLevelHuber();
 
-  StereoCtFWarpingLevelHuber(std::shared_ptr<Parameters> params,
-                        imp::Size2u size, std::uint16_t level);
+  StereoCtFWarpingLevelHuber(const std::shared_ptr<Parameters>& params,
+                             imp::Size2u size, size_type level);
 
   virtual void init();
-  virtual void init(const StereoCtFWarpingLevelHuber& from);
+  virtual void init(const StereoCtFWarpingLevel& rhs);
   virtual void solve(std::vector<ImagePtr> images);
 
 protected:
@@ -51,7 +51,7 @@ protected:
 
   std::shared_ptr<Parameters> params_; //!< configuration parameters
   imp::Size2u size_;
-  std::uint16_t level_; //!< level number in the ctf pyramid (0=finest .. n=coarsest)
+  size_type level_; //!< level number in the ctf pyramid (0=finest .. n=coarsest)
 };
 
 } // namespace cu
