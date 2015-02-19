@@ -38,11 +38,9 @@ public:
   virtual ~VariationalStereo(); //= default;
 
   void addImage(ImagePtr image);
-
   void solve();
 
   // getters / setters
-
   inline ParametersPtr parmeters() {return params_;}
 
 private:

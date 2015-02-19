@@ -49,7 +49,7 @@ int main(int /*argc*/, char** /*argv*/)
     stereo->addImage(d_cones1_32fC1);
     stereo->addImage(d_cones2_32fC1);
 
-//    stereo->solve();
+    stereo->solve();
 
     cv::imshow("cones1", h_cones1_32fC1.cvMat());
     cv::imshow("cones2", h_cones2_32fC1.cvMat());

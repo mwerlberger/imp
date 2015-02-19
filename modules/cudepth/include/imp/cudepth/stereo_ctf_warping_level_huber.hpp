@@ -48,10 +48,17 @@ protected:
   std::unique_ptr<Image> ix_; //!< spatial gradients on moving (warped) image
   std::unique_ptr<Image> it_; //!< temporal gradients between warped and fixed image
 
+  // textures
+  std::unique_ptr<Texture2D> i1_tex_;
+  std::unique_ptr<Texture2D> i2_tex_;
+  std::unique_ptr<Texture2D> u_tex_;
+  std::unique_ptr<Texture2D> u_prev_tex_;
+  std::unique_ptr<Texture2D> u0_tex_;
+  std::unique_ptr<Texture2D> pu_tex_;
+  std::unique_ptr<Texture2D> q_tex_;
+  std::unique_ptr<Texture2D> ix_tex_;
+  std::unique_ptr<Texture2D> it_tex_;
 
-  std::shared_ptr<Parameters> params_; //!< configuration parameters
-  imp::Size2u size_;
-  size_type level_; //!< level number in the ctf pyramid (0=finest .. n=coarsest)
 };
 
 } // namespace cu

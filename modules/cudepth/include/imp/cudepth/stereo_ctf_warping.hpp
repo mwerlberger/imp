@@ -39,7 +39,6 @@ public:
 //  StereoCtFWarping(StereoCtFWarping&&);
 
   StereoCtFWarping(std::shared_ptr<Parameters> params);
-  void init();
 
   void addImage(ImagePtr image);
   void solve();
@@ -47,6 +46,18 @@ public:
   // don't we wanna have this in a vector type?
   ImagePtr getU(std::uint32_t level);
   ImagePtr getV(std::uint32_t level);
+
+protected:
+  /**
+   * @brief ready checks if everything is setup and initialized.
+   * @return State if everything is ready to solve the given problem.
+   */
+  bool ready();
+
+  /**
+   * @brief init initializes the solvers for the current setup
+   */
+  void init();
 
 private:
   std::shared_ptr<Parameters> params_; //!< configuration parameters

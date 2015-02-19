@@ -33,6 +33,13 @@ void VariationalStereo::addImage(ImagePtr image)
   ctf_->addImage(image);
 }
 
+//------------------------------------------------------------------------------
+void VariationalStereo::solve()
+{
+  ctf_->solve();
+}
+
+
 } // namespace cu
 } // namespace imp
 
