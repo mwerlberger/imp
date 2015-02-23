@@ -3,9 +3,7 @@
 #include <memory>
 
 #include <imp/cudepth/stereo_ctf_warping_level_huber.cuh>
-//#include <imp/cudepth/variational_stereo_parameters.hpp>
-//#include <imp/cucore/cu_image_gpu.cuh>
-//#include <imp/cuimgproc/image_pyramid.hpp>
+#include <imp/cucore/cu_utils.hpp>
 
 namespace imp {
 namespace cu {
@@ -125,7 +123,19 @@ void StereoCtFWarping::solve()
     levels_.at(lev-1)->solve(lev_images);
     lev_images.clear();
   }
+}
 
+//------------------------------------------------------------------------------
+StereoCtFWarping::ImagePtr StereoCtFWarping::getDisparities(size_type level)
+{
+  if (!this->ready())
+  {
+    throw Exception("not initialized correctly; bailing out.",
+                    __FILE__, __FUNCTION__, __LINE__);
+  }
+  level = max(params_->ctf.finest_level,
+              min(params_->ctf.coarsest_level, level));
+  return levels_.at(level)->getDisparities();
 }
 
 } // namespace cu

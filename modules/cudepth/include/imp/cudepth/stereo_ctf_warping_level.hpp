@@ -41,7 +41,7 @@ public:
   virtual void init() = 0;
   virtual void init(const StereoCtFWarpingLevel& rhs) = 0;
   virtual void solve(std::vector<ImagePtr> images) = 0;
-
+  virtual ImagePtr getDisparities() = 0;
 
   // setters / getters
   inline imp::Size2u size() { return size_; }

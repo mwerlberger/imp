@@ -10,6 +10,8 @@
 #include <imp/core/image_raw.hpp>
 #include <imp/core/image_cv.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
+#include <imp/cucore/cu_math.cuh>
+
 #include <imp/cudepth/variational_stereo.hpp>
 
 #include "default_msg.h"
@@ -51,8 +53,19 @@ int main(int /*argc*/, char** /*argv*/)
 
     stereo->solve();
 
+    std::shared_ptr<imp::cu::ImageGpu32fC1> disp = stereo->getDisparities();
+    imp::Pixel32fC1 min_val,max_val;
+    imp::cu::minMax(disp, min_val, max_val);
+
+    std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
+
+    imp::ImageCv32fC1 h_disp(*disp);
+    h_disp.cvMat() = (h_disp.cvMat() - min_val.x)/(max_val.x-min_val.x);
+
+
     cv::imshow("cones1", h_cones1_32fC1.cvMat());
     cv::imshow("cones2", h_cones2_32fC1.cvMat());
+    cv::imshow("disp", h_disp.cvMat());
 
     //cv::imshow("cones1 denoised 32f", h_cones1_denoised_32fC1.cvMat());
 

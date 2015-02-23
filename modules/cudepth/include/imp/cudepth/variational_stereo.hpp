@@ -40,6 +40,8 @@ public:
   void addImage(ImagePtr image);
   void solve();
 
+  ImagePtr getDisparities(size_type level=0);
+
   // getters / setters
   inline ParametersPtr parmeters() {return params_;}
 

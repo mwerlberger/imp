@@ -38,8 +38,11 @@ public:
   virtual void init(const StereoCtFWarpingLevel& rhs);
   virtual void solve(std::vector<ImagePtr> images);
 
+  virtual inline ImagePtr getDisparities() {return u_;}
+
+
 protected:
-  std::unique_ptr<Image> u_; //!< disparities (result)
+  ImagePtr u_; //!< disparities (result)
   std::unique_ptr<Image> u_prev_; //!< disparities results from previous iteration
   std::unique_ptr<Image> u0_; //!< disparities results from previous warp
   std::unique_ptr<Dual> pu_; //!< dual variable for primal variable

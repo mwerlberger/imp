@@ -19,7 +19,7 @@ struct VariationalStereoParameters
   // settings for the ctf warping
   struct CTF // we might want to define this externally for all ctf approaches?
   {
-    float scale_factor = 0.5f; //!< multiplicative scale factor between coarse-to-fine pyramid levels
+    float scale_factor = 0.8f; //!< multiplicative scale factor between coarse-to-fine pyramid levels
     std::uint32_t iters = 100;
     std::uint32_t warps =  10;
     size_type levels = UINT32_MAX;

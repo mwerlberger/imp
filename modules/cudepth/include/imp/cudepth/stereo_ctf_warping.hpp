@@ -42,6 +42,7 @@ public:
 
   void addImage(ImagePtr image);
   void solve();
+  ImagePtr getDisparities(size_type level=0);
 
   // don't we wanna have this in a vector type?
   ImagePtr getU(std::uint32_t level);

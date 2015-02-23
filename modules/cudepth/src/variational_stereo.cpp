@@ -39,6 +39,12 @@ void VariationalStereo::solve()
   ctf_->solve();
 }
 
+//------------------------------------------------------------------------------
+VariationalStereo::ImagePtr VariationalStereo::getDisparities(size_type level)
+{
+  return ctf_->getDisparities(level);
+}
+
 
 } // namespace cu
 } // namespace imp
