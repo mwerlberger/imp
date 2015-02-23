@@ -46,6 +46,7 @@ protected:
   std::unique_ptr<Image> q_; //!< dual variable for data term
   std::unique_ptr<Image> ix_; //!< spatial gradients on moving (warped) image
   std::unique_ptr<Image> it_; //!< temporal gradients between warped and fixed image
+  std::unique_ptr<Image> xi_; //!< preconditioner
 
   // textures
   std::unique_ptr<Texture2D> i1_tex_;
@@ -57,6 +58,7 @@ protected:
   std::unique_ptr<Texture2D> q_tex_;
   std::unique_ptr<Texture2D> ix_tex_;
   std::unique_ptr<Texture2D> it_tex_;
+  std::unique_ptr<Texture2D> xi_tex_;
 
 };
 

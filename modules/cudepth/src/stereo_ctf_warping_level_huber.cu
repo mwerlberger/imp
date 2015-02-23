@@ -9,6 +9,8 @@
 #include <imp/cucore/cu_utils.hpp>
 #include <imp/cucore/cu_texture.cuh>
 
+#include "cu_k_warped_gradients.cuh"
+
 namespace imp {
 namespace cu {
 
@@ -30,6 +32,7 @@ StereoCtFWarpingLevelHuber::StereoCtFWarpingLevelHuber(
   q_.reset(new Image(size));
   ix_.reset(new Image(size));
   it_.reset(new Image(size));
+  xi_.reset(new Image(size));
 
   // and its textures
   u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
@@ -39,7 +42,7 @@ StereoCtFWarpingLevelHuber::StereoCtFWarpingLevelHuber(
   q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
   ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
   it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
-
+  xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
 }
 
 //------------------------------------------------------------------------------
@@ -77,10 +80,15 @@ void StereoCtFWarpingLevelHuber::solve(std::vector<ImagePtr> images)
 {
   std::cout << "StereoCtFWarpingLevelHuber: solving level " << level_ << " with " << images.size() << " images" << std::endl;
 
-  // image textures
+  // sanity check:
+  // TODO
 
+  // image textures
   i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
   i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
+
+  Fragmentation<16,16> frag(size_);
+
 
   // constants
 //  constexpr float tau = 0.95f;
@@ -95,8 +103,12 @@ void StereoCtFWarpingLevelHuber::solve(std::vector<ImagePtr> images)
   {
     u_->copyTo(*u0_);
 
-    // warping + gradients computation
-    // TODO
+
+    k_warpedGradients
+        <<<
+          frag.dimGrid, frag.dimBlock
+       >>> (ix_->data(), it_->data(), ix_->stride(), ix_->width(), ix_->height(),
+            *i1_tex_, *i2_tex_, *u0_tex_);
 
     // compute preconditioner
     // TODO
