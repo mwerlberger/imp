@@ -2,14 +2,15 @@
 #define IMP_CU_TEXTURE_CUH
 
 #include <cstring>
-#include <cuda_runtime_api.h>
+#include <cuda_runtime.h>
 #include <imp/core/types.hpp>
 #include <imp/core/pixel.hpp>
 //#include <imp/core/pixel_enums.hpp>
 //#include <imp/cucore/cu_image_gpu.cuh>
 //#include <imp/cucore/cu_pixel_conversion.hpp>
 
-namespace imp { namespace cu {
+namespace imp {
+namespace cu {
 
 /**
  * @brief The Texture struct
@@ -206,7 +207,7 @@ struct Texture2D : Texture
 
 
 } // namespace cu
-              } // namespace imp
+} // namespace imp
 
 #endif // IMP_CU_TEXTURE_CUH
 

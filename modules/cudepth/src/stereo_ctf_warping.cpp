@@ -1,8 +1,8 @@
 #include <imp/cudepth/stereo_ctf_warping.hpp>
 
 #include <memory>
-#include <imp/cudepth/stereo_ctf_warping_level_huber.hpp>
 
+#include <imp/cudepth/stereo_ctf_warping_level_huber.cuh>
 //#include <imp/cudepth/variational_stereo_parameters.hpp>
 //#include <imp/cucore/cu_image_gpu.cuh>
 //#include <imp/cuimgproc/image_pyramid.hpp>

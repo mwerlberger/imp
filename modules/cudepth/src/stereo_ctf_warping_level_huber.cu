@@ -1,4 +1,4 @@
-#include <imp/cudepth/stereo_ctf_warping_level_huber.hpp>
+#include <imp/cudepth/stereo_ctf_warping_level_huber.cuh>
 
 #include <cuda_runtime.h>
 
@@ -7,6 +7,7 @@
 #include <imp/cuimgproc/cu_image_filter.cuh>
 #include <imp/cuimgproc/cu_image_transform.cuh>
 #include <imp/cucore/cu_utils.hpp>
+#include <imp/cucore/cu_texture.cuh>
 
 namespace imp {
 namespace cu {
@@ -18,7 +19,8 @@ StereoCtFWarpingLevelHuber::~StereoCtFWarpingLevelHuber()
 }
 
 //------------------------------------------------------------------------------
-StereoCtFWarpingLevelHuber::StereoCtFWarpingLevelHuber(const std::shared_ptr<Parameters>& params, imp::Size2u size, size_type level)
+StereoCtFWarpingLevelHuber::StereoCtFWarpingLevelHuber(
+    const std::shared_ptr<Parameters>& params, imp::Size2u size, size_type level)
   : StereoCtFWarpingLevel(params, size, level)
 {
   u_.reset(new Image(size));
@@ -76,6 +78,7 @@ void StereoCtFWarpingLevelHuber::solve(std::vector<ImagePtr> images)
   std::cout << "StereoCtFWarpingLevelHuber: solving level " << level_ << " with " << images.size() << " images" << std::endl;
 
   // image textures
+
   i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
   i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
 

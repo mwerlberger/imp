@@ -2,6 +2,7 @@
 #define IMP_CU_STEREO_CTF_WARPING_LEVEL_HPP
 
 #include <cstdint>
+#include <memory>
 
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/core/size.hpp>
@@ -28,15 +29,14 @@ public:
 
 public:
   StereoCtFWarpingLevel() = delete;
-  virtual ~StereoCtFWarpingLevel() { } // = default;
+  virtual ~StereoCtFWarpingLevel() = default;
 
   StereoCtFWarpingLevel(std::shared_ptr<Parameters> params,
                         imp::Size2u size, std::uint16_t level)
     : params_(params)
     , size_(size)
     , level_(level)
-  {
-  }
+  { ; }
 
   virtual void init() = 0;
   virtual void init(const StereoCtFWarpingLevel& rhs) = 0;

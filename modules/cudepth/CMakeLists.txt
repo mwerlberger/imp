@@ -16,13 +16,13 @@ set(HEADERS
   include/imp/cudepth/stereo_ctf_warping.hpp
   include/imp/cudepth/stereo_ctf_warping.hpp
   include/imp/cudepth/stereo_ctf_warping_level.hpp
-  include/imp/cudepth/stereo_ctf_warping_level_huber.hpp
+  include/imp/cudepth/stereo_ctf_warping_level_huber.cuh
   )
 
 set(SOURCES
   src/variational_stereo.cpp
   src/stereo_ctf_warping.cpp
-  src/stereo_ctf_warping_level_huber.cpp
+  src/stereo_ctf_warping_level_huber.cu
   )
 
 set(IMPL_FILES

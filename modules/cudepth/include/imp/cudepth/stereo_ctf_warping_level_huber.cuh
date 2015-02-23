@@ -2,18 +2,18 @@
 #define IMP_CU_STEREO_CTF_WARPING_LEVEL_HUBER_HPP
 
 #include <cstdint>
+#include <memory>
 
 #include <imp/cudepth/stereo_ctf_warping_level.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/core/size.hpp>
-
 
 namespace imp {
 namespace cu {
 
 // forward decl
 class VariationalStereoParameters;
-
+class Texture2D;
 
 /**
  * @brief The StereoCtFWarpingLevelHuber class
@@ -25,7 +25,6 @@ public:
   using Image = imp::cu::ImageGpu32fC1;
   using Dual = imp::cu::ImageGpu32fC2;
   using ImagePtr = std::shared_ptr<Image>;
-
 
 
 public:
