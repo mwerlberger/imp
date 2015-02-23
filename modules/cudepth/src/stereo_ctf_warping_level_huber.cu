@@ -10,6 +10,7 @@
 #include <imp/cucore/cu_texture.cuh>
 
 #include "cu_k_warped_gradients.cuh"
+#include "cu_k_stereo_ctf_warping_level_huber.cuh"
 
 namespace imp {
 namespace cu {
@@ -91,36 +92,52 @@ void StereoCtFWarpingLevelHuber::solve(std::vector<ImagePtr> images)
 
 
   // constants
-//  constexpr float tau = 0.95f;
-//  constexpr float sigma = 0.95f;
+  constexpr float tau = 0.95f;
+  constexpr float sigma = 0.95f;
   float lin_step = 0.5f;
 
   // precond
-//  constexpr float eta = 2.0f;
+  constexpr float eta = 2.0f;
 
   // warping
   for (std::uint32_t warp = 0; warp < params_->ctf.warps; ++warp)
   {
     u_->copyTo(*u0_);
 
-
+    // compute warped spatial and temporal gradients
     k_warpedGradients
         <<<
           frag.dimGrid, frag.dimBlock
-       >>> (ix_->data(), it_->data(), ix_->stride(), ix_->width(), ix_->height(),
-            *i1_tex_, *i2_tex_, *u0_tex_);
+        >>> (ix_->data(), it_->data(), ix_->stride(), ix_->width(), ix_->height(),
+             *i1_tex_, *i2_tex_, *u0_tex_);
 
     // compute preconditioner
-    // TODO
+    k_preconditioner
+        <<<
+          frag.dimGrid, frag.dimBlock
+        >>> (xi_->data(), xi_->stride(), xi_->width(), xi_->height(),
+             params_->lambda, *ix_tex_);
+
 
     for (std::uint32_t iter = 0; iter < params_->ctf.iters; ++iter)
     {
-      // solve dual kernel
-      // TODO
-
+      // dual kernel
+      k_dualUpdate
+          <<<
+            frag.dimGrid, frag.dimBlock
+          >>> (pu_->data(), pu_->stride(), q_->data(), q_->stride(),
+               size_.width(), size_.height(),
+               params_->lambda, params_->eps_u, sigma, eta,
+               *u_prev_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *it_tex_);
 
       // and primal kernel
-      // TODO
+      k_primalUpdate
+          <<<
+            frag.dimGrid, frag.dimBlock
+          >>> (u_->data(), u_prev_->data(), u_->stride(),
+               size_.width(), size_.height(),
+               params_->lambda, tau, lin_step,
+               *u_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *xi_tex_);
 
     } // iters
     lin_step /= 1.2f;

@@ -26,7 +26,8 @@ set(SOURCES
   )
 
 set(IMPL_FILES
-  #src/stereo/
+  src/cu_k_warped_gradients.cuh
+  src/cu_k_stereo_ctf_warping_level_huber.cuh
   )
 
 imp_create_cuda_module(${SOURCES} ${HEADERS} ${IMPL_FILES})

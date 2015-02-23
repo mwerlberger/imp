@@ -14,6 +14,7 @@ struct VariationalStereoParameters
   int verbose=0; //!< verbosity level (the higher, the more the Stereo algorithm talks to us)
   StereoPDSolver solver=StereoPDSolver::HuberL1; //!< selected primal-dual solver / model
   float lambda = 50.0f; //!< tradeoff between regularization and matching term
+  float eps_u = 0.01f; //!< tradeoff between L1 and L2 part of the Huber regularization
 
   // settings for the ctf warping
   struct CTF // we might want to define this externally for all ctf approaches?

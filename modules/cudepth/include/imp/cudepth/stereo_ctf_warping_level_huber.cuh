@@ -1,5 +1,5 @@
-#ifndef IMP_CU_STEREO_CTF_WARPING_LEVEL_HUBER_HPP
-#define IMP_CU_STEREO_CTF_WARPING_LEVEL_HUBER_HPP
+#ifndef IMP_CU_STEREO_CTF_WARPING_LEVEL_HUBER_CUH
+#define IMP_CU_STEREO_CTF_WARPING_LEVEL_HUBER_CUH
 
 #include <cstdint>
 #include <memory>
@@ -65,4 +65,4 @@ protected:
 } // namespace cu
 } // namespace imp
 
-#endif // IMP_CU_STEREO_CTF_WARPING_LEVEL_HUBER_HPP
+#endif // IMP_CU_STEREO_CTF_WARPING_LEVEL_HUBER_CUH
