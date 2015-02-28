@@ -11,6 +11,7 @@
 #include <imp/core/image_cv.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cuimgproc/cu_rof_denoising.cuh>
+#include <imp/io/opencv_bridge.hpp>
 
 #include "default_msg.h"
 
@@ -19,13 +20,16 @@ int main(int /*argc*/, char** /*argv*/)
 {
   try
   {
-    imp::ImageCv8uC1 h1_lena_8uC1(cv::imread("/home/mwerlberger/data/std/Lena.tiff",
-                                             CV_LOAD_IMAGE_GRAYSCALE),
-                                  imp::PixelOrder::gray);
+//    imp::ImageCv8uC1 h1_lena_8uC1(cv::imread("/home/mwerlberger/data/std/Lena.tiff",
+//                                             CV_LOAD_IMAGE_GRAYSCALE),
+//                                  imp::PixelOrder::gray);
+
+    imp::ImageCv8uC1::Ptr h1_lena_8uC1 = imp::ocvBridgeLoad<imp::Pixel8uC1,imp::PixelType::i8uC1>(
+          "/home/mwerlberger/data/std/Lena.tiff", imp::PixelOrder::gray);
 
     // copy host->device
     std::shared_ptr<imp::cu::ImageGpu8uC1> d1_lena_8uC1(
-          new imp::cu::ImageGpu8uC1(h1_lena_8uC1));
+          new imp::cu::ImageGpu8uC1(*h1_lena_8uC1));
 
     // ROF denoising
     imp::cu::RofDenoising8uC1 rof;
@@ -42,14 +46,14 @@ int main(int /*argc*/, char** /*argv*/)
     imp::ImageCv8uC1 h_lena_denoised_8uC1(*d_lena_denoised_8uC1);
 
     // show pictures
-    cv::imshow("lena input", h1_lena_8uC1.cvMat());
+    cv::imshow("lena input", h1_lena_8uC1->cvMat());
     cv::imshow("lena denoised", h_lena_denoised_8uC1.cvMat());
 
 
     // 32fC1 test
-    imp::ImageCv32fC1 h1_lena_32fC1(h1_lena_8uC1.size());
+    imp::ImageCv32fC1 h1_lena_32fC1(h1_lena_8uC1->size());
 
-    h1_lena_8uC1.cvMat().convertTo(h1_lena_32fC1.cvMat(), CV_32F);
+    h1_lena_8uC1->cvMat().convertTo(h1_lena_32fC1.cvMat(), CV_32F);
     h1_lena_32fC1.cvMat() /= 255.f;
     double min_val=0.0f, max_val=0.0f;
     cv::minMaxLoc(h1_lena_32fC1.cvMat(),  &min_val, &max_val);

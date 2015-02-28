@@ -1,7 +1,7 @@
 #ifndef IMP_IMAGE_CV_HPP
 #define IMP_IMAGE_CV_HPP
 
-//#include <memory>
+#include <memory>
 //#include <algorithm>
 
 #include <opencv2/core/core.hpp>
@@ -26,11 +26,11 @@ template<typename Pixel, imp::PixelType pixel_type>
 class ImageCv : public imp::Image<Pixel, pixel_type>
 {
 public:
-  typedef Image<Pixel, pixel_type> Base;
+  using Base = Image<Pixel, pixel_type>;
   typedef ImageCv<Pixel, pixel_type> ImCv;
   typedef Pixel pixel_t;
   typedef pixel_t* pixel_container_t;
-
+  using Ptr = typename std::shared_ptr<ImageCv<Pixel,pixel_type>>;
 
 public:
   ImageCv() = default;
@@ -99,6 +99,9 @@ typedef ImageCv<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageCv32fC4;
 //typedef ImageCv<std::uint16_t, imp::PixelType::i8uC1> ImageCv16uC1;
 //typedef ImageCv<std::int32_t, imp::PixelType::i8uC1> ImageCv32sC1;
 //typedef ImageCv<float, imp::PixelType::i8uC1> ImageCv32fC1;
+
+template <typename Pixel, imp::PixelType pixel_type> using ImageCvPtr = typename ImageCv<Pixel,pixel_type>::Ptr;
+
 
 } // namespace imp
 

@@ -25,7 +25,7 @@ int main(int /*argc*/, char** /*argv*/)
           cv::imread("/home/mwerlberger/data/std/cones/im2.ppm",
                      CV_LOAD_IMAGE_GRAYSCALE), imp::PixelOrder::gray);
     imp::ImageCv8uC1 h_cones2_8uC1(
-          cv::imread("/home/mwerlberger/data/std/cones/im6.ppm",
+          cv::imread("/home/mwerlberge-r/data/std/cones/im6.ppm",
                      CV_LOAD_IMAGE_GRAYSCALE), imp::PixelOrder::gray);
 
     // 8u -> 32f
