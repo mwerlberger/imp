@@ -49,6 +49,8 @@ int main(int /*argc*/, char** /*argv*/)
     cv::imshow("lena input", h1_lena_8uC1->cvMat());
     cv::imshow("lena denoised", h_lena_denoised_8uC1.cvMat());
 
+    imp::ocvBridgeSave("test.png", h_lena_denoised_8uC1);
+
 
     // 32fC1 test
     imp::ImageCv32fC1 h1_lena_32fC1(h1_lena_8uC1->size());

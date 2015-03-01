@@ -33,8 +33,15 @@ ImageCvPtr<Pixel,pixel_type>  ocvBridgeLoad(const std::string& filename, imp::Pi
 }
 
 
-//template<typename Pixel, imp::PixelType pixel_type>
-//void ocvBridgeSave(const std::string& filename, const ImageCv<Pixel,pixel_type>& img, bool normalize=false);
+template<typename Pixel, imp::PixelType pixel_type>
+void ocvBridgeSave(const std::string& filename, const ImageCv<Pixel,pixel_type>& img, bool normalize=false)
+{
+  if (normalize)
+  {
+    // TODO
+  }
+  cv::imwrite(filename, img.cvMat());
+}
 
 
 //template<typename Pixel, imp::PixelType pixel_type>
