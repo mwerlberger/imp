@@ -1,6 +1,16 @@
-set(imp_module_description "Core Functionality")
-imp_add_module(core)
+cmake_minimum_required(VERSION 3.0.0)
+project(imp_core)
 
+
+find_package(catkin_simple REQUIRED)
+catkin_simple()
+
+# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++0x -D__STRICT_ANSI__")
+
+find_package( OpenCV REQUIRED COMPONENCTS core)
+inlcude_directories(${OpenCV_INCLUDE_DIRES})
+
+#include_directories(${Boost_INCLUDE_DIRS})
 
 set(HEADERS
   include/imp/core/types.hpp
@@ -15,28 +25,35 @@ set(HEADERS
   include/imp/core/image.hpp
   include/imp/core/memory_storage.hpp
   include/imp/core/image_raw.hpp
+  include/imp/core/cv_connector_pixel_types.hpp
+  include/imp/core/image_cv.hpp
   )
 
 set(SOURCES
   src/linearmemory.cpp
   src/image_raw.cpp
+  src/cv_connector_pixel_types.cpp
+  src/image_cv.cpp
   )
 
-# add opencv connectors if openc has been found
-if (${IMP_WITH_OPENCV})
-  message("[+][core] Build with OpenCV connectors.")
-  set(HEADERS
-     ${HEADERS}
-     include/imp/core/cv_connector_pixel_types.hpp
-     include/imp/core/image_cv.hpp
-  )
-  set(SOURCES
-     ${SOURCES}
-     src/cv_connector_pixel_types.cpp
-     src/image_cv.cpp
-  )
-else()
-  message("[-][core] Build without OpenCV connectors.")
-endif()
 
-imp_create_module(${SOURCES} ${HEADERS})
+cs_add_library(${PROJECT_NAME}
+   ${SOURCES} ${HEADERS}
+)
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+
+#############
+## Testing ##
+#############
+# # Avoid clash with tr1::tuple: https://code.google.com/p/googletest/source/browse/trunk/README?r=589#257
+# add_definitions(-DGTEST_USE_OWN_TR1_TUPLE=0)
+
+catkin_add_gtest(${PROJECT_NAME}-test
+  test/test_main.cpp
+  test/size_test.cpp
+)
+target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME} pthread)
+
+cs_install()
+# cs_export(CFG_EXTRAS export_flags.cmake)
+

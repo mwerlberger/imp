@@ -6,7 +6,7 @@ find_package(imp)
 ## so we only have to check once.
 ##-----------------------------------------------------------------------------
 if (${IMP_WITH_OPENCV})
-  find_opencv(core highgui)
+  find_opencv(core highgui imgproc)
 endif()
 
 if (${IMP_WITH_CUDA})

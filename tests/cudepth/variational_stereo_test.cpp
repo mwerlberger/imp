@@ -5,6 +5,7 @@
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include <imp/core/roi.hpp>
 #include <imp/core/image_raw.hpp>
@@ -25,7 +26,7 @@ int main(int /*argc*/, char** /*argv*/)
           cv::imread("/home/mwerlberger/data/std/cones/im2.ppm",
                      CV_LOAD_IMAGE_GRAYSCALE), imp::PixelOrder::gray);
     imp::ImageCv8uC1 h_cones2_8uC1(
-          cv::imread("/home/mwerlberge-r/data/std/cones/im6.ppm",
+          cv::imread("/home/mwerlberger/data/std/cones/im6.ppm",
                      CV_LOAD_IMAGE_GRAYSCALE), imp::PixelOrder::gray);
 
     // 8u -> 32f
@@ -60,14 +61,22 @@ int main(int /*argc*/, char** /*argv*/)
     std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
 
     imp::ImageCv32fC1 h_disp(*disp);
-    h_disp.cvMat() = (h_disp.cvMat() - min_val.x)/(max_val.x-min_val.x);
+    h_disp.cvMat() = (-h_disp.cvMat() - min_val.x)/(+max_val.x-min_val.x);
+    cv::Mat tmp, out;
+    h_disp.cvMat().convertTo(out, CV_8U, 255.0);
+//    cv::equalizeHist(tmp, out);
+//    cv::normalize(h_disp.cvMat(), out, 0, 255, CV_MINMAX, CV_8U);
 
+    double mmin, mmax;
+    cv::minMaxLoc(tmp, &mmin, &mmax);
+
+    std::cout << "disp: min: " << mmin << " max: " << mmax << std::endl;
 
     cv::imshow("cones1", h_cones1_32fC1.cvMat());
     cv::imshow("cones2", h_cones2_32fC1.cvMat());
     cv::imshow("disp", h_disp.cvMat());
+    cv::imshow("equalized", out);
 
-    //cv::imshow("cones1 denoised 32f", h_cones1_denoised_32fC1.cvMat());
 
     cv::waitKey();
   }
