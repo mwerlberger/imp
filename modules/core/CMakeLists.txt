@@ -1,6 +1,5 @@
-cmake_minimum_required(VERSION 3.0.0)
 project(imp_core)
-
+cmake_minimum_required(VERSION 2.8.0)
 
 find_package(catkin_simple REQUIRED)
 catkin_simple()
@@ -48,11 +47,9 @@ cs_add_library(${PROJECT_NAME}
    )
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
-#############
-## Testing ##
-#############
-# # Avoid clash with tr1::tuple: https://code.google.com/p/googletest/source/browse/trunk/README?r=589#257
-# add_definitions(-DGTEST_USE_OWN_TR1_TUPLE=0)
+###
+### GTESTS
+###
 
 catkin_add_gtest(${PROJECT_NAME}-test
   test/test_main.cpp
@@ -61,5 +58,5 @@ catkin_add_gtest(${PROJECT_NAME}-test
 target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME} pthread)
 
 cs_install()
-# cs_export(CFG_EXTRAS export_flags.cmake)
+cs_export()
 

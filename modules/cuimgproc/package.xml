@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>imp_core</name>
+  <name>imp_cuimgproc</name>
   <description>
-    IMP core module
+    IMP CUDA image processing module
   </description>
   <version>0.0.1</version>
   <license>tbd</license>
@@ -12,5 +12,9 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
+  <build_depend>imp_core</build_depend>
+  <build_depend>imp_cucore</build_depend>
+  <build_depend>imp_io</build_depend>
+  
   <test_depend>gtest</test_depend>
 </package>

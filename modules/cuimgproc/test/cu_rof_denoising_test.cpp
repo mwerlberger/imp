@@ -13,9 +13,6 @@
 #include <imp/cuimgproc/cu_rof_denoising.cuh>
 #include <imp/io/opencv_bridge.hpp>
 
-#include "default_msg.h"
-
-
 int main(int /*argc*/, char** /*argv*/)
 {
   try
@@ -83,8 +80,6 @@ int main(int /*argc*/, char** /*argv*/)
     std::cout << "[exception] " << e.what() << std::endl;
     assert(false);
   }
-
-  std::cout << imp::ok_msg << std::endl;
 
   return EXIT_SUCCESS;
 

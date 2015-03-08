@@ -12,8 +12,6 @@
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cuimgproc/cu_image_filter.cuh>
 
-#include "default_msg.h"
-
 int main(int /*argc*/, char** /*argv*/)
 {
   try
@@ -68,8 +66,6 @@ int main(int /*argc*/, char** /*argv*/)
     std::cout << "[exception] " << e.what() << std::endl;
     assert(false);
   }
-
-  std::cout << imp::ok_msg << std::endl;
 
   return EXIT_SUCCESS;
 
