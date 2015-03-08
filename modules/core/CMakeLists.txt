@@ -5,10 +5,16 @@ project(imp_core)
 find_package(catkin_simple REQUIRED)
 catkin_simple()
 
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+add_definitions(-Wall)
+add_definitions(-Werror)
+add_definitions(-g)
+add_definitions(-fPIC)
+
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++0x -D__STRICT_ANSI__")
 
-find_package( OpenCV REQUIRED COMPONENCTS core)
-inlcude_directories(${OpenCV_INCLUDE_DIRES})
+find_package( OpenCV REQUIRED core)
+include_directories(${OpenCV_INCLUDE_DIRES})
 
 #include_directories(${Boost_INCLUDE_DIRS})
 
@@ -39,7 +45,7 @@ set(SOURCES
 
 cs_add_library(${PROJECT_NAME}
    ${SOURCES} ${HEADERS}
-)
+   )
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
 #############

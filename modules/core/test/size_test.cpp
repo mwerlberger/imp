@@ -7,8 +7,6 @@
 
 #include <imp/core/size.hpp>
 
-#include "default_msg.h"
-
 TEST(IMPCoreTestSuite,testSize)
 {
   imp::Size2u sz2u;
