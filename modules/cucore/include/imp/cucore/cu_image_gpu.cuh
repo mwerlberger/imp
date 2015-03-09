@@ -46,6 +46,7 @@ public:
   typedef imp::cu::MemoryDeallocator<Pixel> Deallocator;
   typedef Pixel pixel_t;
   typedef pixel_t* pixel_container_t;
+  using Ptr = typename std::shared_ptr<ImageGpu<Pixel,pixel_type>>;
 
 public:
   ImageGpu() = delete;
@@ -182,6 +183,8 @@ typedef ImageGpu<imp::Pixel32fC1, imp::PixelType::i32fC1> ImageGpu32fC1;
 typedef ImageGpu<imp::Pixel32fC2, imp::PixelType::i32fC2> ImageGpu32fC2;
 typedef ImageGpu<imp::Pixel32fC3, imp::PixelType::i32fC3> ImageGpu32fC3;
 typedef ImageGpu<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageGpu32fC4;
+
+template <typename Pixel, imp::PixelType pixel_type> using ImageGpuPtr = typename ImageGpu<Pixel,pixel_type>::Ptr;
 
 } // namespace cu
 } // namespace imp

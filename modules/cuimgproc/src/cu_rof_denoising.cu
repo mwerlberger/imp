@@ -176,11 +176,6 @@ void RofDenoising<Pixel, pixel_type>::denoise(const std::shared_ptr<ImageBase>& 
     }
     IMP_CUDA_CHECK();
 
-    Pixel32fC1 min, max;
-    imp::cu::minMax<imp::Pixel32fC1, imp::PixelType::i32fC1>(u_, min, max);
-    std::cout << "~~~~~~~ ROF solution min/max: " << min << ", " << max << std::endl;
-
-
     switch (dst->pixelType())
     {
     case PixelType::i8uC1:

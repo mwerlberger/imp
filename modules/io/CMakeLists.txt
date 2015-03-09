@@ -12,7 +12,7 @@ add_definitions(-fPIC)
 
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++0x -D__STRICT_ANSI__")
 
-find_package( OpenCV REQUIRED core highgui)
+find_package( OpenCV REQUIRED core highgui imgproc)
 include_directories(${OpenCV_INCLUDE_DIRES})
 
 set(HEADERS

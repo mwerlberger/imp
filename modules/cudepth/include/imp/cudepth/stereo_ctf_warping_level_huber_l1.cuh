@@ -16,9 +16,9 @@ class VariationalStereoParameters;
 class Texture2D;
 
 /**
- * @brief The StereoCtFWarpingLevelHuber class
+ * @brief The StereoCtFWarpingLevelPrecondHuberL1 class
  */
-class StereoCtFWarpingLevelHuber : public StereoCtFWarpingLevel
+class StereoCtFWarpingLevelHuberL1 : public StereoCtFWarpingLevel
 {
 public:
   using Parameters = VariationalStereoParameters;
@@ -28,11 +28,11 @@ public:
 
 
 public:
-  StereoCtFWarpingLevelHuber() = delete;
-  virtual ~StereoCtFWarpingLevelHuber();
+  StereoCtFWarpingLevelHuberL1() = delete;
+  virtual ~StereoCtFWarpingLevelHuberL1();
 
-  StereoCtFWarpingLevelHuber(const std::shared_ptr<Parameters>& params,
-                             imp::Size2u size, size_type level);
+  StereoCtFWarpingLevelHuberL1(const std::shared_ptr<Parameters>& params,
+                               imp::Size2u size, size_type level);
 
   virtual void init();
   virtual void init(const StereoCtFWarpingLevel& rhs);

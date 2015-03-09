@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>imp_io</name>
+  <name>imp_cudepth</name>
   <description>
-    IMP image I/O module
+    IMP CUDA depth estimation / range image module
   </description>
   <version>0.0.1</version>
   <license>tbd</license>
@@ -14,6 +14,8 @@
 
   <build_depend>imp_core</build_depend>
   <build_depend>imp_cucore</build_depend>
+  <build_depend>imp_cuimgproc</build_depend>
+  <build_depend>imp_io</build_depend>
 
   <test_depend>gtest</test_depend>
 </package>
