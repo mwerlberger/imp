@@ -25,8 +25,10 @@ __global__ void k_warpedGradients(Pixel* ix, Pixel* it, size_type stride,
     float wx = x+disparity;
 
     float bd = 0.5f;
-    if ((wx < bd) || (x < bd) || (wx > width-bd) || (x > width-bd) ||
-        (y < bd) || (y > height-bd))
+//    if ((wx < bd) || (x < bd) || (wx > width-bd) || (x > width-bd) ||
+//        (y < bd) || (y > height-bd))
+    /// @todo (MWE) check border handling!
+    if (wx<1 || wx>width-2)
     {
       ix[c] =  0.0f;
       it[c] =  0.0f;
@@ -38,9 +40,9 @@ __global__ void k_warpedGradients(Pixel* ix, Pixel* it, size_type stride,
 
       i1_tex.fetch(i1_c, x, y);
 
-      i2_tex.fetch(i2_w_c, x, y);
-      i2_tex.fetch(i2_w_m, x-0.5f, y);
-      i2_tex.fetch(i2_w_p, x+0.5f, y);
+      i2_tex.fetch(i2_w_c, wx, y);
+      i2_tex.fetch(i2_w_m, wx-0.5f, y);
+      i2_tex.fetch(i2_w_p, wx+0.5f, y);
 
       // spatial gradient on warped image
       ix[c] = i2_w_p - i2_w_m;

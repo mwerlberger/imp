@@ -75,11 +75,11 @@ void StereoCtFWarpingLevelHuberL1::init(const StereoCtFWarpingLevel& rhs)
   if(params_->ctf.apply_median_filter)
   {
     imp::cu::filterMedian3x3(from->u0_.get(), from->u_.get());
-    imp::cu::resample(u_.get(), from->u0_.get(), imp::InterpolationMode::linear, false);
+    imp::cu::resample(u_.get(), from->u0_.get(), imp::InterpolationMode::point, false);
   }
   else
   {
-    imp::cu::resample(u_.get(), from->u_.get(), imp::InterpolationMode::linear, false);
+    imp::cu::resample(u_.get(), from->u_.get(), imp::InterpolationMode::point, false);
   }
   *u_ *= inv_sf;
   std::cout << "inv_sf: " << inv_sf << std::endl;
@@ -89,7 +89,7 @@ void StereoCtFWarpingLevelHuberL1::init(const StereoCtFWarpingLevel& rhs)
     std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
   }
 
-  imp::cu::resample(pu_.get(), from->pu_.get(), imp::InterpolationMode::linear, false);
+  imp::cu::resample(pu_.get(), from->pu_.get(), imp::InterpolationMode::point, false);
 }
 
 //------------------------------------------------------------------------------
@@ -104,20 +104,34 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
   i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
   i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
 
+  // init
+  u_->copyTo(*u_prev_);
+
+
+  // config
   Fragmentation<16,16> frag(size_);
 
 
   // constants
-  constexpr float L = sqrt(8.f);
-  constexpr float tau = 1.f/L;
-  constexpr float sigma = 1.f/L;
+  const float L = std::sqrt(8.f);
+  const float tau = 1.f/L;
+  const float sigma = 1.f/L;
   float lin_step = 0.5f;
 
   // warping
   for (std::uint32_t warp = 0; warp < params_->ctf.warps; ++warp)
   {
-    std::cout << "warp" << std::endl;
-    u_->copyTo(*u0_);
+    if (params_->verbose > 5)
+      std::cout << "SOLVING warp iteration of Huber-L1 stereo model." << std::endl;
+
+    if (params_->ctf.apply_median_filter)
+    {
+      imp::cu::filterMedian3x3(u0_.get(), u_.get());
+    }
+    else
+    {
+      u_->copyTo(*u0_);
+    }
 
     // compute warped spatial and temporal gradients
     k_warpedGradients
@@ -125,6 +139,9 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
           frag.dimGrid, frag.dimBlock
         >>> (ix_->data(), it_->data(), ix_->stride(), ix_->width(), ix_->height(),
              *i1_tex_, *i2_tex_, *u0_tex_);
+
+    imp::cu::ocvBridgeShow("ix", *ix_, true);
+    imp::cu::ocvBridgeShow("it", *it_, true);
 
     for (std::uint32_t iter = 0; iter < params_->ctf.iters; ++iter)
     {
@@ -144,7 +161,7 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
           >>> (u_->data(), u_prev_->data(), u_->stride(),
                size_.width(), size_.height(),
                params_->lambda, tau, lin_step,
-               *u_tex_, *u0_tex_, *pu_tex_, *ix_tex_);
+               *u_tex_, *u0_tex_, *pu_tex_, *ix_tex_, *it_tex_);
 
       if (iter % 50)
       {
@@ -154,7 +171,7 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
       }
 
     } // iters
-    lin_step /= 1.2f;
+//    lin_step /= 1.2f;
 
   } // warps
   IMP_CUDA_CHECK();

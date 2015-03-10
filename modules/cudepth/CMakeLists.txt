@@ -72,9 +72,11 @@ set(SOURCES
 
 set(CU_SRCS
   src/cu_k_warped_gradients.cuh
-  src/cu_k_stereo_ctf_warping_level_huber.cuh
 
+  src/cu_k_stereo_ctf_warping_level_huber_l1.cuh
   src/stereo_ctf_warping_level_huber_l1.cu
+
+  src/cu_k_stereo_ctf_warping_level_huber.cuh # TODO rename
   src/stereo_ctf_warping_level_precond_huber_l1.cu
   )
 

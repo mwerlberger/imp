@@ -98,6 +98,7 @@ void ImagePyramid<Pixel,pixel_type>::updateImage(ImagePtr img_level0,
     {
       ImageRawPtr img = std::make_shared<imp::ImageRaw<Pixel,pixel_type>>(sz);
       //! @todo (MWE) cpu reduction
+      throw imp::Exception("CPU reduction not yet implemented.", __FILE__, __FUNCTION__, __LINE__);
       levels_.push_back(img);
     }
 

@@ -38,7 +38,7 @@ __global__ void k_primalUpdate(PPixel* d_u, PPixel* d_u_prev, const size_type st
                                const float lambda, const float tau,
                                const float lin_step,
                                Texture2D u_tex, Texture2D u0_tex,
-                               Texture2D pu_tex, Texture2D ix_tex)
+                               Texture2D pu_tex, Texture2D ix_tex, Texture2D it_tex)
 {
   const int x = blockIdx.x*blockDim.x + threadIdx.x;
   const int y = blockIdx.y*blockDim.y + threadIdx.y;
@@ -46,17 +46,20 @@ __global__ void k_primalUpdate(PPixel* d_u, PPixel* d_u_prev, const size_type st
   if (x<width && y<height)
   {
     float u0 = u0_tex.fetch<float>(x,y);
-    float u_prev = u_tex.fetch<float>(x, y);
     float it = it_tex.fetch<float>(x, y);
     float ix = ix_tex.fetch<float>(x, y);
 
+    // divergence operator (dpAD) of dual var
     float div = dpAd(pu_tex, x, y, width, height);
 
-    float u = u_prev + tau * div;
+    // save current u
+    float u_prev = u_tex.fetch<float>(x, y);
+    float u = u_prev;
+    u += tau*div;
 
     // prox operator
     float prox = it + (u-u0)*ix;
-    prox /= max(1e-5f, ix*ix);
+    prox /= max(1e-9f, ix*ix);
     float tau_lambda = tau*lambda;
 
     if(prox < -tau_lambda)
@@ -67,7 +70,7 @@ __global__ void k_primalUpdate(PPixel* d_u, PPixel* d_u_prev, const size_type st
     {
       u -= tau_lambda*ix;
     }
-    else
+    else if (std::abs(prox) <= tau_lambda)
     {
       u -= prox*ix;
     }
@@ -81,7 +84,7 @@ __global__ void k_primalUpdate(PPixel* d_u, PPixel* d_u_prev, const size_type st
 }
 
 //-----------------------------------------------------------------------------
-template<typename PPixel, typename DPixel>
+template<typename DPixel>
 __global__ void k_dualUpdate(DPixel* d_pu, const size_type stride_pu,
                              std::uint32_t width, std::uint32_t height,
                              const float eps_u, const float sigma,

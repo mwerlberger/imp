@@ -38,9 +38,9 @@ int main(int /*argc*/, char** /*argv*/)
 
     stereo->parameters()->solver = imp::cu::StereoPDSolver::HuberL1;
     stereo->parameters()->ctf.scale_factor = 0.5f;
-    stereo->parameters()->ctf.iters = 100;
+    stereo->parameters()->ctf.iters = 30;
     stereo->parameters()->ctf.warps  = 10;
-    stereo->parameters()->ctf.levels = 2;
+//    stereo->parameters()->ctf.levels = 1;
 
     stereo->addImage(d_cones1_32fC1);
     stereo->addImage(d_cones2_32fC1);
@@ -57,7 +57,7 @@ int main(int /*argc*/, char** /*argv*/)
     }
 
     imp::cu::ocvBridgeShow("cones im2", *d_cones1_32fC1);
-    imp::cu::ocvBridgeShow("cones im6", *d_cones1_32fC1);
+    imp::cu::ocvBridgeShow("cones im6", *d_cones2_32fC1);
     *d_disp *= -1;
     {
       imp::Pixel32fC1 min_val,max_val;

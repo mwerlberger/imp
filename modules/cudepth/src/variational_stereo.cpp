@@ -1,9 +1,6 @@
 #include <imp/cudepth/variational_stereo.hpp>
 
-
 #include <imp/cudepth/stereo_ctf_warping.hpp>
-
-
 
 namespace imp {
 namespace cu {

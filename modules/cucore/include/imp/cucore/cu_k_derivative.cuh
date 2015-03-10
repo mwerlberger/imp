@@ -14,8 +14,8 @@ static __device__ __forceinline__ float2 dp(
 {
   float2 grad = make_float2(0.0f, 0.0f);
   float cval = tex.fetch<float>(x, y);
-  grad.x = tex.fetch<float>(x+1, y) - cval;
-  grad.y = tex.fetch<float>(x, y+1) - cval;
+  grad.x = tex.fetch<float>(x+1.f, y) - cval;
+  grad.y = tex.fetch<float>(x, y+1.f) - cval;
   return grad;
 }
 
