@@ -2,7 +2,8 @@
 
 #include <memory>
 
-#include <imp/cudepth/stereo_ctf_warping_level_huber.cuh>
+#include <imp/cudepth/stereo_ctf_warping_level_huber_l1.cuh>
+#include <imp/cudepth/stereo_ctf_warping_level_precond_huber_l1.cuh>
 #include <imp/cucore/cu_utils.hpp>
 
 namespace imp {
@@ -35,7 +36,16 @@ void StereoCtFWarping::init()
   for (size_type i=params_->ctf.finest_level; i<=params_->ctf.coarsest_level; ++i)
   {
     Size2u sz = image_pyramids_.front()->size(i);
-    levels_.emplace_back(new StereoCtFWarpingLevelHuber(params_, sz, i));
+    switch (params_->solver)
+    {
+    case StereoPDSolver::HuberL1:
+      levels_.emplace_back(new StereoCtFWarpingLevelHuberL1(params_, sz, i));
+    break;
+    case StereoPDSolver::PrecondHuberL1:
+      levels_.emplace_back(new StereoCtFWarpingLevelPrecondHuberL1(params_, sz, i));
+    break;
+    }
+
   }
 }
 
@@ -47,11 +57,10 @@ bool StereoCtFWarping::ready()
       params_->ctf.coarsest_level - params_->ctf.finest_level + 1;
 
   if (images_.empty() || image_pyramids_.empty() || levels_.empty() ||
-      params_->ctf.coarsest_level <= params_->ctf.finest_level ||
+      params_->ctf.coarsest_level < params_->ctf.finest_level ||
       images_.size() < 2 || // at least two images -> maybe adapt to the algorithm?
-      image_pyramids_.front()->numLevels() != desired_num_levels ||
-      levels_.size() != desired_num_levels
-      )
+      image_pyramids_.front()->numLevels() < desired_num_levels ||
+      levels_.size() < desired_num_levels)
   {
     return false;
   }
@@ -62,7 +71,7 @@ bool StereoCtFWarping::ready()
 void StereoCtFWarping::addImage(ImagePtr image)
 {
   // generate image pyramid
-  ImagePyramidPtr pyr(new ImagePyramid(image, params_->ctf.scale_factor));
+  ImagePyramidPtr pyr(new ImagePyramid(image, params_->ctf.scale_factor, 4));
 
   // update number of levels
   if (params_->ctf.levels > pyr->numLevels())
@@ -90,8 +99,8 @@ void StereoCtFWarping::solve()
 {
   if (!this->ready())
   {
-    throw Exception("not initialized correctly; bailing out.",
-                    __FILE__, __FUNCTION__, __LINE__);
+    throw imp::Exception("not initialized correctly. bailing out.",
+                         __FILE__, __FUNCTION__, __LINE__);
   }
 
   // the image vector that is used as input for the level solvers
@@ -102,12 +111,13 @@ void StereoCtFWarping::solve()
   size_type lev = params_->ctf.coarsest_level;
   levels_.at(lev)->init();
   // gather images of current scale level
+  lev_images.clear();
   for (auto pyr : image_pyramids_)
   {
     lev_images.push_back(std::dynamic_pointer_cast<Image>(pyr->at(lev)));
   }
   levels_.at(lev)->solve(lev_images);
-  lev_images.clear();
+
   // and then loop until we reach the finest level
   // note that we loop with +1 idx as we would result in a buffer underflow
   // due to operator-- on size_type which is an unsigned type.
@@ -116,12 +126,12 @@ void StereoCtFWarping::solve()
     levels_.at(lev-1)->init(*levels_.at(lev));
 
     // gather images of current scale level
+    lev_images.clear();
     for (auto pyr : image_pyramids_)
     {
       lev_images.push_back(std::dynamic_pointer_cast<Image>(pyr->at(lev-1)));
     }
     levels_.at(lev-1)->solve(lev_images);
-    lev_images.clear();
   }
 }
 

@@ -1,18 +1,57 @@
-set(imp_module_description "CUDA Core Module")
+project(imp_cucore)
+cmake_minimum_required(VERSION 2.8.0)
 
-if (NOT CUDA_FOUND)
-  # if cuda is not available we throw an error as this module is useless without cuda.
-  # we should never get here though as we already check before...
-  imp_fatal("CUDA not available or not correctly configured. CUDA modules can't be included/built. Try to build without CUDA.")
+find_package(catkin_simple REQUIRED)
+catkin_simple()
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -Wall -Werror -g")
+
+##
+# CUDA
+##
+find_package(CUDA)
+add_definitions(-DIMP_WITH_CUDA)
+list(APPEND CUDA_NVCC_FLAGS --compiler-options -fno-strict-aliasing -lineinfo
+   -use_fast_math -Xptxas -dlcm=cg -std=c++11)
+
+include_directories(
+   ${CUDA_INCLUDE_DIRS}
+   ${CUDA_SDK_INCLUDE_DIR}
+   ${CMAKE_CURRENT_SOURCE_DIR}/../../cuda_toolkit/${CUDA_VERSION_STRING}/include
+   )
+
+# Checking cuda version
+if(CUDA_VERSION_STRING STREQUAL "7.0")
+   # CUDA 7.0
+   #imp_debug("IMP library compiled with CUDA 7.0")
+   add_definitions(-DCUDA_VERSION_70)
+elseif()
+   message(FATAL_ERROR "unknown CUDA version. some things might not be tested.")
 endif()
 
-imp_add_module(cucore)
 
-# internal module dependencies
-imp_include_module(core)
+# Selection of compute capability via environment variable
+if("$ENV{COMPUTE_CAPABILITY}" MATCHES "1.1")
+   list(APPEND CUDA_NVCC_FLAGS -arch=sm_11)
+elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "1.2")
+   list(APPEND CUDA_NVCC_FLAGS -arch=sm_12)
+elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "1.3")
+   list(APPEND CUDA_NVCC_FLAGS -arch=sm_13)
+elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "2.0")
+   list(APPEND CUDA_NVCC_FLAGS -arch=sm_20)
+   list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_20,code=sm_20)
+elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "2.1")
+   list(APPEND CUDA_NVCC_FLAGS -arch=sm_21)
+elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "3.0")
+   list(APPEND CUDA_NVCC_FLAGS -arch=sm_30)
+   list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_30,code=sm_30)
+elseif("$ENV{COMPUTE_CAPABILITY}" MATCHES "3.5")
+   list(APPEND CUDA_NVCC_FLAGS -arch=sm_35)
+   list(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_35,code=sm_35)
+else()
+   list(APPEND CUDA_NVCC_FLAGS -arch=sm_30)
+endif()
 
-include_directories(${IMP_${module}_INCLUDE_PATH})
-cuda_include_directories(${IMP_${module}_INCLUDE_PATH})
 
 set(HEADERS
   include/imp/cucore/cu_utils.hpp
@@ -29,15 +68,32 @@ set(HEADERS
   )
 
 set(SOURCES
+  src/cu_pixel_conversion.cpp
+  )
+
+set(CU_SRC
   src/cu_linearmemory.cu
   src/cu_image_gpu.cu
-  src/cu_pixel_conversion.cpp
+  src/math/cu_min_max_impl.cu
   src/cu_math.cu
   )
 
+cuda_compile(CU_OBJ ${CU_SRC})
 
-set(IMPL_FILES
-  src/math/cu_min_max_impl.cu
-  )
+cs_add_library(${PROJECT_NAME}
+   ${CU_OBJ} ${SOURCES} ${HEADERS}
+   )
+target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
 
-imp_create_cuda_module(${SOURCES} ${HEADERS} ${IMPL_FILES})
+###
+### GTESTS
+###
+
+# catkin_add_gtest(${PROJECT_NAME}-test
+#   test/test_main.cpp
+#   test/size_test.cpp
+# )
+# target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME} pthread)
+
+cs_install()
+cs_export()

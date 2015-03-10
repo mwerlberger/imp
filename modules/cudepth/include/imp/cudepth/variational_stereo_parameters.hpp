@@ -11,10 +11,10 @@ namespace cu {
 // the parameter struct
 struct VariationalStereoParameters
 {
-  int verbose=0; //!< verbosity level (the higher, the more the Stereo algorithm talks to us)
+  int verbose=10; //!< verbosity level (the higher, the more the Stereo algorithm talks to us)
   StereoPDSolver solver=StereoPDSolver::HuberL1; //!< selected primal-dual solver / model
-  float lambda = 50.0f; //!< tradeoff between regularization and matching term
-  float eps_u = 0.01f; //!< tradeoff between L1 and L2 part of the Huber regularization
+  float lambda = 30.0f; //!< tradeoff between regularization and matching term
+  float eps_u = 0.05f; //!< tradeoff between L1 and L2 part of the Huber regularization
 
   // settings for the ctf warping
   struct CTF // we might want to define this externally for all ctf approaches?
@@ -25,7 +25,7 @@ struct VariationalStereoParameters
     size_type levels = UINT32_MAX;
     size_type coarsest_level = UINT32_MAX;
     size_type finest_level = 0;
-    bool apply_median_filter = true;
+    bool apply_median_filter = false;
   };
 
   CTF ctf;

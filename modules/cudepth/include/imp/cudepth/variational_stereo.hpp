@@ -43,7 +43,7 @@ public:
   ImagePtr getDisparities(size_type level=0);
 
   // getters / setters
-  inline ParametersPtr parmeters() {return params_;}
+  inline ParametersPtr parameters() {return params_;}
 
 private:
   ParametersPtr params_;  //!< configuration parameters

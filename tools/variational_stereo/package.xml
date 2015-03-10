@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+  <name>imp_tools_variational_stereo</name>
+  <description>
+    IMP Tools: Variational Stereo Estimation
+  </description>
+  <version>0.0.1</version>
+  <license>tbd</license>
+
+  <maintainer email="code@werlberger.org">Manuel Werlberger</maintainer>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+  <build_depend>imp_core</build_depend>
+  <build_depend>imp_cucore</build_depend>
+  <build_depend>imp_io</build_depend>
+  <build_depend>imp_cudepth</build_depend>
+  
+  <test_depend>gtest</test_depend>
+</package>

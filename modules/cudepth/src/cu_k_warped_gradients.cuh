@@ -24,27 +24,28 @@ __global__ void k_warpedGradients(Pixel* ix, Pixel* it, size_type stride,
     float disparity = u0_tex.fetch<float>(x,y);
     float wx = x+disparity;
 
-    float bd = 0.5f;
-    if ((wx < bd) || (x < bd) || (wx > width-bd) || (x > width-bd) ||
-        (y < bd) || (y > height-bd))
+    float bd = .5f;
+    if ((wx < bd) || (x < bd) || (wx > width-bd-1) || (x > width-bd-1) ||
+        (y<bd) || (y>height-bd-1))
+      /// @todo (MWE) check border handling!
+      //if (wx<1 || wx>width-2)
     {
       ix[c] =  0.0f;
       it[c] =  0.0f;
     }
     else
     {
-      Pixel i1_c;
-      Pixel i2_w_c, i2_w_m, i2_w_p;
+      Pixel i1_c, i2_w_c, i2_w_m, i2_w_p;
 
       i1_tex.fetch(i1_c, x, y);
 
-      i2_tex.fetch(i2_w_c, x, y);
-      i2_tex.fetch(i2_w_m, x-0.5f, y);
-      i2_tex.fetch(i2_w_p, x+0.5f, y);
+      i2_tex.fetch(i2_w_c, wx, y);
+      i2_tex.fetch(i2_w_m, wx-0.5f, y);
+      i2_tex.fetch(i2_w_p, wx+0.5f, y);
 
       // spatial gradient on warped image
       ix[c] = i2_w_p - i2_w_m;
-      // temporal gradient
+      // temporal gradient between the warped moving image and the fixed image
       it[c] = i2_w_c - i1_c;
     }
 
