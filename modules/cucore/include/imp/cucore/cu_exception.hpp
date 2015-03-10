@@ -15,11 +15,12 @@ public:
   Exception() = default;
   virtual ~Exception() throw() = default;
 
-  Exception(const std::string& msg,
-            const char* file=nullptr, const char* function=nullptr, int line=0) throw()
-    : imp::Exception(msg, file, function, line)
-  {
-  }
+  using imp::Exception::Exception;
+//  Exception(const std::string& msg,
+//            const char* file=nullptr, const char* function=nullptr, int line=0) throw()
+//    : imp::Exception(msg, file, function, line)
+//  {
+//  }
 
   Exception(const std::string& msg, cudaError err,
             const char* file=nullptr, const char* function=nullptr, int line=0) throw()

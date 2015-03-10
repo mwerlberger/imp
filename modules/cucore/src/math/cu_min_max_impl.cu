@@ -84,7 +84,7 @@ void minMax(const std::shared_ptr<ImageGpu<Pixel, pixel_type>>& img,
   min_val = h_col_mins(0);
   max_val = h_col_maxs(0);
 
-  for (auto i=1; i<roi.width(); ++i)
+  for (auto i=1u; i<roi.width(); ++i)
   {
     min_val = std::min(min_val, h_col_mins(i));
     max_val = std::max(max_val, h_col_maxs(i));

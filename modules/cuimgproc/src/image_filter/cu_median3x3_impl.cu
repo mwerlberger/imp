@@ -27,7 +27,6 @@ __global__ void  k_median3x3(Pixel* dst, const size_type stride,
 {
   int x = blockIdx.x*blockDim.x + threadIdx.x;
   int y = blockIdx.y*blockDim.y + threadIdx.y;
-  const size_type out_idx = y*stride+x;
 
   if(x>=0 && y>= 0 && x<width && y<height)
   {
@@ -39,7 +38,7 @@ __global__ void  k_median3x3(Pixel* dst, const size_type stride,
     const int ty = threadIdx.y+1;
     // we have a 3x3 kernel, so our width of the shared memory (shp) is blockDim.x + 2!
     const int shp = blockDim.x + 2;
-    const int shc = (threadIdx.y+1) * shp + (threadIdx.x+1);
+    const int shc = ty*shp + tx;
     extern __shared__ float sh_in[];
 
     // Load input 3x3 block into shared memory
@@ -60,7 +59,7 @@ __global__ void  k_median3x3(Pixel* dst, const size_type stride,
         else if (ty == 1)
         {
           // left-upper corner (block)
-          src_tex.fetch(texel, x, y-1);
+          src_tex.fetch(texel, x, y-1.f);
           sh_in[shc-shp-1] = texel;
         }
 
@@ -252,7 +251,8 @@ __global__ void  k_median3x3(Pixel* dst, const size_type stride,
       maximum = fmax(maximum, vals[3]);
       maximum = fmax(maximum, vals[4]);
     }
-    dst[out_idx] = maximum;
+
+    dst[y*stride+x] = maximum;
   }
 }
 
@@ -262,11 +262,11 @@ void filterMedian3x3(ImageGpu<Pixel, pixel_type>* dst,
                      ImageGpu<Pixel, pixel_type>* src)
 {
   std::unique_ptr<Texture2D> src_tex =
-      src->genTexture(false,(src->bitDepth()<32) ? cudaFilterModePoint
-                                                 : cudaFilterModeLinear);
+      src->genTexture(false, (src->bitDepth()<32) ? cudaFilterModePoint
+                                                  : cudaFilterModeLinear);
 
-  std::uint16_t block_size = 16;
-  Fragmentation<16,16> frag(src->roi());
+  constexpr std::uint16_t block_size = 16;
+  Fragmentation<block_size, block_size> frag(src->roi());
   size_type shared_size = (block_size+2)*(block_size+2)*sizeof(float);
 
   Roi2u roi = src->roi();
@@ -276,7 +276,7 @@ void filterMedian3x3(ImageGpu<Pixel, pixel_type>* dst,
       <<<
         frag.dimGrid, frag.dimBlock, shared_size
       >>> (
-          dst->data(roi.x(), roi.y()), dst->stride(),
+          dst->data(), dst->stride(),
           roi.x(), roi.y(), roi.width(), roi.height(), *src_tex);
 
   IMP_CUDA_CHECK();

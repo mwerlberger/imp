@@ -15,14 +15,14 @@ template<typename Pixel, imp::PixelType pixel_type>
 class RofDenoising  : public imp::cu::VariationalDenoising
 {
 public:
-  typedef VariationalDenoising Base;
-  typedef imp::cu::ImageGpu<Pixel, pixel_type> Image;
-  typedef std::shared_ptr<Image> ImagePtr;
+  using Base = VariationalDenoising;
+  using Image = imp::cu::ImageGpu<Pixel, pixel_type>;
+  using ImagePtr = std::shared_ptr<Image>;
 
 public:
   RofDenoising() = default;
   virtual ~RofDenoising() = default;
-  using Base::VariationalDenoising;
+  using Base::Base;
 
   virtual __host__ void init(const Size2u& size) override;
   virtual __host__ void denoise(const std::shared_ptr<imp::ImageBase>& dst,

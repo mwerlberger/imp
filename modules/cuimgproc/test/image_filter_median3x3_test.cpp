@@ -11,8 +11,7 @@
 #include <imp/core/image_cv.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cuimgproc/cu_image_filter.cuh>
-
-#include "default_msg.h"
+#include <imp/io/opencv_bridge.hpp>
 
 
 void addImpulseNoise(cv::Mat& img, double perc)
@@ -54,10 +53,8 @@ int main(int /*argc*/, char** /*argv*/)
 
       imp::cu::filterMedian3x3(d_median_lena_8uC1.get(), d_lena_8uC1.get());
 
-
-      imp::ImageCv8uC1 h_median_lena_8uC1(*d_median_lena_8uC1);
-      cv::imshow("lena 8u", h1_lena_8uC1.cvMat());
-      cv::imshow("lena median 8u", h_median_lena_8uC1.cvMat());
+      imp::cu::ocvBridgeShow("lena 8u", *d_lena_8uC1);
+      imp::cu::ocvBridgeShow("lena median 8u", *d_median_lena_8uC1);
 
       cv::waitKey();
     }
@@ -67,8 +64,6 @@ int main(int /*argc*/, char** /*argv*/)
     std::cout << "[exception] " << e.what() << std::endl;
     assert(false);
   }
-
-  std::cout << imp::ok_msg << std::endl;
 
   return EXIT_SUCCESS;
 

@@ -9,7 +9,7 @@
 #include <imp/cucore/cu_exception.hpp>
 #include <imp/cucore/cu_memory_storage.cuh>
 #include <imp/core/image.hpp>
-#include <imp/cucore/cu_gpu_data.cuh>
+//#include <imp/cucore/cu_gpu_data.cuh>
 
 #include <imp/cucore/cu_pixel_conversion.hpp>
 
@@ -46,6 +46,7 @@ public:
   typedef imp::cu::MemoryDeallocator<Pixel> Deallocator;
   typedef Pixel pixel_t;
   typedef pixel_t* pixel_container_t;
+  using Ptr = typename std::shared_ptr<ImageGpu<Pixel,pixel_type>>;
 
 public:
   ImageGpu() = delete;
@@ -111,11 +112,9 @@ public:
   virtual Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
   virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
 
-  /** Returns a void* that is pointing to the beginning for the data buffer.
-   * @note this is mainly for convenience when calling cuda functions.
+  /** Returns a cuda vector* that is pointing to the beginning for the data buffer.
+   * @note this is mainly for convenience when calling cuda functions / kernels.
    */
-//  virtual void* cuData();
-
   auto cuData() -> decltype(imp::cu::toCudaVectorType(this->data()));
 
 
@@ -144,6 +143,11 @@ public:
       cudaTextureFilterMode filter_mode = cudaFilterModePoint,
       cudaTextureAddressMode address_mode = cudaAddressModeClamp,
       cudaTextureReadMode read_mode = cudaReadModeElementType);
+
+  // operators
+  /** Pixel-wise multiplication. */
+  ImageGpu<Pixel, pixel_type>& operator*=(const Pixel& rhs);
+
 
 protected:
   std::unique_ptr<pixel_t, Deallocator> data_; //!< the actual image data
@@ -179,6 +183,8 @@ typedef ImageGpu<imp::Pixel32fC1, imp::PixelType::i32fC1> ImageGpu32fC1;
 typedef ImageGpu<imp::Pixel32fC2, imp::PixelType::i32fC2> ImageGpu32fC2;
 typedef ImageGpu<imp::Pixel32fC3, imp::PixelType::i32fC3> ImageGpu32fC3;
 typedef ImageGpu<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageGpu32fC4;
+
+template <typename Pixel, imp::PixelType pixel_type> using ImageGpuPtr = typename ImageGpu<Pixel,pixel_type>::Ptr;
 
 } // namespace cu
 } // namespace imp

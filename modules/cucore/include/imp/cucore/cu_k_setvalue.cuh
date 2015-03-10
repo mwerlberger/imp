@@ -47,6 +47,19 @@ __global__ void k_setValue(Pixel* d_dst, size_t stride, const Pixel value,
   }
 }
 
+template<typename Pixel>
+__global__ void k_pixelWiseMul(Pixel* d_dst, size_t stride, const Pixel rhs,
+                               size_t width, size_t height)
+{
+  int x = blockIdx.x*blockDim.x + threadIdx.x;
+  int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+  if (x>=0 && y>=0 && x<width && y<height)
+  {
+    d_dst[y*stride+x] = d_dst[y*stride+x]*rhs;
+  }
+}
+
 
 } // namespace cu
 } // namespace imp
