@@ -1,5 +1,7 @@
 #include <imp/cudepth/stereo_ctf_warping_level_huber_l1.cuh>
 
+#include <cmath>
+
 #include <cuda_runtime.h>
 
 #include <imp/cudepth/variational_stereo_parameters.hpp>
@@ -13,10 +15,11 @@
 #include <imp/io/opencv_bridge.hpp>
 
 #include "cu_k_warped_gradients.cuh"
-#include "cu_k_stereo_ctf_warping_level_huber.cuh"
+#include "cu_k_stereo_ctf_warping_level_huber_l1.cuh"
 
 namespace imp {
 namespace cu {
+
 
 //------------------------------------------------------------------------------
 StereoCtFWarpingLevelHuberL1::~StereoCtFWarpingLevelHuberL1()
@@ -33,20 +36,16 @@ StereoCtFWarpingLevelHuberL1::StereoCtFWarpingLevelHuberL1(
   u_prev_.reset(new Image(size));
   u0_.reset(new Image(size));
   pu_.reset(new Dual(size));
-  q_.reset(new Image(size));
   ix_.reset(new Image(size));
   it_.reset(new Image(size));
-  xi_.reset(new Image(size));
 
   // and its textures
   u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
   u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
   u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
   pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
-  q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
   ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
   it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
-  xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
 }
 
 //------------------------------------------------------------------------------
@@ -56,7 +55,6 @@ void StereoCtFWarpingLevelHuberL1::init()
   u_prev_->setValue(0.0f);
   u0_->setValue(0.0f);
   pu_->setValue(0.0f);
-  q_->setValue(0.0f);
 }
 
 //------------------------------------------------------------------------------
@@ -92,7 +90,6 @@ void StereoCtFWarpingLevelHuberL1::init(const StereoCtFWarpingLevel& rhs)
   }
 
   imp::cu::resample(pu_.get(), from->pu_.get(), imp::InterpolationMode::linear, false);
-  imp::cu::resample(q_.get(), from->q_.get(), imp::InterpolationMode::linear, false);
 }
 
 //------------------------------------------------------------------------------
@@ -111,12 +108,10 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
 
 
   // constants
-  constexpr float tau = 0.95f;
-  constexpr float sigma = 0.95f;
+  constexpr float L = sqrt(8.f);
+  constexpr float tau = 1.f/L;
+  constexpr float sigma = 1.f/L;
   float lin_step = 0.5f;
-
-  // precond
-  constexpr float eta = 2.0f;
 
   // warping
   for (std::uint32_t warp = 0; warp < params_->ctf.warps; ++warp)
@@ -131,24 +126,16 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
         >>> (ix_->data(), it_->data(), ix_->stride(), ix_->width(), ix_->height(),
              *i1_tex_, *i2_tex_, *u0_tex_);
 
-    // compute preconditioner
-    k_preconditioner
-        <<<
-          frag.dimGrid, frag.dimBlock
-        >>> (xi_->data(), xi_->stride(), xi_->width(), xi_->height(),
-             params_->lambda, *ix_tex_);
-
-
     for (std::uint32_t iter = 0; iter < params_->ctf.iters; ++iter)
     {
       // dual kernel
       k_dualUpdate
           <<<
             frag.dimGrid, frag.dimBlock
-          >>> (pu_->data(), pu_->stride(), q_->data(), q_->stride(),
+          >>> (pu_->data(), pu_->stride(),
                size_.width(), size_.height(),
-               params_->lambda, params_->eps_u, sigma, eta,
-               *u_prev_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *it_tex_);
+               params_->eps_u, sigma,
+               *u_prev_tex_, *pu_tex_);
 
       // and primal kernel
       k_primalUpdate
@@ -157,7 +144,7 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
           >>> (u_->data(), u_prev_->data(), u_->stride(),
                size_.width(), size_.height(),
                params_->lambda, tau, lin_step,
-               *u_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *xi_tex_);
+               *u_tex_, *u0_tex_, *pu_tex_, *ix_tex_);
 
       if (iter % 50)
       {
