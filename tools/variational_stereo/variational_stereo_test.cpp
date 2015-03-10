@@ -39,9 +39,9 @@ int main(int /*argc*/, char** /*argv*/)
     stereo->parameters()->verbose = 0;
     stereo->parameters()->solver = imp::cu::StereoPDSolver::HuberL1;
     stereo->parameters()->ctf.scale_factor = 0.8f;
-    stereo->parameters()->ctf.iters = 30;
+    stereo->parameters()->ctf.iters = 300;
     stereo->parameters()->ctf.warps  = 10;
-//    stereo->parameters()->ctf.levels = 1;
+    stereo->parameters()->ctf.apply_median_filter = true;
 
     stereo->addImage(d_cones1_32fC1);
     stereo->addImage(d_cones2_32fC1);

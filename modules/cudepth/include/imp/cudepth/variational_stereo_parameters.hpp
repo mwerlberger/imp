@@ -25,7 +25,7 @@ struct VariationalStereoParameters
     size_type levels = UINT32_MAX;
     size_type coarsest_level = UINT32_MAX;
     size_type finest_level = 0;
-    bool apply_median_filter = false;
+    bool apply_median_filter = true;
   };
 
   CTF ctf;

@@ -52,11 +52,8 @@ StereoCtFWarpingLevelHuberL1::StereoCtFWarpingLevelHuberL1(
 void StereoCtFWarpingLevelHuberL1::init()
 {
   u_->setValue(0.0f);
-//  u_prev_->setValue(0.0f);
-//  u0_->setValue(0.0f);
   pu_->setValue(0.0f);
-//  ix_->setValue(0.0f);
-//  it_->setValue(0.0f);
+  // other variables are init and/or set when needed!
 }
 
 //------------------------------------------------------------------------------
@@ -66,14 +63,6 @@ void StereoCtFWarpingLevelHuberL1::init(const StereoCtFWarpingLevel& rhs)
       dynamic_cast<const StereoCtFWarpingLevelHuberL1*>(&rhs);
 
   float inv_sf = 1./params_->ctf.scale_factor; // >1 for adapting prolongated disparities
-
-  if (params_->verbose > 1)
-  {
-    std::cout << "inverse scale factor: " << inv_sf << std::endl;
-    imp::Pixel32fC1 min_val,max_val;
-    imp::cu::minMax(from->u_, min_val, max_val);
-    std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
-  }
 
   if(params_->ctf.apply_median_filter)
   {
@@ -85,12 +74,6 @@ void StereoCtFWarpingLevelHuberL1::init(const StereoCtFWarpingLevel& rhs)
     imp::cu::resample(u_.get(), from->u_.get(), imp::InterpolationMode::point, false);
   }
   *u_ *= inv_sf;
-  std::cout << "inv_sf: " << inv_sf << std::endl;
-  {
-    imp::Pixel32fC1 min_val,max_val;
-    imp::cu::minMax(u_, min_val, max_val);
-    std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
-  }
 
   imp::cu::resample(pu_.get(), from->pu_.get(), imp::InterpolationMode::point, false);
 }
@@ -103,17 +86,10 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
   // sanity check:
   // TODO
 
-  // image textures
   i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
   i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
-
-  // init
   u_->copyTo(*u_prev_);
-
-
-  // config
   Fragmentation<16,16> frag(size_);
-
 
   // constants
   const float L = std::sqrt(8.f);
@@ -127,7 +103,7 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
     if (params_->verbose > 5)
       std::cout << "SOLVING warp iteration of Huber-L1 stereo model." << std::endl;
 
-    if (params_->ctf.apply_median_filter)
+    if (false && params_->ctf.apply_median_filter)
     {
       imp::cu::filterMedian3x3(u0_.get(), u_.get());
     }
@@ -143,8 +119,11 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
         >>> (ix_->data(), it_->data(), ix_->stride(), ix_->width(), ix_->height(),
              *i1_tex_, *i2_tex_, *u0_tex_);
 
-    imp::cu::ocvBridgeShow("ix", *ix_, true);
-    imp::cu::ocvBridgeShow("it", *it_, true);
+    if (params_->verbose > 10)
+    {
+      imp::cu::ocvBridgeShow("ix", *ix_, true);
+      imp::cu::ocvBridgeShow("it", *it_, true);
+    }
 
     for (std::uint32_t iter = 0; iter < params_->ctf.iters; ++iter)
     {
