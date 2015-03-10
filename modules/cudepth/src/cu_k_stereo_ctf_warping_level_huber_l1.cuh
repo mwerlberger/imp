@@ -22,8 +22,8 @@ __device__ Pixel k_linearized_update(Pixel& d_srcdst, Texture2D& lin_tex,
                                      const int x, const int y)
 {
   Pixel lin = lin_tex.fetch<Pixel>(x, y);
-  d_srcdst = max(lin-lin_step,
-                 min(lin+lin_step, d_srcdst));
+  d_srcdst = imp::cu::max(lin-lin_step,
+                          imp::cu::min(lin+lin_step, d_srcdst));
   return d_srcdst;
 }
 
@@ -70,7 +70,7 @@ __global__ void k_primalUpdate(PPixel* d_u, PPixel* d_u_prev, const size_type st
     {
       u -= tau_lambda*ix;
     }
-    else if (std::abs(prox) <= tau_lambda)
+    else
     {
       u -= prox*ix;
     }

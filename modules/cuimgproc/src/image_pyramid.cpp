@@ -61,14 +61,6 @@ void ImagePyramid<Pixel,pixel_type>::init(const imp::Size2u& size)
   {
     scale_factors_.push_back(std::pow(scale_factor_, static_cast<float>(i)));
   }
-
-  std::cout << "img size: " << size.width() << "x" << size.height() << std::endl;
-  std::cout << "num_levels: " << num_levels_ << std::endl;
-  std::cout << " SCALE FACTORS:" << std::endl;
-  for (float sf : scale_factors_)
-  {
-    std::cout << sf << std::endl;
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -101,9 +93,6 @@ void ImagePyramid<Pixel,pixel_type>::updateImage(ImagePtr img_level0,
       throw imp::Exception("CPU reduction not yet implemented.", __FILE__, __FUNCTION__, __LINE__);
       levels_.push_back(img);
     }
-
-
-
   }
 
 }

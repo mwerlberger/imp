@@ -36,6 +36,7 @@ int main(int /*argc*/, char** /*argv*/)
     std::unique_ptr<imp::cu::VariationalStereo> stereo(
           new imp::cu::VariationalStereo());
 
+    stereo->parameters()->verbose = 0;
     stereo->parameters()->solver = imp::cu::StereoPDSolver::HuberL1;
     stereo->parameters()->ctf.scale_factor = 0.8f;
     stereo->parameters()->ctf.iters = 30;

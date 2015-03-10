@@ -48,6 +48,13 @@ void resample(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* src
   float sf_x = static_cast<float>(src_roi.width()) / static_cast<float>(dst_roi.width());
   float sf_y = static_cast<float>(src_roi.height()) / static_cast<float>(dst_roi.height());
 
+  cudaTextureFilterMode tex_filter_mode =
+      (interp == InterpolationMode::linear) ? cudaFilterModeLinear
+                                            : cudaFilterModePoint;
+  if (src->bitDepth() < 32)
+    tex_filter_mode = cudaFilterModePoint;
+
+  std::unique_ptr<Texture2D> src_tex;
   std::unique_ptr<ImageGpu<Pixel,pixel_type>> filtered;
   if (gauss_prefilter)
   {
@@ -60,22 +67,14 @@ void resample(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* src
       kernel_size++;
 
     imp::cu::filterGauss(filtered.get(), src, sigma, kernel_size);
+    src_tex = filtered->genTexture(false, tex_filter_mode);
+  }
+  else
+  {
+    src_tex = src->genTexture(false, tex_filter_mode);
   }
 
-  cudaTextureFilterMode tex_filter_mode = (interp == InterpolationMode::linear) ?
-        cudaFilterModeLinear : cudaFilterModePoint;
-  if (src->bitDepth() < 32)
-    tex_filter_mode = cudaFilterModePoint;
-
-  std::unique_ptr<Texture2D> src_tex;
-  if (filtered)
-    src_tex = filtered->genTexture(false, tex_filter_mode);
-  else
-    src_tex = src->genTexture(false, tex_filter_mode);
-
-
   Fragmentation<16,16> dst_frag(dst_roi.size());
-
 
   switch(interp)
   {

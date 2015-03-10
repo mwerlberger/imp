@@ -13,7 +13,7 @@
 #include <imp/io/opencv_bridge.hpp>
 
 #include "cu_k_warped_gradients.cuh"
-#include "cu_k_stereo_ctf_warping_level_huber.cuh"
+#include "cu_k_stereo_ctf_warping_level_precond_huber_l1.cuh"
 
 namespace imp {
 namespace cu {
@@ -159,7 +159,7 @@ void StereoCtFWarpingLevelPrecondHuberL1::solve(std::vector<ImagePtr> images)
                params_->lambda, tau, lin_step,
                *u_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *xi_tex_);
 
-      if (iter % 50)
+      if (params_->verbose > 5 && iter % 50)
       {
         imp::cu::ocvBridgeShow("current disp", *u_, true);
         imp::cu::ocvBridgeShow("current i0", *images.at(0), true);

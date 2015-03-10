@@ -60,8 +60,7 @@ bool StereoCtFWarping::ready()
       params_->ctf.coarsest_level < params_->ctf.finest_level ||
       images_.size() < 2 || // at least two images -> maybe adapt to the algorithm?
       image_pyramids_.front()->numLevels() < desired_num_levels ||
-      levels_.size() < desired_num_levels
-      )
+      levels_.size() < desired_num_levels)
   {
     return false;
   }
@@ -72,7 +71,7 @@ bool StereoCtFWarping::ready()
 void StereoCtFWarping::addImage(ImagePtr image)
 {
   // generate image pyramid
-  ImagePyramidPtr pyr(new ImagePyramid(image, params_->ctf.scale_factor));
+  ImagePyramidPtr pyr(new ImagePyramid(image, params_->ctf.scale_factor, 4));
 
   // update number of levels
   if (params_->ctf.levels > pyr->numLevels())

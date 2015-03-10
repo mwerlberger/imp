@@ -89,7 +89,7 @@ struct Texture2D : Texture
                                      float mul_x=1.0f, float mul_y=1.0f,
                                      float add_x=0.0f, float add_y=0.0f) const
   {
-    return tex2D<T>(tex_object, (x+.5f)*mul_x+add_x, (y+.5f)*mul_y+add_y);
+    return tex2D<T>(tex_object, x*mul_x+add_x+0.5f, y*mul_y+add_y+.5f);
   }
 
   /*

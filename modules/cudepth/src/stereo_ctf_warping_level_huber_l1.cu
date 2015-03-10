@@ -52,9 +52,11 @@ StereoCtFWarpingLevelHuberL1::StereoCtFWarpingLevelHuberL1(
 void StereoCtFWarpingLevelHuberL1::init()
 {
   u_->setValue(0.0f);
-  u_prev_->setValue(0.0f);
-  u0_->setValue(0.0f);
+//  u_prev_->setValue(0.0f);
+//  u0_->setValue(0.0f);
   pu_->setValue(0.0f);
+//  ix_->setValue(0.0f);
+//  it_->setValue(0.0f);
 }
 
 //------------------------------------------------------------------------------
@@ -65,8 +67,9 @@ void StereoCtFWarpingLevelHuberL1::init(const StereoCtFWarpingLevel& rhs)
 
   float inv_sf = 1./params_->ctf.scale_factor; // >1 for adapting prolongated disparities
 
-  std::cout << "inv_sf: " << inv_sf << std::endl;
+  if (params_->verbose > 1)
   {
+    std::cout << "inverse scale factor: " << inv_sf << std::endl;
     imp::Pixel32fC1 min_val,max_val;
     imp::cu::minMax(from->u_, min_val, max_val);
     std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
@@ -163,7 +166,7 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
                params_->lambda, tau, lin_step,
                *u_tex_, *u0_tex_, *pu_tex_, *ix_tex_, *it_tex_);
 
-      if (iter % 50)
+      if (params_->verbose > 5 && iter % 50)
       {
         imp::cu::ocvBridgeShow("current disp", *u_, true);
         imp::cu::ocvBridgeShow("current i0", *images.at(0), true);
