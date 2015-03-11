@@ -81,7 +81,8 @@ void StereoCtFWarpingLevelHuberL1::init(const StereoCtFWarpingLevel& rhs)
 //------------------------------------------------------------------------------
 void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
 {
-  std::cout << "StereoCtFWarpingLevelPrecondHuberL1: solving level " << level_ << " with " << images.size() << " images" << std::endl;
+  if (params_->verbose > 0)
+    std::cout << "StereoCtFWarpingLevelPrecondHuberL1: solving level " << level_ << " with " << images.size() << " images" << std::endl;
 
   // sanity check:
   // TODO
@@ -103,14 +104,7 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
     if (params_->verbose > 5)
       std::cout << "SOLVING warp iteration of Huber-L1 stereo model." << std::endl;
 
-    if (false && params_->ctf.apply_median_filter)
-    {
-      imp::cu::filterMedian3x3(u0_.get(), u_.get());
-    }
-    else
-    {
-      u_->copyTo(*u0_);
-    }
+    u_->copyTo(*u0_);
 
     // compute warped spatial and temporal gradients
     k_warpedGradients
@@ -118,12 +112,6 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
           frag.dimGrid, frag.dimBlock
         >>> (ix_->data(), it_->data(), ix_->stride(), ix_->width(), ix_->height(),
              *i1_tex_, *i2_tex_, *u0_tex_);
-
-    if (params_->verbose > 10)
-    {
-      imp::cu::ocvBridgeShow("ix", *ix_, true);
-      imp::cu::ocvBridgeShow("it", *it_, true);
-    }
 
     for (std::uint32_t iter = 0; iter < params_->ctf.iters; ++iter)
     {
@@ -148,12 +136,11 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
       if (params_->verbose > 5 && iter % 50)
       {
         imp::cu::ocvBridgeShow("current disp", *u_, true);
-        imp::cu::ocvBridgeShow("current i0", *images.at(0), true);
         cv::waitKey(1);
       }
 
     } // iters
-//    lin_step /= 1.2f;
+    lin_step /= 1.2f;
 
   } // warps
   IMP_CUDA_CHECK();

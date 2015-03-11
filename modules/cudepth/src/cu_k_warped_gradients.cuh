@@ -27,8 +27,6 @@ __global__ void k_warpedGradients(Pixel* ix, Pixel* it, size_type stride,
     float bd = .5f;
     if ((wx < bd) || (x < bd) || (wx > width-bd-1) || (x > width-bd-1) ||
         (y<bd) || (y>height-bd-1))
-      /// @todo (MWE) check border handling!
-      //if (wx<1 || wx>width-2)
     {
       ix[c] =  0.0f;
       it[c] =  0.0f;
