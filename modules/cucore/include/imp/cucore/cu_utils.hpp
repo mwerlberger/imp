@@ -53,7 +53,7 @@ T max(const T& a, const T& b, bool check_inf_or_nan=true)
 
 template<typename T>
 __host__ __device__ __forceinline__
-T&& sqr(const T& a) {return a*a;}
+T sqr(const T& a) {return a*a;}
 
 
 /** Fragmentation for gpu / cuda grid blocks

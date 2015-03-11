@@ -63,6 +63,7 @@ set(HEADERS
   include/imp/cudepth/stereo_ctf_warping_level.hpp
   include/imp/cudepth/stereo_ctf_warping_level_huber_l1.cuh
   include/imp/cudepth/stereo_ctf_warping_level_precond_huber_l1.cuh
+  include/imp/cudepth/stereo_ctf_warping_level_precond_huber_l1_weighted.cuh
   )
 
 set(SOURCES
@@ -78,6 +79,9 @@ set(CU_SRCS
 
   src/cu_k_stereo_ctf_warping_level_precond_huber_l1.cuh
   src/stereo_ctf_warping_level_precond_huber_l1.cu
+
+  src/cu_k_stereo_ctf_warping_level_precond_huber_l1_weighted.cuh
+  src/stereo_ctf_warping_level_precond_huber_l1_weighted.cu
   )
 
 cuda_compile(CU_OBJ ${CU_SRCS})

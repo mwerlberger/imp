@@ -110,7 +110,8 @@ __global__ void k_dualUpdate(DPixel* d_pu, const size_type stride_pu,
     float q = q_tex.fetch<float>(x, y);
     float ix = ix_tex.fetch<float>(x, y);
     float it = it_tex.fetch<float>(x, y);
-    q = q + lambda*sigma_by_eta * (it + ix*(u_prev-u0));
+    const float sigma_q = sigma / max(1e-6f, lambda * fabs(ix));
+    q = q + lambda*sigma_q * (it + ix*(u_prev-u0));
     d_q[y*stride_q+x] = max(-1.f, min(1.f, q));
   }
 }

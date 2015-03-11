@@ -57,6 +57,7 @@ endif()
 set(HEADERS
   include/imp/cuimgproc/cu_image_transform.cuh
   include/imp/cuimgproc/cu_image_filter.cuh
+  include/imp/cuimgproc/edge_detectors.cuh
   include/imp/cuimgproc/image_pyramid.hpp
   include/imp/cuimgproc/cu_variational_denoising.cuh
   include/imp/cuimgproc/cu_rof_denoising.cuh
@@ -68,11 +69,12 @@ set(SOURCES
 
 set(CU_SRCS
   src/image_transform/cu_reduce_impl.cu
+  src/cu_image_transform.cu
   src/image_filter/cu_median3x3_impl.cu
   src/image_filter/cu_gauss_impl.cu
-
-  src/cu_image_transform.cu
   src/cu_image_filter.cu
+  src/edge_detectors/natural_edges_impl.cu
+  src/edge_detectors.cu
   src/cu_variational_denoising.cu
   src/cu_rof_denoising.cu
   )
@@ -101,6 +103,9 @@ target_link_libraries(image_filter_median3x3_test ${PROJECT_NAME} ${OpenCV_LIBS}
 
 cs_add_executable(image_filter_gauss_test test/image_filter_gauss_test.cpp)
 target_link_libraries(image_filter_gauss_test ${PROJECT_NAME} ${OpenCV_LIBS})
+
+cs_add_executable(natural_edges_test test/natural_edges_test.cpp)
+target_link_libraries(natural_edges_test ${PROJECT_NAME} ${OpenCV_LIBS})
 
 #cs_add_executable(example_executable src/main.cc)
 #target_link_libraries(example_executable example_library)

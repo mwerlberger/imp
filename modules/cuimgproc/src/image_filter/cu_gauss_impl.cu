@@ -199,7 +199,7 @@ void filterGauss(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* 
 
 //==============================================================================
 //
-// template instantiations for all our image types
+// template instantiations for all our ima ge types
 //
 
 template void filterGauss(ImageGpu8uC1* dst, ImageGpu8uC1* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu8uC1> tmp_imp);

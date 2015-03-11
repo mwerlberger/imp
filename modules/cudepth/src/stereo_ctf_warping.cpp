@@ -4,6 +4,7 @@
 
 #include <imp/cudepth/stereo_ctf_warping_level_huber_l1.cuh>
 #include <imp/cudepth/stereo_ctf_warping_level_precond_huber_l1.cuh>
+#include <imp/cudepth/stereo_ctf_warping_level_precond_huber_l1_weighted.cuh>
 #include <imp/cucore/cu_utils.hpp>
 
 namespace imp {
@@ -43,6 +44,9 @@ void StereoCtFWarping::init()
     break;
     case StereoPDSolver::PrecondHuberL1:
       levels_.emplace_back(new StereoCtFWarpingLevelPrecondHuberL1(params_, sz, i));
+    break;
+    case StereoPDSolver::PrecondHuberL1Weighted:
+      levels_.emplace_back(new StereoCtFWarpingLevelPrecondHuberL1Weighted(params_, sz, i));
     break;
     }
 
