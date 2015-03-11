@@ -26,7 +26,7 @@ __global__ void k_preconditioner(Pixel* xi, size_type stride,
   {
     Pixel ix;
     ix_tex.fetch(ix, x, y);
-    xi[y*stride+x] = 4 + lambda*lambda * ix*ix;
+    xi[y*stride+x] = 4 + sqr(lambda) * sqr(ix);
   }
 }
 
@@ -102,7 +102,6 @@ __global__ void k_dualUpdate(DPixel* d_pu, const size_type stride_pu,
     float2 pu = pu_tex.fetch<float2>(x,y);
     pu  = (pu + sigma_by_eta*du) / (1.f + sigma_by_eta*eps_u);
     pu = pu / max(1.0f, length(pu));
-
     d_pu[y*stride_pu+x] = {pu.x, pu.y};
 
     // update q

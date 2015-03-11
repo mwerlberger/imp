@@ -53,10 +53,9 @@ StereoCtFWarpingLevelPrecondHuberL1::StereoCtFWarpingLevelPrecondHuberL1(
 void StereoCtFWarpingLevelPrecondHuberL1::init()
 {
   u_->setValue(0.0f);
-  u_prev_->setValue(0.0f);
-  u0_->setValue(0.0f);
   pu_->setValue(0.0f);
   q_->setValue(0.0f);
+  // other variables are init and/or set when needed!
 }
 
 //------------------------------------------------------------------------------
@@ -67,38 +66,41 @@ void StereoCtFWarpingLevelPrecondHuberL1::init(const StereoCtFWarpingLevel& rhs)
 
   float inv_sf = 1./params_->ctf.scale_factor; // >1 for adapting prolongated disparities
 
-  std::cout << "inv_sf: " << inv_sf << std::endl;
-  {
-    imp::Pixel32fC1 min_val,max_val;
-    imp::cu::minMax(from->u_, min_val, max_val);
-    std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
-  }
-
   if(params_->ctf.apply_median_filter)
   {
     imp::cu::filterMedian3x3(from->u0_.get(), from->u_.get());
-    imp::cu::resample(u_.get(), from->u0_.get(), imp::InterpolationMode::linear, false);
+    imp::cu::resample(u_.get(), from->u0_.get(), imp::InterpolationMode::point, false);
   }
   else
   {
-    imp::cu::resample(u_.get(), from->u_.get(), imp::InterpolationMode::linear, false);
+    imp::cu::resample(u_.get(), from->u_.get(), imp::InterpolationMode::point, false);
   }
   *u_ *= inv_sf;
-  std::cout << "inv_sf: " << inv_sf << std::endl;
+
+  imp::cu::resample(pu_.get(), from->pu_.get(), imp::InterpolationMode::point, false);
+  imp::cu::resample(q_.get(), from->q_.get(), imp::InterpolationMode::point, false);
+
+  if (params_->verbose > 2)
   {
+    std::cout << "inv_sf: " << inv_sf << std::endl;
     imp::Pixel32fC1 min_val,max_val;
     imp::cu::minMax(u_, min_val, max_val);
     std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
   }
-
-  imp::cu::resample(pu_.get(), from->pu_.get(), imp::InterpolationMode::linear, false);
-  imp::cu::resample(q_.get(), from->q_.get(), imp::InterpolationMode::linear, false);
+  if (params_->verbose > 4)
+  {
+    imp::cu::ocvBridgeShow("prev. level disp", *from->u_, true);
+    imp::cu::ocvBridgeShow("prev. medfilt level disp", *from->u0_, true);
+    imp::cu::ocvBridgeShow("cir. level disp", *u_, true);
+    cv::waitKey(0);
+  }
 }
 
 //------------------------------------------------------------------------------
 void StereoCtFWarpingLevelPrecondHuberL1::solve(std::vector<ImagePtr> images)
 {
-  std::cout << "StereoCtFWarpingLevelPrecondHuberL1: solving level " << level_ << " with " << images.size() << " images" << std::endl;
+  if (params_->verbose > 0)
+    std::cout << "StereoCtFWarpingLevelPrecondHuberL1: solving level " << level_ << " with " << images.size() << " images" << std::endl;
 
   // sanity check:
   // TODO
@@ -106,9 +108,8 @@ void StereoCtFWarpingLevelPrecondHuberL1::solve(std::vector<ImagePtr> images)
   // image textures
   i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
   i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
-
+  u_->copyTo(*u_prev_);
   Fragmentation<16,16> frag(size_);
-
 
   // constants
   constexpr float tau = 0.95f;
@@ -121,7 +122,9 @@ void StereoCtFWarpingLevelPrecondHuberL1::solve(std::vector<ImagePtr> images)
   // warping
   for (std::uint32_t warp = 0; warp < params_->ctf.warps; ++warp)
   {
-    std::cout << "warp" << std::endl;
+    if (params_->verbose > 5)
+      std::cout << "SOLVING warp iteration of Huber-L1 stereo model." << std::endl;
+
     u_->copyTo(*u0_);
 
     // compute warped spatial and temporal gradients
@@ -141,7 +144,7 @@ void StereoCtFWarpingLevelPrecondHuberL1::solve(std::vector<ImagePtr> images)
 
     for (std::uint32_t iter = 0; iter < params_->ctf.iters; ++iter)
     {
-      // dual kernel
+      // dual update kernel
       k_dualUpdate
           <<<
             frag.dimGrid, frag.dimBlock
@@ -150,7 +153,7 @@ void StereoCtFWarpingLevelPrecondHuberL1::solve(std::vector<ImagePtr> images)
                params_->lambda, params_->eps_u, sigma, eta,
                *u_prev_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *it_tex_);
 
-      // and primal kernel
+      // and primal update kernel
       k_primalUpdate
           <<<
             frag.dimGrid, frag.dimBlock
@@ -162,7 +165,6 @@ void StereoCtFWarpingLevelPrecondHuberL1::solve(std::vector<ImagePtr> images)
       if (params_->verbose > 5 && iter % 50)
       {
         imp::cu::ocvBridgeShow("current disp", *u_, true);
-        imp::cu::ocvBridgeShow("current i0", *images.at(0), true);
         cv::waitKey(1);
       }
 
