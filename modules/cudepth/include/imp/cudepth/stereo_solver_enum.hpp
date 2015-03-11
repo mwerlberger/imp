@@ -7,7 +7,8 @@ namespace cu {
 enum class StereoPDSolver
 {
   HuberL1, //!< Huber regularization + pointwise L1 intensity matching costs
-  PrecondHuberL1 //!< Huber regularization + pointwise L1 intensity matching costs
+  PrecondHuberL1, //!< Huber regularization + pointwise L1 intensity matching costs
+  PrecondHuberL1Weighted //!< weighted Huber regularization + pointwise L1 intensity matching costs
 };
 
 } // namespace cu
