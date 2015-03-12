@@ -116,6 +116,7 @@ public:
    * @note this is mainly for convenience when calling cuda functions / kernels.
    */
   auto cuData() -> decltype(imp::cu::toCudaVectorType(this->data()));
+  auto cuData() const -> decltype(imp::cu::toConstCudaVectorType(this->data()));
 
 
   /**
@@ -142,7 +143,7 @@ public:
       bool normalized_coords = false,
       cudaTextureFilterMode filter_mode = cudaFilterModePoint,
       cudaTextureAddressMode address_mode = cudaAddressModeClamp,
-      cudaTextureReadMode read_mode = cudaReadModeElementType);
+      cudaTextureReadMode read_mode = cudaReadModeElementType) const;
 
   // operators
   /** Pixel-wise multiplication. */

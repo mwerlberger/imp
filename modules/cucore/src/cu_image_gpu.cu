@@ -194,6 +194,12 @@ auto ImageGpu<Pixel, pixel_type>::cuData() -> decltype(imp::cu::toCudaVectorType
   return imp::cu::toCudaVectorType(this->data());
 }
 
+template<typename Pixel, imp::PixelType pixel_type>
+auto ImageGpu<Pixel, pixel_type>::cuData() const -> decltype(imp::cu::toConstCudaVectorType(this->data()))
+{
+  return imp::cu::toConstCudaVectorType(this->data());
+}
+
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
@@ -219,9 +225,12 @@ template<typename Pixel, imp::PixelType pixel_type>
 std::unique_ptr<Texture2D> ImageGpu<Pixel, pixel_type>::genTexture(bool normalized_coords,
                                                                    cudaTextureFilterMode filter_mode,
                                                                    cudaTextureAddressMode address_mode,
-                                                                   cudaTextureReadMode read_mode)
+                                                                   cudaTextureReadMode read_mode) const
 {
-  return std::unique_ptr<Texture2D>(new Texture2D(this->cuData(), this->pitch(),
+  // don't blame me for doing a const_cast as binding textures needs a void* but
+  // we want genTexture to be a const function as we don't modify anything here!
+  const void* cuBuffer = reinterpret_cast<const void*>(this->cuData());
+  return std::unique_ptr<Texture2D>(new Texture2D(const_cast<void*>(cuBuffer), this->pitch(),
                                                   channel_format_desc_, this->size(),
                                                   normalized_coords, filter_mode,
                                                   address_mode, read_mode));

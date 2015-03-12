@@ -89,7 +89,7 @@ target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
 ###
 ### command line tools/tests
 ###
-find_package( OpenCV REQUIRED core highgui)
+find_package( OpenCV REQUIRED core highgui imgproc)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 cs_add_executable(cu_rof_denoising_test test/cu_rof_denoising_test.cpp)

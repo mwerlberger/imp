@@ -10,8 +10,8 @@ namespace cu {
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void filterMedian3x3(ImageGpu<Pixel, pixel_type>* dst,
-                     ImageGpu<Pixel, pixel_type>* src);
+void filterMedian3x3(ImageGpu<Pixel, pixel_type>& dst,
+                     const ImageGpu<Pixel, pixel_type>& src);
 
 /* ***************************************************************************/
 template<typename Pixel, imp::PixelType pixel_type>

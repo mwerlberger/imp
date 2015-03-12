@@ -54,9 +54,12 @@ else()
 endif()
 
 
+find_package( OpenCV REQUIRED core highgui imgproc)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
 
 cs_add_executable(variational_stereo_test variational_stereo_test.cpp)
-target_link_libraries(variational_stereo_test)
+target_link_libraries(variational_stereo_test ${OpenCV_LIBS})
 
 
 cs_install()

@@ -8,6 +8,10 @@
 namespace imp {
 namespace cu {
 
+/*
+ * Pixel arrays to cuda vector types
+ */
+
 //
 // uchar
 //
@@ -88,7 +92,92 @@ float4* __host__ __device__ toCudaVectorType(imp::Pixel32fC4* buffer)
   return reinterpret_cast<float4*>(buffer);
 }
 
+/*
+ * Pixel arrays to CONST cuda vector types
+ */
 
+//
+// uchar
+//
+const uchar1* __host__ __device__ toConstCudaVectorType(const imp::Pixel8uC1* buffer)
+{
+  return reinterpret_cast<const uchar1*>(buffer);
+}
+const uchar2* __host__ __device__ toConstCudaVectorType(const imp::Pixel8uC2* buffer)
+{
+  return reinterpret_cast<const uchar2*>(buffer);
+}
+const uchar3* __host__ __device__ toConstCudaVectorType(const imp::Pixel8uC3* buffer)
+{
+  return reinterpret_cast<const uchar3*>(buffer);
+}
+const uchar4* __host__ __device__ toConstCudaVectorType(const imp::Pixel8uC4* buffer)
+{
+  return reinterpret_cast<const uchar4*>(buffer);
+}
+
+//
+// ushort
+//
+const ushort1* __host__ __device__ toConstCudaVectorType(const imp::Pixel16uC1* buffer)
+{
+  return reinterpret_cast<const ushort1*>(buffer);
+}
+const ushort2* __host__ __device__ toConstCudaVectorType(const imp::Pixel16uC2* buffer)
+{
+  return reinterpret_cast<const ushort2*>(buffer);
+}
+const ushort3* __host__ __device__ toConstCudaVectorType(const imp::Pixel16uC3* buffer)
+{
+  return reinterpret_cast<const ushort3*>(buffer);
+}
+const ushort4* __host__ __device__ toConstCudaVectorType(const imp::Pixel16uC4* buffer)
+{
+  return reinterpret_cast<const ushort4*>(buffer);
+}
+
+//
+// int
+//
+const int1* __host__ __device__ toConstCudaVectorType(const imp::Pixel32sC1* buffer)
+{
+  return reinterpret_cast<const int1*>(buffer);
+}
+const int2* __host__ __device__ toConstCudaVectorType(const imp::Pixel32sC2* buffer)
+{
+  return reinterpret_cast<const int2*>(buffer);
+}
+const int3* __host__ __device__ toConstCudaVectorType(const imp::Pixel32sC3* buffer)
+{
+  return reinterpret_cast<const int3*>(buffer);
+}
+const int4* __host__ __device__ toConstCudaVectorType(const imp::Pixel32sC4* buffer)
+{
+  return reinterpret_cast<const int4*>(buffer);
+}
+
+//
+// float
+//
+const float1* __host__ __device__ toConstCudaVectorType(const imp::Pixel32fC1* buffer)
+{
+  return reinterpret_cast<const float1*>(buffer);
+}
+const float2* __host__ __device__ toConstCudaVectorType(const imp::Pixel32fC2* buffer)
+{
+  return reinterpret_cast<const float2*>(buffer);
+}
+const float3* __host__ __device__ toConstCudaVectorType(const imp::Pixel32fC3* buffer)
+{
+  return reinterpret_cast<const float3*>(buffer);
+}
+const float4* __host__ __device__ toConstCudaVectorType(const imp::Pixel32fC4* buffer)
+{
+  return reinterpret_cast<const float4*>(buffer);
+}
+
+
+//-----------------------------------------------------------------------------
 cudaChannelFormatDesc toCudaChannelFormatDesc(imp::PixelType pixel_type)
 {
   switch (pixel_type)
