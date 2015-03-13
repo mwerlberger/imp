@@ -145,9 +145,9 @@ __global__ void k_gauss(Pixel* dst, const size_type stride,
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void filterGauss(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* src,
+void filterGauss(ImageGpu<Pixel, pixel_type>* dst, const ImageGpu<Pixel, pixel_type>* src,
                  float sigma, int kernel_size,
-                 std::shared_ptr<ImageGpu<Pixel, pixel_type>> tmp_imp)
+                 ImageGpuPtr<Pixel, pixel_type> tmp_img)
 //                 cudaStream_t stream);
 {
   if (kernel_size == 0)
@@ -158,9 +158,9 @@ void filterGauss(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* 
   Roi2u roi = src->roi();
 
   // temporary variable for filtering (separabel kernel!)
-  if (!tmp_imp || src->size() != tmp_imp->size());
+  if (!tmp_img || src->size() != tmp_img->size());
   {
-    tmp_imp.reset(new ImageGpu<Pixel, pixel_type>(roi.size()));
+    tmp_img.reset(new ImageGpu<Pixel, pixel_type>(roi.size()));
   }
 
  if (dst->roi().size() != roi.size())
@@ -179,12 +179,12 @@ void filterGauss(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* 
   k_gauss
       <<<
         frag.dimGrid, frag.dimBlock//, 0, stream
-      >>> (tmp_imp->data(), tmp_imp->stride(),
-           roi.x(), roi.y(), tmp_imp->width(), tmp_imp->height(),
+      >>> (tmp_img->data(), tmp_img->stride(),
+           roi.x(), roi.y(), tmp_img->width(), tmp_img->height(),
            *src_tex, /*sigma, */kernel_size, c0, c1, false);
 
   // Convolve vertically
-  src_tex = tmp_imp->genTexture(false,(tmp_imp->bitDepth()<32) ? cudaFilterModePoint
+  src_tex = tmp_img->genTexture(false,(tmp_img->bitDepth()<32) ? cudaFilterModePoint
                                                                : cudaFilterModeLinear);
   k_gauss
       <<<
@@ -202,21 +202,21 @@ void filterGauss(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* 
 // template instantiations for all our ima ge types
 //
 
-template void filterGauss(ImageGpu8uC1* dst, ImageGpu8uC1* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu8uC1> tmp_imp);
-template void filterGauss(ImageGpu8uC2* dst, ImageGpu8uC2* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu8uC2> tmp_imp);
-template void filterGauss(ImageGpu8uC4* dst, ImageGpu8uC4* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu8uC4> tmp_imp);
+template void filterGauss(ImageGpu8uC1* dst, const ImageGpu8uC1* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu8uC1> tmp_imp);
+template void filterGauss(ImageGpu8uC2* dst, const ImageGpu8uC2* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu8uC2> tmp_imp);
+template void filterGauss(ImageGpu8uC4* dst, const ImageGpu8uC4* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu8uC4> tmp_imp);
 
-template void filterGauss(ImageGpu16uC1* dst, ImageGpu16uC1* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu16uC1> tmp_imp);
-template void filterGauss(ImageGpu16uC2* dst, ImageGpu16uC2* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu16uC2> tmp_imp);
-template void filterGauss(ImageGpu16uC4* dst, ImageGpu16uC4* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu16uC4> tmp_imp);
+template void filterGauss(ImageGpu16uC1* dst, const ImageGpu16uC1* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu16uC1> tmp_imp);
+template void filterGauss(ImageGpu16uC2* dst, const ImageGpu16uC2* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu16uC2> tmp_imp);
+template void filterGauss(ImageGpu16uC4* dst, const ImageGpu16uC4* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu16uC4> tmp_imp);
 
-template void filterGauss(ImageGpu32sC1* dst, ImageGpu32sC1* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu32sC1> tmp_imp);
-template void filterGauss(ImageGpu32sC2* dst, ImageGpu32sC2* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu32sC2> tmp_imp);
-template void filterGauss(ImageGpu32sC4* dst, ImageGpu32sC4* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu32sC4> tmp_imp);
+template void filterGauss(ImageGpu32sC1* dst, const ImageGpu32sC1* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu32sC1> tmp_imp);
+template void filterGauss(ImageGpu32sC2* dst, const ImageGpu32sC2* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu32sC2> tmp_imp);
+template void filterGauss(ImageGpu32sC4* dst, const ImageGpu32sC4* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu32sC4> tmp_imp);
 
-template void filterGauss(ImageGpu32fC1* dst, ImageGpu32fC1* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu32fC1> tmp_imp);
-template void filterGauss(ImageGpu32fC2* dst, ImageGpu32fC2* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu32fC2> tmp_imp);
-template void filterGauss(ImageGpu32fC4* dst, ImageGpu32fC4* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu32fC4> tmp_imp);
+template void filterGauss(ImageGpu32fC1* dst, const ImageGpu32fC1* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu32fC1> tmp_imp);
+template void filterGauss(ImageGpu32fC2* dst, const ImageGpu32fC2* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu32fC2> tmp_imp);
+template void filterGauss(ImageGpu32fC4* dst, const ImageGpu32fC4* src, float sigma, int kernel_size, std::shared_ptr<ImageGpu32fC4> tmp_imp);
 
 
 

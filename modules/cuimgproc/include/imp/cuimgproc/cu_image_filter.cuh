@@ -9,26 +9,22 @@ namespace imp {
 namespace cu {
 
 //-----------------------------------------------------------------------------
+/** filterMedian3x3 performs a median filter on a 3x3 window
+ *
+ */
 template<typename Pixel, imp::PixelType pixel_type>
 void filterMedian3x3(ImageGpu<Pixel, pixel_type>& dst,
                      const ImageGpu<Pixel, pixel_type>& src);
 
-/* ***************************************************************************/
+//-----------------------------------------------------------------------------
+/** filterGauss performs a gaussian smoothing filter on the given input image \a src
+ *
+ */
 template<typename Pixel, imp::PixelType pixel_type>
-void filterGauss(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* src,
+void filterGauss(ImageGpu<Pixel, pixel_type>* dst, const ImageGpu<Pixel, pixel_type>* src,
                  float sigma, int kernel_size=0,
-                 std::shared_ptr<ImageGpu<Pixel, pixel_type>> temp=nullptr);
+                 ImageGpuPtr<Pixel, pixel_type> tmp_img=nullptr);
 //                 cudaStream_t stream);
-
-////// Gaussian filter; Volume; 32-bit; 4-channel
-////template<typename Pixel, imp::PixelType pixel_type>
-////void filterGauss(const iu::ImageGpu_32f_C4* src, iu::ImageGpu_32f_C4* dst,
-////                    float sigma, int kernel_size);
-
-////// Gaussian filter; Volume; 32-bit; 1-channel
-////template<typename Pixel, imp::PixelType pixel_type>
-////void filterGauss(const iu::VolumeGpu_32f_C1* src, iu::VolumeGpu_32f_C1* dst,
-////                   float sigma, int kernel_size);
 
 ///* ***************************************************************************/
 //template<typename Pixel, imp::PixelType pixel_type>

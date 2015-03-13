@@ -19,7 +19,7 @@ namespace cu {
 
 //------------------------------------------------------------------------------
 template<typename Pixel, typename T>
-__device__ __forceinline__ void calcNaturalEdge(Pixel1<T>& g,
+__device__ __forceinline__ void d_calcNaturalEdge(Pixel1<T>& g,
     const Pixel& dx, const Pixel& dy, const float alpha, const float q)
 {
   float norm = sqrtf(sqr(dx) + sqr(dy));
@@ -28,7 +28,7 @@ __device__ __forceinline__ void calcNaturalEdge(Pixel1<T>& g,
 
 //------------------------------------------------------------------------------
 template<typename Pixel, typename T>
-__device__ __forceinline__ void calcNaturalEdge(Pixel2<T>& g,
+__device__ __forceinline__ void d_calcNaturalEdge(Pixel2<T>& g,
     const Pixel& dx, const Pixel& dy, const float alpha, const float q)
 {
   g.x = max(1e-3f, exp(-alpha*pow(dx,q)));
@@ -37,7 +37,7 @@ __device__ __forceinline__ void calcNaturalEdge(Pixel2<T>& g,
 
 //------------------------------------------------------------------------------
 template<typename Pixel, typename T>
-__device__ __forceinline__ void calcNaturalEdge(Pixel3<T>& g,
+__device__ __forceinline__ void d_calcNaturalEdge(Pixel3<T>& g,
     const Pixel& dx, const Pixel& dy, const float alpha, const float q)
 {
   float norm = sqrtf(sqr(dx) + sqr(dy));
@@ -84,28 +84,34 @@ __global__ void k_naturalEdges(EdgePixel *g, const size_type stride,
     if (y >= height-1)
       dy = 0.0f;
 
-//    EdgePixel& gc = g[y*stride+x];
-    calcNaturalEdge(g[y*stride+x], dx, dy, alpha, q);
+    d_calcNaturalEdge(g[y*stride+x], dx, dy, alpha, q);
   }
 }
 
 //------------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void naturalEdges(ImageGpu<Pixel, pixel_type>* dst,
-                  ImageGpu<Pixel, pixel_type>* src,
-                  float sigma, float alpha, float q)
+void naturalEdges(ImageGpu<Pixel, pixel_type>& dst,
+                  const ImageGpu<Pixel, pixel_type>& src,
+                  float sigma, float alpha, float q,
+                  ImageGpuPtr<Pixel, pixel_type> tmp_denoised)
 {
-  Roi2u roi = src->roi();
-  dst->setRoi(roi);
+  Roi2u roi = src.roi();
+  dst.setRoi(roi);
 
-  std::unique_ptr<ImageGpu<Pixel,pixel_type>> denoised(
-        new ImageGpu<Pixel,pixel_type>(src->size()));
-  denoised->setRoi(roi);
+  // temporary variable for filtering (separabel kernel!)
+  if (!tmp_denoised || src.size() != tmp_denoised->size())
+  {
+    tmp_denoised.reset(new ImageGpu<Pixel, pixel_type>(roi.size()));
+  }
+  else
+  {
+    tmp_denoised->setRoi(roi);
+  }
 
-  imp::cu::filterGauss(denoised.get(), src, sigma);
+  imp::cu::filterGauss(tmp_denoised.get(), &src, sigma);
 
   std::unique_ptr<Texture2D> src_tex =
-      denoised->genTexture(false, (denoised->bitDepth()<32) ? cudaFilterModePoint
+      tmp_denoised->genTexture(false, (tmp_denoised->bitDepth()<32) ? cudaFilterModePoint
                                                             : cudaFilterModeLinear);
 
   constexpr std::uint16_t block_size = 16;
@@ -115,7 +121,7 @@ void naturalEdges(ImageGpu<Pixel, pixel_type>* dst,
       <<<
         frag.dimGrid, frag.dimBlock
       >>> (
-          dst->data(), dst->stride(),
+          dst.data(), dst.stride(),
           alpha, q,
           roi.x(), roi.y(), roi.width(), roi.height(), *src_tex);
 
@@ -128,12 +134,12 @@ void naturalEdges(ImageGpu<Pixel, pixel_type>* dst,
 // template instantiations for all our image types
 //
 
-template void naturalEdges(ImageGpu8uC1* dst, ImageGpu8uC1* src, float sigma, float alpha, float q);
+template void naturalEdges(ImageGpu8uC1& dst, const ImageGpu8uC1& src, float sigma, float alpha, float q, ImageGpu8uC1::Ptr tmp_denoised);
 //template void naturalEdges(ImageGpu8uC2* dst, ImageGpu8uC1* src, float sigma, float alpha, float q);
 //template void naturalEdges(ImageGpu8uC3* dst, ImageGpu8uC1* src, float sigma, float alpha, float q);
 //template void naturalEdges(ImageGpu8uC4* dst, ImageGpu8uC1* src, float sigma, float alpha, float q);
 
-template void naturalEdges(ImageGpu32fC1* dst, ImageGpu32fC1* src, float sigma, float alpha, float q);
+template void naturalEdges(ImageGpu32fC1& dst, const ImageGpu32fC1& src, float sigma, float alpha, float q, std::shared_ptr<ImageGpu32fC1> tmp_denoised);
 //template void naturalEdges(ImageGpu32fC2* dst, ImageGpu32fC1* src, float sigma, float alpha, float q);
 //template void naturalEdges(ImageGpu32fC3* dst, ImageGpu32fC1* src, float sigma, float alpha, float q);
 //template void naturalEdges(ImageGpu32fC4* dst, ImageGpu32fC1* src, float sigma, float alpha, float q);

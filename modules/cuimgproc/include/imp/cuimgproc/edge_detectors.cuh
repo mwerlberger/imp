@@ -14,11 +14,14 @@ namespace cu {
  * magnitude (EdgePixel == Pixel1), its direction (EdgePixel == Pixel2) or a
  * 3-dimensional tensor (EdgePixel == Pixel3 or Pixel4).
  *
+ * @todo (MWE) add a tmp image as input param so we don't have to allocate memory
+ *             for the internal denoising all the time.
  */
 template<typename Pixel, imp::PixelType pixel_type>
-void naturalEdges(ImageGpu<Pixel, pixel_type>* dst,
-                  ImageGpu<Pixel, pixel_type>* src,
-                  float sigma=1.0f, float alpha=10.f, float q=.5f);
+void naturalEdges(ImageGpu<Pixel, pixel_type>& dst,
+                  const ImageGpu<Pixel, pixel_type>& src,
+                  float sigma=1.0f, float alpha=10.f, float q=.5f,
+                  ImageGpuPtr<Pixel, pixel_type> tmp_denoised=nullptr);
 
 } // namespace cu
 } // namespace imp

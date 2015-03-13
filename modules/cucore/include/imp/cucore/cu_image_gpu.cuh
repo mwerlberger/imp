@@ -185,7 +185,7 @@ typedef ImageGpu<imp::Pixel32fC2, imp::PixelType::i32fC2> ImageGpu32fC2;
 typedef ImageGpu<imp::Pixel32fC3, imp::PixelType::i32fC3> ImageGpu32fC3;
 typedef ImageGpu<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageGpu32fC4;
 
-template <typename Pixel, imp::PixelType pixel_type> using ImageGpuPtr = typename ImageGpu<Pixel,pixel_type>::Ptr;
+template <typename Pixel, imp::PixelType pixel_type> using ImageGpuPtr = typename std::shared_ptr<ImageGpu<Pixel,pixel_type>>;
 
 } // namespace cu
 } // namespace imp
