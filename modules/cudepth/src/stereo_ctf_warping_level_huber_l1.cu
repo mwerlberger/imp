@@ -66,7 +66,7 @@ void StereoCtFWarpingLevelHuberL1::init(const StereoCtFWarpingLevel& rhs)
 
   if(params_->ctf.apply_median_filter)
   {
-    imp::cu::filterMedian3x3(from->u0_.get(), from->u_.get());
+    imp::cu::filterMedian3x3(*from->u0_, *from->u_);
     imp::cu::resample(u_.get(), from->u0_.get(), imp::InterpolationMode::point, false);
   }
   else
