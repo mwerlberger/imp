@@ -8,6 +8,7 @@
 #include <cuda_runtime.h>
 
 #include <imp/core/types.hpp>
+#include <imp/core/pixel.hpp>
 #include <imp/core/roi.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cucore/cu_utils.hpp>
@@ -258,25 +259,25 @@ __global__ void  k_median3x3(Pixel* dst, const size_type stride,
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void filterMedian3x3(ImageGpu<Pixel, pixel_type>* dst,
-                     ImageGpu<Pixel, pixel_type>* src)
+void filterMedian3x3(ImageGpu<Pixel, pixel_type>& dst,
+                     const ImageGpu<Pixel, pixel_type>& src)
 {
   std::unique_ptr<Texture2D> src_tex =
-      src->genTexture(false, (src->bitDepth()<32) ? cudaFilterModePoint
+      src.genTexture(false, (src.bitDepth()<32) ? cudaFilterModePoint
                                                   : cudaFilterModeLinear);
 
   constexpr std::uint16_t block_size = 16;
-  Fragmentation<block_size, block_size> frag(src->roi());
+  Fragmentation<block_size, block_size> frag(src.roi());
   size_type shared_size = (block_size+2)*(block_size+2)*sizeof(float);
 
-  Roi2u roi = src->roi();
-  dst->setRoi(roi);
+  Roi2u roi = src.roi();
+  dst.setRoi(roi);
 
   k_median3x3
       <<<
         frag.dimGrid, frag.dimBlock, shared_size
       >>> (
-          dst->data(), dst->stride(),
+          dst.data(), dst.stride(),
           roi.x(), roi.y(), roi.width(), roi.height(), *src_tex);
 
   IMP_CUDA_CHECK();
@@ -287,21 +288,21 @@ void filterMedian3x3(ImageGpu<Pixel, pixel_type>* dst,
 // template instantiations for all our image types
 //
 
-template void filterMedian3x3(ImageGpu8uC1* dst, ImageGpu8uC1* src);
-template void filterMedian3x3(ImageGpu8uC2* dst, ImageGpu8uC2* src);
-template void filterMedian3x3(ImageGpu8uC4* dst, ImageGpu8uC4* src);
+template void filterMedian3x3(ImageGpu8uC1& dst, const ImageGpu8uC1& src);
+template void filterMedian3x3(ImageGpu8uC2& dst, const ImageGpu8uC2& src);
+template void filterMedian3x3(ImageGpu8uC4& dst, const ImageGpu8uC4& src);
 
-template void filterMedian3x3(ImageGpu16uC1* dst, ImageGpu16uC1* src);
-template void filterMedian3x3(ImageGpu16uC2* dst, ImageGpu16uC2* src);
-template void filterMedian3x3(ImageGpu16uC4* dst, ImageGpu16uC4* src);
+template void filterMedian3x3(ImageGpu16uC1& dst, const ImageGpu16uC1& src);
+template void filterMedian3x3(ImageGpu16uC2& dst, const ImageGpu16uC2& src);
+template void filterMedian3x3(ImageGpu16uC4& dst, const ImageGpu16uC4& src);
 
-template void filterMedian3x3(ImageGpu32sC1* dst, ImageGpu32sC1* src);
-template void filterMedian3x3(ImageGpu32sC2* dst, ImageGpu32sC2* src);
-template void filterMedian3x3(ImageGpu32sC4* dst, ImageGpu32sC4* src);
+template void filterMedian3x3(ImageGpu32sC1& dst, const ImageGpu32sC1& src);
+template void filterMedian3x3(ImageGpu32sC2& dst, const ImageGpu32sC2& src);
+template void filterMedian3x3(ImageGpu32sC4& dst, const ImageGpu32sC4& src);
 
-template void filterMedian3x3(ImageGpu32fC1* dst, ImageGpu32fC1* src);
-template void filterMedian3x3(ImageGpu32fC2* dst, ImageGpu32fC2* src);
-template void filterMedian3x3(ImageGpu32fC4* dst, ImageGpu32fC4* src);
+template void filterMedian3x3(ImageGpu32fC1& dst, const ImageGpu32fC1& src);
+template void filterMedian3x3(ImageGpu32fC2& dst, const ImageGpu32fC2& src);
+template void filterMedian3x3(ImageGpu32fC4& dst, const ImageGpu32fC4& src);
 
 
 } // namespace cu

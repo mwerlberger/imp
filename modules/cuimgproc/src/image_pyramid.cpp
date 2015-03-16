@@ -83,7 +83,7 @@ void ImagePyramid<Pixel,pixel_type>::updateImage(ImagePtr img_level0,
     {
       ImageGpuPtr img = std::make_shared<imp::cu::ImageGpu<Pixel,pixel_type>>(sz);
       ImageGpuPtr prev = std::dynamic_pointer_cast<ImageGpu>(levels_.back());
-      imp::cu::reduce(img.get(), prev.get(), interp, true);
+      imp::cu::reduce(*img, *prev, interp, true);
       levels_.push_back(img);
     }
     else

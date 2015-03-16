@@ -24,7 +24,7 @@ int main(int /*argc*/, char** /*argv*/)
     std::unique_ptr<imp::cu::ImageGpu32fC1> edges(
           new imp::cu::ImageGpu32fC1(*im));
 
-    imp::cu::naturalEdges(edges.get(), im.get(), 1.f, 10.f, 0.7f);
+    imp::cu::naturalEdges(*edges, *im, 1.f, 10.f, 0.7f);
 
     imp::cu::ocvBridgeShow("image", *im);
     imp::cu::ocvBridgeShow("edges", *edges, true);

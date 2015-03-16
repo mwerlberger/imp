@@ -74,17 +74,17 @@ void StereoCtFWarpingLevelPrecondHuberL1Weighted::init(const StereoCtFWarpingLev
 
   if(params_->ctf.apply_median_filter)
   {
-    imp::cu::filterMedian3x3(from->u0_.get(), from->u_.get());
-    imp::cu::resample(u_.get(), from->u0_.get(), imp::InterpolationMode::point, false);
+    imp::cu::filterMedian3x3(*from->u0_, *from->u_);
+    imp::cu::resample(*u_, *from->u0_, imp::InterpolationMode::point, false);
   }
   else
   {
-    imp::cu::resample(u_.get(), from->u_.get(), imp::InterpolationMode::point, false);
+    imp::cu::resample(*u_, *from->u_, imp::InterpolationMode::point, false);
   }
   *u_ *= inv_sf;
 
-  imp::cu::resample(pu_.get(), from->pu_.get(), imp::InterpolationMode::point, false);
-  imp::cu::resample(q_.get(), from->q_.get(), imp::InterpolationMode::point, false);
+  imp::cu::resample(*pu_, *from->pu_, imp::InterpolationMode::point, false);
+  imp::cu::resample(*q_, *from->q_, imp::InterpolationMode::point, false);
 
   if (params_->verbose > 2)
   {
@@ -118,7 +118,7 @@ void StereoCtFWarpingLevelPrecondHuberL1Weighted::solve(std::vector<ImagePtr> im
   u_->copyTo(*u_prev_);
 
   // compute edge weight
-  naturalEdges(g_.get(), images.at(0).get(),
+  naturalEdges(*g_, *images.at(0),
                params_->edge_sigma, params_->edge_alpha, params_->edge_q);
   if (true || params_->verbose > 5)
   {

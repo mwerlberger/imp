@@ -116,6 +116,7 @@ public:
    * @note this is mainly for convenience when calling cuda functions / kernels.
    */
   auto cuData() -> decltype(imp::cu::toCudaVectorType(this->data()));
+  auto cuData() const -> decltype(imp::cu::toConstCudaVectorType(this->data()));
 
 
   /**
@@ -142,7 +143,7 @@ public:
       bool normalized_coords = false,
       cudaTextureFilterMode filter_mode = cudaFilterModePoint,
       cudaTextureAddressMode address_mode = cudaAddressModeClamp,
-      cudaTextureReadMode read_mode = cudaReadModeElementType);
+      cudaTextureReadMode read_mode = cudaReadModeElementType) const;
 
   // operators
   /** Pixel-wise multiplication. */
@@ -184,7 +185,7 @@ typedef ImageGpu<imp::Pixel32fC2, imp::PixelType::i32fC2> ImageGpu32fC2;
 typedef ImageGpu<imp::Pixel32fC3, imp::PixelType::i32fC3> ImageGpu32fC3;
 typedef ImageGpu<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageGpu32fC4;
 
-template <typename Pixel, imp::PixelType pixel_type> using ImageGpuPtr = typename ImageGpu<Pixel,pixel_type>::Ptr;
+template <typename Pixel, imp::PixelType pixel_type> using ImageGpuPtr = typename std::shared_ptr<ImageGpu<Pixel,pixel_type>>;
 
 } // namespace cu
 } // namespace imp

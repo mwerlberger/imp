@@ -51,7 +51,7 @@ int main(int /*argc*/, char** /*argv*/)
       std::unique_ptr<imp::cu::ImageGpu8uC1> d_median_lena_8uC1(
             new imp::cu::ImageGpu8uC1(d_lena_8uC1->size()));
 
-      imp::cu::filterMedian3x3(d_median_lena_8uC1.get(), d_lena_8uC1.get());
+      imp::cu::filterMedian3x3(*d_median_lena_8uC1, *d_lena_8uC1);
 
       imp::cu::ocvBridgeShow("lena 8u", *d_lena_8uC1);
       imp::cu::ocvBridgeShow("lena median 8u", *d_median_lena_8uC1);

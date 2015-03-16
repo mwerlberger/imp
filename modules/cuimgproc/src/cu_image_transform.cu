@@ -2,7 +2,7 @@
 
 // image reduction
 #include "image_transform/cu_reduce_impl.cu"
-#include "image_transform/cu_prolongate_impl.cu"
+#include "image_transform/cu_resample_impl.cu"
 
 namespace imp {
 namespace cu {

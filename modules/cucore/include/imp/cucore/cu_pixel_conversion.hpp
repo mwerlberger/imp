@@ -40,6 +40,39 @@ float2* __host__ __device__ toCudaVectorType(imp::Pixel32fC2* buffer) __attribut
 float3* __host__ __device__ toCudaVectorType(imp::Pixel32fC3* buffer) __attribute__ ((unused));
 float4* __host__ __device__ toCudaVectorType(imp::Pixel32fC4* buffer) __attribute__ ((unused));
 
+//------------------------------------------------------------------------------
+//
+// uchar
+//
+const uchar1* __host__ __device__ toConstCudaVectorType(const imp::Pixel8uC1* buffer) __attribute__ ((unused));
+const uchar2* __host__ __device__ toConstCudaVectorType(const imp::Pixel8uC2* buffer) __attribute__ ((unused));
+const uchar3* __host__ __device__ toConstCudaVectorType(const imp::Pixel8uC3* buffer) __attribute__ ((unused));
+const uchar4* __host__ __device__ toConstCudaVectorType(const imp::Pixel8uC4* buffer) __attribute__ ((unused));
+
+//
+// ushort
+//
+const ushort1* __host__ __device__ toConstCudaVectorType(const imp::Pixel16uC1* buffer) __attribute__ ((unused));
+const ushort2* __host__ __device__ toConstCudaVectorType(const imp::Pixel16uC2* buffer) __attribute__ ((unused));
+const ushort3* __host__ __device__ toConstCudaVectorType(const imp::Pixel16uC3* buffer) __attribute__ ((unused));
+const ushort4* __host__ __device__ toConstCudaVectorType(const imp::Pixel16uC4* buffer) __attribute__ ((unused));
+
+//
+// int
+//
+const int1* __host__ __device__ toConstCudaVectorType(const imp::Pixel32sC1* buffer) __attribute__ ((unused));
+const int2* __host__ __device__ toConstCudaVectorType(const imp::Pixel32sC2* buffer) __attribute__ ((unused));
+const int3* __host__ __device__ toConstCudaVectorType(const imp::Pixel32sC3* buffer) __attribute__ ((unused));
+const int4* __host__ __device__ toConstCudaVectorType(const imp::Pixel32sC4* buffer) __attribute__ ((unused));
+
+//
+// float
+//
+const float1* __host__ __device__ toConstCudaVectorType(const imp::Pixel32fC1* buffer) __attribute__ ((unused));
+const float2* __host__ __device__ toConstCudaVectorType(const imp::Pixel32fC2* buffer) __attribute__ ((unused));
+const float3* __host__ __device__ toConstCudaVectorType(const imp::Pixel32fC3* buffer) __attribute__ ((unused));
+const float4* __host__ __device__ toConstCudaVectorType(const imp::Pixel32fC4* buffer) __attribute__ ((unused));
+
 
 cudaChannelFormatDesc toCudaChannelFormatDesc(imp::PixelType pixel_type) __attribute__ ((unused));
 

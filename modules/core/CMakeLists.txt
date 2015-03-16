@@ -10,13 +10,6 @@ add_definitions(-Werror)
 add_definitions(-g)
 add_definitions(-fPIC)
 
-# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++0x -D__STRICT_ANSI__")
-
-find_package( OpenCV REQUIRED core)
-include_directories(${OpenCV_INCLUDE_DIRES})
-
-#include_directories(${Boost_INCLUDE_DIRS})
-
 set(HEADERS
   include/imp/core/types.hpp
   include/imp/core/exception.hpp
@@ -45,7 +38,7 @@ set(SOURCES
 cs_add_library(${PROJECT_NAME}
    ${SOURCES} ${HEADERS}
    )
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+target_link_libraries(${PROJECT_NAME})
 
 ###
 ### GTESTS
