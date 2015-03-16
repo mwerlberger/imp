@@ -118,7 +118,7 @@ void StereoCtFWarpingLevelPrecondHuberL1Weighted::solve(std::vector<ImagePtr> im
   u_->copyTo(*u_prev_);
 
   // compute edge weight
-  naturalEdges(g_.get(), images.at(0).get(),
+  naturalEdges(*g_, *images.at(0),
                params_->edge_sigma, params_->edge_alpha, params_->edge_q);
   if (true || params_->verbose > 5)
   {
