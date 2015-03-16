@@ -24,6 +24,7 @@ set(SOURCES
 
 set(CU_SRCS
   src/image_transform/cu_reduce_impl.cu
+  src/image_transform/cu_resample_impl.cu
   src/cu_image_transform.cu
   src/image_filter/cu_median3x3_impl.cu
   src/image_filter/cu_gauss_impl.cu

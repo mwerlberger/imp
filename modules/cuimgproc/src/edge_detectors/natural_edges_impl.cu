@@ -108,7 +108,7 @@ void naturalEdges(ImageGpu<Pixel, pixel_type>& dst,
     tmp_denoised->setRoi(roi);
   }
 
-  imp::cu::filterGauss(tmp_denoised.get(), &src, sigma);
+  imp::cu::filterGauss(*tmp_denoised, src, sigma);
 
   std::unique_ptr<Texture2D> src_tex =
       tmp_denoised->genTexture(false, (tmp_denoised->bitDepth()<32) ? cudaFilterModePoint

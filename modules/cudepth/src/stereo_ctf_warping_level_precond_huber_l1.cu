@@ -69,16 +69,16 @@ void StereoCtFWarpingLevelPrecondHuberL1::init(const StereoCtFWarpingLevel& rhs)
   if(params_->ctf.apply_median_filter)
   {
     imp::cu::filterMedian3x3(*from->u0_, *from->u_);
-    imp::cu::resample(u_.get(), from->u0_.get(), imp::InterpolationMode::point, false);
+    imp::cu::resample(*u_, *from->u0_, imp::InterpolationMode::point, false);
   }
   else
   {
-    imp::cu::resample(u_.get(), from->u_.get(), imp::InterpolationMode::point, false);
+    imp::cu::resample(*u_, *from->u_, imp::InterpolationMode::point, false);
   }
   *u_ *= inv_sf;
 
-  imp::cu::resample(pu_.get(), from->pu_.get(), imp::InterpolationMode::point, false);
-  imp::cu::resample(q_.get(), from->q_.get(), imp::InterpolationMode::point, false);
+  imp::cu::resample(*pu_, *from->pu_, imp::InterpolationMode::point, false);
+  imp::cu::resample(*q_, *from->q_, imp::InterpolationMode::point, false);
 
   if (params_->verbose > 2)
   {

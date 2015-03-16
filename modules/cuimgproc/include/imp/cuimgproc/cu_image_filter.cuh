@@ -18,10 +18,15 @@ void filterMedian3x3(ImageGpu<Pixel, pixel_type>& dst,
 
 //-----------------------------------------------------------------------------
 /** filterGauss performs a gaussian smoothing filter on the given input image \a src
- *
+ * @param[out] dst Gauss filtered result image
+ * @pram[in] src Input image on the GPU (CUDA memory)
+ * @param[in] sigma Gaussian kernel standard deviation
+ * @param[in] kernel_size Gaussian filter kernel size. (if default (0) computed automatically)
+ * @param[inout] tmp_image optinal temp. image to avoid memory reallocation for multiple calls of the Gaussian filtering
  */
 template<typename Pixel, imp::PixelType pixel_type>
-void filterGauss(ImageGpu<Pixel, pixel_type>* dst, const ImageGpu<Pixel, pixel_type>* src,
+void filterGauss(ImageGpu<Pixel, pixel_type>& dst,
+                 const ImageGpu<Pixel, pixel_type>& src,
                  float sigma, int kernel_size=0,
                  ImageGpuPtr<Pixel, pixel_type> tmp_img=nullptr);
 //                 cudaStream_t stream);

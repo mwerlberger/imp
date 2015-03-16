@@ -1,26 +1,3 @@
-/*
- * Copyright (c) ICG. All rights reserved.
- *
- * Institute for Computer Graphics and Vision
- * Graz University of Technology / Austria
- *
- *
- * This software is distributed WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE.  See the above copyright notices for more information.
- *
- *
- * Project     : ImageUtilities
- * Module      : Geometric Transformation
- * Class       : none
- * Language    : CUDA
- * Description : Implementation of CUDA wrappers for remap operations
- *
- * Author     : Manuel Werlberger
- * EMail      : werlberger@icg.tugraz.at
- *
- */
-
 #include <iostream>
 #include <iudefs.h>
 #include <iucutil.h>
@@ -344,12 +321,12 @@ void cuRemap(iu::ImageGpu_8u_C1* src,
 
 
 __global__ void cuRemapAffineKernel_32f_C1(float *dst, int stride, int width, int height,
-                                           float a1, float a2, float a3, float a4, 
+                                           float a1, float a2, float a3, float a4,
                                            float b1, float  b2)
 {
   const int x = blockIdx.x*blockDim.x + threadIdx.x;
   const int y = blockIdx.y*blockDim.y + threadIdx.y;
-  
+
   // texutre coordinates
   const float xx = x;
   const float yy = y;
@@ -382,7 +359,7 @@ void cuRemapAffine(iu::ImageGpu_32f_C1* src,
   dim3 dimBlock(block_size, block_size);
   dim3 dimGridOut(iu::divUp(dst->width(), dimBlock.x), iu::divUp(dst->height(), dimBlock.y));
 
-  cuRemapAffineKernel_32f_C1 <<< dimGridOut, dimBlock >>> 
+  cuRemapAffineKernel_32f_C1 <<< dimGridOut, dimBlock >>>
     (dst->data(), dst->stride(), dst->width(), dst->height(),
      a1, a2, a3, a4, b1, b2);
 

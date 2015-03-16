@@ -28,7 +28,7 @@ int main(int /*argc*/, char** /*argv*/)
       std::unique_ptr<imp::cu::ImageGpu8uC1> d_gauss_lena_8uC1(
             new imp::cu::ImageGpu8uC1(d_lena_8uC1->size()));
 
-      imp::cu::filterGauss(d_gauss_lena_8uC1.get(), d_lena_8uC1.get(), 10.0);
+      imp::cu::filterGauss(*d_gauss_lena_8uC1, *d_lena_8uC1, 10.0);
 
 
       imp::ImageCv8uC1 h_gauss_lena_8uC1(*d_gauss_lena_8uC1);
@@ -51,7 +51,7 @@ int main(int /*argc*/, char** /*argv*/)
       std::unique_ptr<imp::cu::ImageGpu32fC1> d_gauss_lena_32fC1(
             new imp::cu::ImageGpu32fC1(d_lena_32fC1->size()));
 
-      imp::cu::filterGauss(d_gauss_lena_32fC1.get(), d_lena_32fC1.get(), 10.0);
+      imp::cu::filterGauss(*d_gauss_lena_32fC1, *d_lena_32fC1, 10.0);
 
 
       imp::ImageCv32fC1 h_gauss_lena_32fC1(*d_gauss_lena_32fC1);
