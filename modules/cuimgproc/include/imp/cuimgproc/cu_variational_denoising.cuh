@@ -13,6 +13,13 @@ namespace cu {
 // forward declarations
 struct Texture2D;
 
+struct VariationalDenoisingParams
+{
+  float lambda = 10.f;
+  std::uint16_t max_iter = 100;
+  bool verbose = false;
+};
+
 /**
  * @brief The VariationalDenoising class
  */
@@ -31,8 +38,15 @@ public:
   virtual __host__ void denoise(const std::shared_ptr<imp::ImageBase>& dst,
                                 const std::shared_ptr<imp::ImageBase>& src) = 0;
 
-  __forceinline__ __host__ __device__ dim3 dimGrid() {return fragmentation_->dimGrid;}
-  __forceinline__ __host__ __device__ dim3 dimBlock() {return fragmentation_->dimBlock;}
+  __forceinline__ __host__ __device__
+  dim3 dimGrid() {return fragmentation_->dimGrid;}
+
+  __forceinline__ __host__ __device__
+  dim3 dimBlock() {return fragmentation_->dimBlock;}
+
+  __forceinline__ __host__ __device__
+  virtual VariationalDenoisingParams& params() { return params_; }
+
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const VariationalDenoising& rhs);
@@ -61,12 +75,7 @@ protected:
   CuFragPtr fragmentation_;
 
   // algorithm parameters
-  struct Parameters
-  {
-    float lambda = 10.f;
-    std::uint16_t max_iter = 100;
-    bool verbose = false;
-  } params_;
+  VariationalDenoisingParams params_;
 
 };
 

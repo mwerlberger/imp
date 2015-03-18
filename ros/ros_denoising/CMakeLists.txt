@@ -16,6 +16,14 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -Wall -g")
 cs_add_executable(rof src/rof.cpp)
 target_link_libraries(rof  ${CUDA_LIBRARIES})
 
+
+#
+# configs
+#
+generate_dynamic_reconfigure_options(cfg/rof.cfg)
+add_dependencies(rof ${PROJECT_NAME}_gencfg)
+
+
 #
 # exports
 #
