@@ -13,11 +13,8 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -Wall -g")
 # binaries
 #
 
-cs_add_executable(ros_denoising_rof
-   src/rof.cpp
-)
-target_link_libraries(ros_denoising_rof  ${CUDA_LIBRARIES})
-
+cs_add_executable(rof src/rof.cpp)
+target_link_libraries(rof  ${CUDA_LIBRARIES})
 
 #
 # exports
