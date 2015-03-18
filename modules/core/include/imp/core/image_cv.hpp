@@ -59,16 +59,16 @@ public:
   virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
-  virtual size_type pitch() const override { return m_mat.step; }
+  virtual size_type pitch() const override { return mat_.step; }
 
   /** Returns the bit depth of the opencv matrix elements. */
-  virtual std::uint8_t bitDepth() const override {return 8*m_mat.elemSize(); }
+  virtual std::uint8_t bitDepth() const override {return 8*mat_.elemSize(); }
 
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
   virtual bool isGpuMemory() const override { return false; }
 
 protected:
-  cv::Mat m_mat;
+  cv::Mat mat_;
 };
 
 //-----------------------------------------------------------------------------

@@ -12,7 +12,7 @@ namespace imp {
 template<typename Pixel, imp::PixelType pixel_type>
 ImageCv<Pixel, pixel_type>::ImageCv(std::uint32_t width, std::uint32_t height)
   : Base(width, height)
-  , m_mat(height, width, imp::pixelTypeToCv(pixel_type))
+  , mat_(height, width, imp::pixelTypeToCv(pixel_type))
 {
 }
 
@@ -20,7 +20,7 @@ ImageCv<Pixel, pixel_type>::ImageCv(std::uint32_t width, std::uint32_t height)
 template<typename Pixel, imp::PixelType pixel_type>
 ImageCv<Pixel, pixel_type>::ImageCv(const imp::Size2u& size)
   : Base(size)
-  , m_mat(size[1], size[0], imp::pixelTypeToCv(pixel_type))
+  , mat_(size[1], size[0], imp::pixelTypeToCv(pixel_type))
 {
 }
 
@@ -28,7 +28,7 @@ ImageCv<Pixel, pixel_type>::ImageCv(const imp::Size2u& size)
 template<typename Pixel, imp::PixelType pixel_type>
 ImageCv<Pixel, pixel_type>::ImageCv(const ImageCv<Pixel, pixel_type>& from)
   : Base(from)
-  , m_mat(from.cvMat())
+  , mat_(from.cvMat())
 {
 }
 
@@ -36,7 +36,7 @@ ImageCv<Pixel, pixel_type>::ImageCv(const ImageCv<Pixel, pixel_type>& from)
 template<typename Pixel, imp::PixelType pixel_type>
 ImageCv<Pixel, pixel_type>::ImageCv(const Image<Pixel, pixel_type>& from)
   : Base(from)
-  , m_mat(from.height(), from.width(), imp::pixelTypeToCv(pixel_type))
+  , mat_(from.height(), from.width(), imp::pixelTypeToCv(pixel_type))
 {
   from.copyTo(*this);
 }
@@ -46,9 +46,9 @@ template<typename Pixel, imp::PixelType pixel_type>
 ImageCv<Pixel, pixel_type>
 ::ImageCv(cv::Mat mat, imp::PixelOrder pixel_order)
   : Base(mat.cols, mat.rows, pixel_order)
-  , m_mat(mat)
+  , mat_(mat)
 {
-  if (this->pixelType() != imp::pixelTypeFromCv(m_mat.type()))
+  if (this->pixelType() != imp::pixelTypeFromCv(mat_.type()))
   {
     throw imp::Exception("OpenCV pixel type does not match to the internally used one.",
                          __FILE__, __FUNCTION__, __LINE__);
@@ -131,14 +131,14 @@ ImageCv<Pixel, pixel_type>
 template<typename Pixel, imp::PixelType pixel_type>
 cv::Mat& ImageCv<Pixel, pixel_type>::cvMat()
 {
-  return m_mat;
+  return mat_;
 }
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 const cv::Mat& ImageCv<Pixel, pixel_type>::cvMat() const
 {
-  return m_mat;
+  return mat_;
 }
 
 //-----------------------------------------------------------------------------
@@ -150,7 +150,7 @@ Pixel* ImageCv<Pixel, pixel_type>::data(
   {
     throw imp::Exception("Request starting offset is outside of the image.", __FILE__, __FUNCTION__, __LINE__);
   }
-  pixel_container_t buffer = (pixel_container_t)m_mat.data;
+  pixel_container_t buffer = (pixel_container_t)mat_.data;
   return &buffer[oy*this->stride() + ox];
 }
 
@@ -164,7 +164,7 @@ const Pixel* ImageCv<Pixel, pixel_type>::data(
     throw imp::Exception("Request starting offset is outside of the image.", __FILE__, __FUNCTION__, __LINE__);
   }
 
-  pixel_container_t buffer = (pixel_container_t)m_mat.data;
+  pixel_container_t buffer = (pixel_container_t)mat_.data;
   return reinterpret_cast<const pixel_container_t>(&buffer[oy*this->stride() + ox]);
 }
 

@@ -1,0 +1,115 @@
+#include <ros/ros.h>
+#include <image_transport/image_transport.h>
+
+#include <opencv2/highgui/highgui.hpp>
+#include <cv_bridge/cv_bridge.h>
+
+#include <imp/core/image_cv.hpp>
+#include <imp/cuimgproc/cu_rof_denoising.cuh>
+#include <imp/io/opencv_bridge.hpp>
+
+#include <sensor_msgs/Image.h>
+
+
+namespace imp {
+
+class RofNode
+{
+public:
+  RofNode() = default;
+  ~RofNode() = default;
+
+  void imgCb(const sensor_msgs::ImageConstPtr& img_msg);
+
+private:
+  imp::cu::RofDenoising8uC1::Ptr rof_;
+  imp::ImageCv8uC1::Ptr cv_img_;
+  imp::ImageCv8uC1::Ptr cv_denoised_;
+  imp::cu::ImageGpu8uC1::Ptr img_;
+  imp::cu::ImageGpu8uC1::Ptr denoised_;
+};
+
+void RofNode::imgCb(const sensor_msgs::ImageConstPtr &img_msg)
+{
+  cv::Mat mat;
+  try
+  {
+    mat = cv_bridge::toCvShare(img_msg, "mono8")->image;
+  }
+  catch (std::exception& e)
+  {
+    ROS_ERROR("Could not extract image from input message. Exception: %s", e.what());
+    return;
+  }
+
+  imp::Size2u im_size((std::uint32_t)mat.cols, (std::uint32_t)mat.rows);
+  ROS_INFO("im_size: %dx%d", im_size.width(), im_size.height());
+
+  if (!rof_ || !cv_img_ || !img_ || im_size != cv_img_->size())
+  {
+    rof_.reset(new imp::cu::RofDenoising8uC1());
+    //rof_->init(im_size);
+    cv_img_.reset(new imp::ImageCv8uC1(im_size));
+    cv_denoised_.reset(new imp::ImageCv8uC1(im_size));
+    img_.reset(new imp::cu::ImageGpu8uC1(im_size));
+    denoised_.reset(new imp::cu::ImageGpu8uC1(im_size));
+  }
+
+  cv_img_->cvMat() = mat;
+  img_->copyFrom(*cv_img_);
+  rof_->denoise(denoised_, img_);
+  denoised_->copyTo(*cv_denoised_);
+  cv::imshow("input", cv_img_->cvMat());
+  cv::imshow("denoised", cv_denoised_->cvMat());
+  cv::waitKey(30);
+}
+
+}
+
+void imageCallback(const sensor_msgs::ImageConstPtr& msg)
+{
+  ROS_INFO("hmmmmmmmm");
+  try
+  {
+    cv::imshow("view", cv_bridge::toCvShare(msg, "mono8")->image);
+    cv::waitKey(30);
+  }
+  catch (std::exception& e)
+  {
+    ROS_ERROR("Could not process existing input image. Exception: %s", e.what());
+  }
+}
+
+int main(int argc, char **argv)
+{
+  ros::init(argc, argv, "imp_rof_denoising");
+  ros::NodeHandle nh;
+  ROS_INFO("testing the RofNode");
+
+  imp::RofNode rof_node;
+  image_transport::ImageTransport it(nh);
+  image_transport::Subscriber sub = it.subscribe("bluefox_ros_node/image_raw", 1, &imp::RofNode::imgCb, &rof_node);
+//  image_transport::Subscriber sub = it.subscribe("bluefox_ros_node/image_raw", 1, &imageCallback);
+  ros::spin();
+  return EXIT_SUCCESS;
+}
+
+
+//int main(int argc, char **argv)
+//{
+//  ros::init(argc, argv, "IMP ROF Denoising");
+//  ros::NodeHandle nh;
+//  {
+//    imp::cu::RofDenoising8uC1 rof;
+
+//    // subscribe to cam msgs
+////    std::string cam_topic(vk::getParam<std::string>("imp/rof/cam_topic", "camera/image_raw"));
+////    image_transport::ImageTransport it(nh);
+//    //image_transport::Subscriber it_sub = it.subscribe(cam_topic, 5, &svo::VoNode::imgCb, &vo_node);
+
+//  }
+
+//  std::cout << "hmmmm" << std::endl;
+//  ros::spin();
+//  return EXIT_SUCCESS;
+//}

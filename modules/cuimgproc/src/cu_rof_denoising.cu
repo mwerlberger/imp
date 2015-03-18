@@ -140,61 +140,61 @@ void RofDenoising<Pixel, pixel_type>::denoise(const std::shared_ptr<ImageBase>& 
   if (size_ != f_->size())
   {
     this->init(f_->size());
-
-    // internal params
-    float L = sqrtf(8.0f);
-    float tau = 1/L;
-    float sigma = 1/L;
-    float theta = 1.0f;
-
-    for(int iter = 0; iter < this->params_.max_iter; ++iter)
-    {
-      if (sigma < 1000.0f)
-        theta = 1.f/sqrtf(1.0f+0.7f*this->params_.lambda*tau);
-      else
-        theta = 1.0f;
-
-      if (params_.verbose)
-      {
-        std::cout << "(rof solver) iter: " << iter << "; tau: " << tau
-                  << "; sigma: " << sigma << "; theta: " << theta << std::endl;
-      }
-
-      k_rofDualUpdate
-          <<< dimGrid(), dimBlock() >>> (p_->data(), p_->stride(),
-                                         *p_tex_, *u_prev_tex_,
-                                         sigma, size_.width(), size_.height());
-
-      k_rofPrimalUpdate
-          <<< dimGrid(), dimBlock() >>> (u_->data(), u_prev_->data(), u_->stride(),
-                                         *f_tex_, *u_tex_, *p_tex_,
-                                         params_.lambda, tau, theta,
-                                         size_.width(), size_.height());
-
-      sigma /= theta;
-      tau *= theta;
-    }
-    IMP_CUDA_CHECK();
-
-    switch (dst->pixelType())
-    {
-    case PixelType::i8uC1:
-    {
-      std::shared_ptr<ImageGpu8uC1> u(std::dynamic_pointer_cast<ImageGpu8uC1>(dst));
-      k_convertResult8uC1
-          <<< dimGrid(), dimBlock() >>> (u->data(), u->stride(),
-                                         *u_tex_, size_.width(), size_.height());
-    }
-    break;
-    case PixelType::i32fC1:
-    {
-      std::shared_ptr<ImageGpu32fC1> u(std::dynamic_pointer_cast<ImageGpu32fC1>(dst));
-      u_->copyTo(*u);
-    }
-    break;
-    }
-    IMP_CUDA_CHECK();
   }
+
+  // internal params
+  float L = sqrtf(8.0f);
+  float tau = 1/L;
+  float sigma = 1/L;
+  float theta = 1.0f;
+
+  for(int iter = 0; iter < this->params_.max_iter; ++iter)
+  {
+    if (sigma < 1000.0f)
+      theta = 1.f/sqrtf(1.0f+0.7f*this->params_.lambda*tau);
+    else
+      theta = 1.0f;
+
+    if (params_.verbose)
+    {
+      std::cout << "(rof solver) iter: " << iter << "; tau: " << tau
+                << "; sigma: " << sigma << "; theta: " << theta << std::endl;
+    }
+
+    k_rofDualUpdate
+        <<< dimGrid(), dimBlock() >>> (p_->data(), p_->stride(),
+                                       *p_tex_, *u_prev_tex_,
+                                       sigma, size_.width(), size_.height());
+
+    k_rofPrimalUpdate
+        <<< dimGrid(), dimBlock() >>> (u_->data(), u_prev_->data(), u_->stride(),
+                                       *f_tex_, *u_tex_, *p_tex_,
+                                       params_.lambda, tau, theta,
+                                       size_.width(), size_.height());
+
+    sigma /= theta;
+    tau *= theta;
+  }
+  IMP_CUDA_CHECK();
+
+  switch (dst->pixelType())
+  {
+  case PixelType::i8uC1:
+  {
+    std::shared_ptr<ImageGpu8uC1> u(std::dynamic_pointer_cast<ImageGpu8uC1>(dst));
+    k_convertResult8uC1
+        <<< dimGrid(), dimBlock() >>> (u->data(), u->stride(),
+                                       *u_tex_, size_.width(), size_.height());
+  }
+  break;
+  case PixelType::i32fC1:
+  {
+    std::shared_ptr<ImageGpu32fC1> u(std::dynamic_pointer_cast<ImageGpu32fC1>(dst));
+    u_->copyTo(*u);
+  }
+  break;
+  }
+  IMP_CUDA_CHECK();
 }
 
 //-----------------------------------------------------------------------------

@@ -18,6 +18,7 @@ public:
   using Base = VariationalDenoising;
   using Image = imp::cu::ImageGpu<Pixel, pixel_type>;
   using ImagePtr = std::shared_ptr<Image>;
+  using Ptr = std::shared_ptr<RofDenoising<Pixel,pixel_type>>;
 
 public:
   RofDenoising() = default;
