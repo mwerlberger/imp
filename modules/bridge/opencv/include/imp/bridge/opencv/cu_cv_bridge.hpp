@@ -3,8 +3,7 @@
 
 #include <memory>
 
-//#include <imp/bridge/opencv/cv_bridge.hpp>
-#include "cv_bridge.hpp"
+#include <imp/bridge/opencv/cv_bridge.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
 
 
