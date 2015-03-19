@@ -13,6 +13,7 @@ add_definitions(-fPIC)
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++0x -D__STRICT_ANSI__")
 
 set(HEADERS
+  include/imp/bridge/opencv/cv_bridge.hpp
   include/imp/bridge/opencv/cu_cv_bridge.hpp
   )
 

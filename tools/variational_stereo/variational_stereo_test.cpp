@@ -20,12 +20,12 @@ int main(int /*argc*/, char** /*argv*/)
 {
   try
   {
-    imp::cu::ImageGpu32fC1::Ptr d_cones1_32fC1 =
-        imp::cu::ocvBridgeLoad<imp::Pixel32fC1, imp::PixelType::i32fC1>(
-          "/home/mwerlberger/data/std/cones/im2.ppm", imp::PixelOrder::gray);
-    imp::cu::ImageGpu32fC1::Ptr d_cones2_32fC1 =
-        imp::cu::ocvBridgeLoad<imp::Pixel32fC1, imp::PixelType::i32fC1>(
-          "/home/mwerlberger/data/std/cones/im6.ppm", imp::PixelOrder::gray);
+    imp::cu::ImageGpu32fC1::Ptr d_cones1_32fC1;
+    imp::cu::cvBridgeLoad(d_cones1_32fC1, "/home/mwerlberger/data/std/cones/im2.ppm",
+                          imp::PixelOrder::gray);
+    imp::cu::ImageGpu32fC1::Ptr d_cones2_32fC1;
+    imp::cu::cvBridgeLoad(d_cones2_32fC1, "/home/mwerlberger/data/std/cones/im6.ppm",
+                          imp::PixelOrder::gray);
 
     {
       imp::Pixel32fC1 min_val,max_val;
@@ -57,8 +57,8 @@ int main(int /*argc*/, char** /*argv*/)
       std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
     }
 
-    imp::cu::ocvBridgeShow("cones im2", *d_cones1_32fC1);
-    imp::cu::ocvBridgeShow("cones im6", *d_cones2_32fC1);
+    imp::cu::cvBridgeShow("cones im2", *d_cones1_32fC1);
+    imp::cu::cvBridgeShow("cones im6", *d_cones2_32fC1);
     *d_disp *= -1;
     {
       imp::Pixel32fC1 min_val,max_val;
@@ -66,8 +66,7 @@ int main(int /*argc*/, char** /*argv*/)
       std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
     }
 
-    imp::cu::ocvBridgeShow("disparities", *d_disp, true);
-
+    imp::cu::cvBridgeShow("disparities", *d_disp, true);
     cv::waitKey();
   }
   catch (std::exception& e)

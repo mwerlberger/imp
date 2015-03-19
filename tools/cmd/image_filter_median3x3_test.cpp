@@ -53,8 +53,8 @@ int main(int /*argc*/, char** /*argv*/)
 
       imp::cu::filterMedian3x3(*d_median_lena_8uC1, *d_lena_8uC1);
 
-      imp::cu::ocvBridgeShow("lena 8u", *d_lena_8uC1);
-      imp::cu::ocvBridgeShow("lena median 8u", *d_median_lena_8uC1);
+      imp::cu::cvBridgeShow("lena 8u", *d_lena_8uC1);
+      imp::cu::cvBridgeShow("lena median 8u", *d_median_lena_8uC1);
 
       cv::waitKey();
     }
