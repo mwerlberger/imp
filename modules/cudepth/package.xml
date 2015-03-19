@@ -15,7 +15,6 @@
   <build_depend>imp_core</build_depend>
   <build_depend>imp_cucore</build_depend>
   <build_depend>imp_cuimgproc</build_depend>
-  <build_depend>imp_io</build_depend>
 
   <test_depend>gtest</test_depend>
 </package>

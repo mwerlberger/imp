@@ -5,26 +5,14 @@
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-
-#include <imp/core/image.hpp>
-#include <imp/core/image_raw.hpp>
 #include <imp/core/image_cv.hpp>
-#include <imp/cucore/cu_image_gpu.cuh>
-
 
 namespace imp {
 
-enum class OcvBridgeLoadAs
-{
-  raw,
-  cuda,
-  cvmat
-};
-
-
+//------------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-ImageCvPtr<Pixel,pixel_type>  ocvBridgeLoad(const std::string& filename,
-                                            imp::PixelOrder pixel_order)
+void cvBridgeLoad(ImageCvPtr<Pixel,pixel_type>& out,
+                  const std::string& filename, imp::PixelOrder pixel_order)
 {
   cv::Mat mat;
   if (pixel_order == PixelOrder::gray)
@@ -37,38 +25,35 @@ ImageCvPtr<Pixel,pixel_type>  ocvBridgeLoad(const std::string& filename,
     mat = cv::imread(filename, CV_LOAD_IMAGE_COLOR);
   }
 
-  ImageCvPtr<Pixel,pixel_type> ret;
-
   switch(pixel_type)
   {
   case imp::PixelType::i8uC1:
     if (pixel_order == PixelOrder::gray)
     {
-      ret = std::make_shared<ImageCv<Pixel,pixel_type>>(mat);
+      out = std::make_shared<ImageCv<Pixel,pixel_type>>(mat);
     }
     else
     {
-      ret = std::make_shared<ImageCv<Pixel,pixel_type>>(mat.cols, mat.rows);
-      cv::cvtColor(mat, ret->cvMat(), CV_BGR2GRAY);
+      out = std::make_shared<ImageCv<Pixel,pixel_type>>(mat.cols, mat.rows);
+      cv::cvtColor(mat, out->cvMat(), CV_BGR2GRAY);
     }
-    break;
+  break;
   case imp::PixelType::i32fC1:
-     ret = std::make_shared<ImageCv<Pixel,pixel_type>>(mat.cols, mat.rows);
+    out = std::make_shared<ImageCv<Pixel,pixel_type>>(mat.cols, mat.rows);
     if (mat.channels() > 1)
     {
       cv::cvtColor(mat, mat, CV_BGR2GRAY);
     }
-    mat.convertTo(ret->cvMat(), CV_32F, 1./255.);
-    break;
+    mat.convertTo(out->cvMat(), CV_32F, 1./255.);
+  break;
   default:
     throw imp::Exception("Conversion for reading given pixel_type not supported yet.", __FILE__, __FUNCTION__, __LINE__);
   }
-
-  return ret;
 }
 
+//------------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void ocvBridgeSave(const std::string& filename, const ImageCv<Pixel,pixel_type>& img, bool normalize=false)
+void cvBridgeSave(const std::string& filename, const ImageCv<Pixel,pixel_type>& img, bool normalize=false)
 {
   if (normalize)
   {
@@ -77,8 +62,9 @@ void ocvBridgeSave(const std::string& filename, const ImageCv<Pixel,pixel_type>&
   cv::imwrite(filename, img.cvMat());
 }
 
+//------------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void ocvBridgeShow(const std::string& winname, const ImageCv<Pixel,pixel_type>& img,
+void cvBridgeShow(const std::string& winname, const ImageCv<Pixel,pixel_type>& img,
                    bool normalize=false)
 {
   if (normalize)
@@ -95,6 +81,14 @@ void ocvBridgeShow(const std::string& winname, const ImageCv<Pixel,pixel_type>& 
 }
 
 
+//------------------------------------------------------------------------------
+//enum class OcvBridgeLoadAs
+//{
+//  raw,
+//  cuda,
+//  cvmat
+//};
+//
 //template<typename Pixel, imp::PixelType pixel_type>
 //std::shared_ptr<> ocv_bridge_imread(const std::string& filename, OcvBridgeLoadAs load_as=OcvBridgeLoadAs::raw)
 //{
@@ -110,31 +104,6 @@ void ocvBridgeShow(const std::string& winname, const ImageCv<Pixel,pixel_type>& 
 
 //  }
 //}
-
-//
-// CUDA STUFF
-//
-
-namespace cu
-{
-
-template<typename Pixel, imp::PixelType pixel_type>
-imp::cu::ImageGpuPtr<Pixel,pixel_type> ocvBridgeLoad(const std::string& filename,
-                                                     imp::PixelOrder pixel_order)
-{
-  ImageCvPtr<Pixel,pixel_type> cv_img = imp::ocvBridgeLoad<Pixel, pixel_type>(filename, pixel_order);
-  return std::make_shared<imp::cu::ImageGpu<Pixel,pixel_type>>(*cv_img);
-}
-
-template<typename Pixel, imp::PixelType pixel_type>
-void ocvBridgeShow(const std::string& winname, const ImageGpu<Pixel,pixel_type>& img, bool normalize=false)
-{
-  const ImageCv<Pixel, pixel_type> cv_img(img);
-  imp::ocvBridgeShow(winname, cv_img, normalize);
-}
-
-}
-
 
 
 } // namespace imp

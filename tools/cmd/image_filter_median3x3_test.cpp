@@ -11,7 +11,7 @@
 #include <imp/core/image_cv.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cuimgproc/cu_image_filter.cuh>
-#include <imp/io/opencv_bridge.hpp>
+#include <imp/bridge/opencv/cu_cv_bridge.hpp>
 
 
 void addImpulseNoise(cv::Mat& img, double perc)
@@ -53,8 +53,8 @@ int main(int /*argc*/, char** /*argv*/)
 
       imp::cu::filterMedian3x3(*d_median_lena_8uC1, *d_lena_8uC1);
 
-      imp::cu::ocvBridgeShow("lena 8u", *d_lena_8uC1);
-      imp::cu::ocvBridgeShow("lena median 8u", *d_median_lena_8uC1);
+      imp::cu::cvBridgeShow("lena 8u", *d_lena_8uC1);
+      imp::cu::cvBridgeShow("lena median 8u", *d_median_lena_8uC1);
 
       cv::waitKey();
     }

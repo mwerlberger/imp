@@ -11,9 +11,6 @@
 #include <imp/cuimgproc/cu_image_transform.cuh>
 #include <imp/cuimgproc/edge_detectors.cuh>
 
-
-#include <imp/io/opencv_bridge.hpp>
-
 #include "cu_k_warped_gradients.cuh"
 #include "cu_k_stereo_ctf_warping_level_precond_huber_l1.cuh"
 #include "cu_k_stereo_ctf_warping_level_precond_huber_l1_weighted.cuh"
@@ -93,13 +90,6 @@ void StereoCtFWarpingLevelPrecondHuberL1Weighted::init(const StereoCtFWarpingLev
     imp::cu::minMax(u_, min_val, max_val);
     std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
   }
-  if (params_->verbose > 4)
-  {
-    imp::cu::ocvBridgeShow("prev. level disp", *from->u_, true);
-    imp::cu::ocvBridgeShow("prev. medfilt level disp", *from->u0_, true);
-    imp::cu::ocvBridgeShow("cir. level disp", *u_, true);
-    cv::waitKey(0);
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -120,11 +110,6 @@ void StereoCtFWarpingLevelPrecondHuberL1Weighted::solve(std::vector<ImagePtr> im
   // compute edge weight
   naturalEdges(*g_, *images.at(0),
                params_->edge_sigma, params_->edge_alpha, params_->edge_q);
-  if (true || params_->verbose > 5)
-  {
-    imp::cu::ocvBridgeShow("natural edges", *g_, true);
-    cv::waitKey(1);
-  }
 
   // constants
   constexpr float tau = 0.95f;
@@ -176,12 +161,6 @@ void StereoCtFWarpingLevelPrecondHuberL1Weighted::solve(std::vector<ImagePtr> im
                size_.width(), size_.height(),
                params_->lambda, tau, lin_step,
                *u_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *xi_tex_, *g_tex_);
-
-      if (params_->verbose > 5 && iter % 50)
-      {
-        imp::cu::ocvBridgeShow("current disp", *u_, true);
-        cv::waitKey(1);
-      }
 
     } // iters
     lin_step /= 1.2f;
