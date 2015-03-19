@@ -10,8 +10,9 @@
 #include <imp/core/image_raw.hpp>
 #include <imp/core/image_cv.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
-#include <imp/io/opencv_bridge.hpp>
 #include <imp/cuimgproc/edge_detectors.cuh>
+#include <imp/bridge/opencv/cu_cv_bridge.hpp>
+
 
 int main(int /*argc*/, char** /*argv*/)
 {

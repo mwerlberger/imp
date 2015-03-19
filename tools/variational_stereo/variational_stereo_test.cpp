@@ -12,7 +12,7 @@
 #include <imp/core/image_cv.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cucore/cu_math.cuh>
-#include <imp/io/opencv_bridge.hpp>
+#include <imp/bridge/opencv/cu_cv_bridge.hpp>
 
 #include <imp/cudepth/variational_stereo.hpp>
 

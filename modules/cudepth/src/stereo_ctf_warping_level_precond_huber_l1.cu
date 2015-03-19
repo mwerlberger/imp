@@ -10,8 +10,6 @@
 #include <imp/cucore/cu_texture.cuh>
 #include <imp/cucore/cu_math.cuh>
 
-#include <imp/io/opencv_bridge.hpp>
-
 #include "cu_k_warped_gradients.cuh"
 #include "cu_k_stereo_ctf_warping_level_precond_huber_l1.cuh"
 
@@ -87,13 +85,6 @@ void StereoCtFWarpingLevelPrecondHuberL1::init(const StereoCtFWarpingLevel& rhs)
     imp::cu::minMax(u_, min_val, max_val);
     std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
   }
-  if (params_->verbose > 4)
-  {
-    imp::cu::ocvBridgeShow("prev. level disp", *from->u_, true);
-    imp::cu::ocvBridgeShow("prev. medfilt level disp", *from->u0_, true);
-    imp::cu::ocvBridgeShow("cir. level disp", *u_, true);
-    cv::waitKey(0);
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -161,13 +152,6 @@ void StereoCtFWarpingLevelPrecondHuberL1::solve(std::vector<ImagePtr> images)
                size_.width(), size_.height(),
                params_->lambda, tau, lin_step,
                *u_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *xi_tex_);
-
-      if (params_->verbose > 5 && iter % 50)
-      {
-        imp::cu::ocvBridgeShow("current disp", *u_, true);
-        cv::waitKey(1);
-      }
-
     } // iters
     lin_step /= 1.2f;
 

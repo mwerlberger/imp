@@ -1,4 +1,4 @@
-project(imp_io)
+project(imp_bridge_opencv)
 cmake_minimum_required(VERSION 2.8.0)
 
 find_package(catkin_simple REQUIRED)
@@ -13,26 +13,24 @@ add_definitions(-fPIC)
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++0x -D__STRICT_ANSI__")
 
 set(HEADERS
-  include/imp/io/opencv_bridge.hpp
+  include/imp/bridge/opencv/cu_cv_bridge.hpp
   )
 
 set(SOURCES
   src/empty.cpp
-  #src/opencv_bridge.cpp
   )
 
 set(IMPL_FILES
   )
 
-cs_add_library(${PROJECT_NAME}
-   ${SOURCES} ${HEADERS} ${IMPL_FILES}
-   )
+cs_add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${IMPL_FILES})
 target_link_libraries(${PROJECT_NAME})
-
 
 ###
 ### GTESTS
 ###
+
+# TODO (MWE)
 
 # catkin_add_gtest(${PROJECT_NAME}-test
 #    test/test_main.cpp

@@ -43,33 +43,6 @@ cs_add_library(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
 
 ###
-### command line tools/tests
-###
-find_package( OpenCV REQUIRED core highgui imgproc)
-include_directories(${OpenCV_INCLUDE_DIRS})
-
-cs_add_executable(cu_rof_denoising_test test/cu_rof_denoising_test.cpp)
-target_link_libraries(cu_rof_denoising_test imp_cuimgproc ${OpenCV_LIBS})
-
-cs_add_executable(image_pyramid_test test/image_pyramid_test.cpp)
-target_link_libraries(image_pyramid_test ${PROJECT_NAME} ${OpenCV_LIBS})
-
-cs_add_executable(image_filter_median3x3_test test/image_filter_median3x3_test.cpp)
-target_link_libraries(image_filter_median3x3_test ${PROJECT_NAME} ${OpenCV_LIBS})
-
-cs_add_executable(image_filter_gauss_test test/image_filter_gauss_test.cpp)
-target_link_libraries(image_filter_gauss_test ${PROJECT_NAME} ${OpenCV_LIBS})
-
-cs_add_executable(natural_edges_test test/natural_edges_test.cpp)
-target_link_libraries(natural_edges_test ${PROJECT_NAME} ${OpenCV_LIBS})
-
-#cs_add_executable(example_executable src/main.cc)
-#target_link_libraries(example_executable example_library)
-
-
-
-
-###
 ### GTESTS
 ###
 

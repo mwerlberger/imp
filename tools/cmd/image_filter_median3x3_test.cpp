@@ -11,7 +11,7 @@
 #include <imp/core/image_cv.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cuimgproc/cu_image_filter.cuh>
-#include <imp/io/opencv_bridge.hpp>
+#include <imp/bridge/opencv/cu_cv_bridge.hpp>
 
 
 void addImpulseNoise(cv::Mat& img, double perc)

@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
 <package>
-  <name>imp_io</name>
+  <name>imp_bridge_opencv</name>
   <description>
-    IMP image I/O module
+    IMP bridge to OpenCV adds the ability to interconnect with the OpenCV
+    library.
   </description>
   <version>0.0.1</version>
   <license>tbd</license>

@@ -12,8 +12,6 @@
 #include <imp/cucore/cu_texture.cuh>
 #include <imp/cucore/cu_math.cuh>
 
-#include <imp/io/opencv_bridge.hpp>
-
 #include "cu_k_warped_gradients.cuh"
 #include "cu_k_stereo_ctf_warping_level_huber_l1.cuh"
 
@@ -132,13 +130,6 @@ void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
                size_.width(), size_.height(),
                params_->lambda, tau, lin_step,
                *u_tex_, *u0_tex_, *pu_tex_, *ix_tex_, *it_tex_);
-
-      if (params_->verbose > 5 && iter % 50)
-      {
-        imp::cu::ocvBridgeShow("current disp", *u_, true);
-        cv::waitKey(1);
-      }
-
     } // iters
     lin_step /= 1.2f;
 
