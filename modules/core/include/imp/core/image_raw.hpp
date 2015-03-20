@@ -34,6 +34,8 @@ public:
   typedef imp::MemoryDeallocator<Pixel> Deallocator;
   typedef Pixel pixel_t;
   typedef pixel_t* pixel_container_t;
+  using Ptr = typename std::shared_ptr<ImageRaw<Pixel,pixel_type>>;
+  using ConstPtr = typename std::shared_ptr<ImageRaw<Pixel,pixel_type> const>;
 
 public:
   ImageRaw() = default;
@@ -43,18 +45,22 @@ public:
    * @brief ImageRaw construcs an image of given size \a width x \a height
    */
   ImageRaw(std::uint32_t width, std::uint32_t height);
+
   /**
    * @brief ImageRaw construcs an image of given \a size
    */
   ImageRaw(const imp::Size2u& size);
+
   /**
    * @brief ImageRaw copy constructs an image from the given image \a from
    */
   ImageRaw(const ImageRaw& from);
+
   /**
    * @brief ImageRaw copy constructs an arbitrary base image \a from (not necessarily am \a ImageRaw)
    */
   ImageRaw(const Base& from);
+
   /**
    * @brief ImageRaw constructs an image with the given data (copied or refererenced!)
    * @param data Pointer to the image data.
@@ -65,6 +71,19 @@ public:
    */
   ImageRaw(pixel_container_t data, std::uint32_t width, std::uint32_t height,
            size_type pitch, bool use_ext_data_pointer = false);
+
+  /**
+   * @brief ImageRaw constructs an image with the given data shared with the given tracked object
+   * @param data Pointer to the image data.
+   * @param width Image width.
+   * @param height Image height.
+   * @param pitch Length of a row in bytes (including padding).
+   * @param tracked Tracked object that shares the given image data
+   * @note we assume that the tracked object takes care about memory deallocations
+   */
+  ImageRaw(pixel_container_t data, std::uint32_t width, std::uint32_t height,
+           size_type pitch, const std::shared_ptr<void const>& tracked);
+
 
   /** Returns a pointer to the pixel data.
    * The pointer can be offset to position \a (ox/oy).
@@ -84,6 +103,7 @@ public:
 protected:
   std::unique_ptr<pixel_t, Deallocator> data_; //!< the actual image data
   size_type pitch_ = 0; //!< Row alignment in bytes.
+  std::shared_ptr<void const> tracked_ = nullptr; //!< tracked object to share memory
 };
 
 //-----------------------------------------------------------------------------
@@ -108,6 +128,14 @@ typedef ImageRaw<imp::Pixel32fC1, imp::PixelType::i32fC1> ImageRaw32fC1;
 typedef ImageRaw<imp::Pixel32fC2, imp::PixelType::i32fC2> ImageRaw32fC2;
 typedef ImageRaw<imp::Pixel32fC3, imp::PixelType::i32fC3> ImageRaw32fC3;
 typedef ImageRaw<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageRaw32fC4;
+
+// shared pointers
+template <typename Pixel, imp::PixelType pixel_type>
+using ImageRawPtr = typename ImageRaw<Pixel,pixel_type>::Ptr;
+
+template <typename Pixel, imp::PixelType pixel_type>
+using ImageRawConstPtr = typename ImageRaw<Pixel,pixel_type>::ConstPtr;
+
 
 } // namespace imp
 

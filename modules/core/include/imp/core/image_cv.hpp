@@ -31,6 +31,7 @@ public:
   typedef Pixel pixel_t;
   typedef pixel_t* pixel_container_t;
   using Ptr = typename std::shared_ptr<ImageCv<Pixel,pixel_type>>;
+  using ConstPtr = typename std::shared_ptr<ImageCv<Pixel,pixel_type> const>;
 
 public:
   ImageCv() = default;
@@ -100,7 +101,13 @@ typedef ImageCv<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageCv32fC4;
 //typedef ImageCv<std::int32_t, imp::PixelType::i8uC1> ImageCv32sC1;
 //typedef ImageCv<float, imp::PixelType::i8uC1> ImageCv32fC1;
 
-template <typename Pixel, imp::PixelType pixel_type> using ImageCvPtr = typename ImageCv<Pixel,pixel_type>::Ptr;
+// shared pointers
+
+template <typename Pixel, imp::PixelType pixel_type>
+using ImageCvPtr = typename ImageCv<Pixel,pixel_type>::Ptr;
+
+template <typename Pixel, imp::PixelType pixel_type>
+using ImageCvConstPtr = typename ImageCv<Pixel,pixel_type>::ConstPtr;
 
 
 } // namespace imp

@@ -57,8 +57,7 @@ ImageRaw<Pixel, pixel_type>
   {
     // This uses the external data pointer as internal data pointer.
     auto dealloc_nop = [](pixel_container_t) { ; };
-    data_ = std::unique_ptr<pixel_t, Deallocator>(
-          data, Deallocator(dealloc_nop));
+    data_ = std::unique_ptr<pixel_t, Deallocator>(data, Deallocator(dealloc_nop));
     pitch_ = pitch;
   }
   else
@@ -81,6 +80,25 @@ ImageRaw<Pixel, pixel_type>
       }
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+ImageRaw<Pixel, pixel_type>::ImageRaw(pixel_container_t data,
+                                      std::uint32_t width, std::uint32_t height,
+                                      size_type pitch,
+                                      const std::shared_ptr<void const>& tracked)
+  : Base(width, height)
+{
+  if (data == nullptr || tracked == nullptr)
+  {
+    throw imp::Exception("input data not valid", __FILE__, __FUNCTION__, __LINE__);
+  }
+
+  auto dealloc_nop = [](pixel_container_t) { ; };
+  data_ = std::unique_ptr<pixel_t, Deallocator>(data, Deallocator(dealloc_nop));
+  pitch_ = pitch;
+  tracked_ = tracked;
 }
 
 //-----------------------------------------------------------------------------
