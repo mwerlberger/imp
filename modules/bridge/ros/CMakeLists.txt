@@ -13,7 +13,7 @@ add_definitions(-fPIC)
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++0x -D__STRICT_ANSI__")
 
 set(HEADERS
-  include/imp/bridge/ros/image_bridge.hpp
+  include/imp/bridge/ros/ros_bridge.hpp
   #include/imp/bridge/ros/cu_image_bridge.hpp
   )
 
