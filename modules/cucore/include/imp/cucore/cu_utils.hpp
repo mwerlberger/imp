@@ -8,7 +8,8 @@
 #include <imp/core/roi.hpp>
 #include <imp/cucore/cu_exception.hpp>
 
-namespace imp { namespace cu {
+namespace imp {
+namespace cu {
 
 //------------------------------------------------------------------------------
 /** Integer division rounding up to next higher integer
@@ -27,13 +28,13 @@ template<typename T>
 __host__ __device__ __forceinline__
 T min(const T& a, const T& b, bool check_inf_or_nan=true)
 {
-//  if (check_inf_or_nan)
-//  {
-//    if (isnan(a) || isinf(a))
-//      return b;
-//    if (isnan(b) || isinf(b))
-//      return a;
-//  }
+  //  if (check_inf_or_nan)
+  //  {
+  //    if (isnan(a) || isinf(a))
+  //      return b;
+  //    if (isnan(b) || isinf(b))
+  //      return a;
+  //  }
   return a<b ? a : b;
 }
 
@@ -41,13 +42,13 @@ template<typename T>
 __host__ __device__ __forceinline__
 T max(const T& a, const T& b, bool check_inf_or_nan=true)
 {
-//  if (check_inf_or_nan)
-//  {
-//    if (isnan(a) || isinf(a))
-//      return b;
-//    if (isnan(b) || isinf(b))
-//      return a;
-//  }
+  //  if (check_inf_or_nan)
+  //  {
+  //    if (isnan(a) || isinf(a))
+  //      return b;
+  //    if (isnan(b) || isinf(b))
+  //      return a;
+  //  }
   return a>b ? a : b;
 }
 
@@ -63,8 +64,8 @@ template <std::uint16_t block_size_x=16,
           std::uint16_t block_size_z=1>
 struct Fragmentation
 {
-//  imp::Size2u size;
-//  imp::Roi2u roi;
+  //  imp::Size2u size;
+  //  imp::Roi2u roi;
   dim3 dimBlock = dim3(block_size_x, block_size_y, block_size_z);
   dim3 dimGrid;
 
@@ -108,9 +109,9 @@ static inline void checkCudaErrorState(const char* file, const char* function,
  * @note This check is only enabled when the compile time flag is set
  */
 #ifdef IMP_THROW_ON_CUDA_ERROR
-  #define IMP_CUDA_CHECK() checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__)
+#  define IMP_CUDA_CHECK() checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__)
 #else
-  #define IMP_CUDA_CHECK() do{}while(0)
+#  define IMP_CUDA_CHECK() do{}while(0)
 #endif
 
 static inline float getTotalGPUMemory()
@@ -142,7 +143,6 @@ static inline void printGPUMemoryUsage()
 }
 
 /** @} */ // end of Error Handling
-
 /** @} */ // end of Cuda Utilities
 
 

@@ -47,8 +47,22 @@ __global__ void k_tvL1PrimalUpdate(
     float u = u_tex.fetch<float>(x,y);
     float u_prev = u;
     float div = dpAd(p_tex, x, y, width, height);
+    u += tau*div;
 
-    u = (u + tau*(div + lambda*f)) / (1.0f + tau*lambda);
+    float tau_lambda = tau*lambda;
+    float residual = u - f;
+    if (residual < -tau_lambda)
+    {
+      u += tau_lambda;
+    }
+    else if (residual > tau_lambda)
+    {
+      u -= tau_lambda;
+    }
+    else
+    {
+      u = f;
+    }
 
     d_u[y*stride_u + x] = u;
     d_u_prev[y*stride_u + x] = u + theta*(u-u_prev);
@@ -144,10 +158,10 @@ void TvL1Denoising<Pixel, pixel_type>::denoise(const ImageBasePtr& dst,
   }
 
   // internal params
-  float L = sqrtf(8.0f);
-  float tau = 1/L;
-  float sigma = 1/L;
   float theta = 1.0f;
+  //float L = sqrtf(8.0f);
+  float sigma = 1.f/sqrtf(8.0f);
+  float tau = 1.f/8.f;
 
   for(int iter = 0; iter < this->params_.max_iter; ++iter)
   {
