@@ -26,8 +26,8 @@ struct VariationalDenoisingParams
 class VariationalDenoising
 {
 public:
-  typedef imp::cu::Fragmentation<16> CuFrag;
-  typedef std::shared_ptr<CuFrag> CuFragPtr;
+  typedef imp::cu::Fragmentation<16> Fragmentation;
+  typedef std::shared_ptr<Fragmentation> FragmentationPtr;
 
 public:
   VariationalDenoising();
@@ -61,9 +61,9 @@ protected:
   }
 
 
-  std::shared_ptr<imp::cu::ImageGpu32fC1> u_;
-  std::shared_ptr<imp::cu::ImageGpu32fC1> u_prev_;
-  std::shared_ptr<imp::cu::ImageGpu32fC2> p_;
+  imp::cu::ImageGpu32fC1::Ptr u_;
+  imp::cu::ImageGpu32fC1::Ptr u_prev_;
+  imp::cu::ImageGpu32fC2::Ptr p_;
 
   // cuda textures
   std::unique_ptr<imp::cu::Texture2D> f_tex_;
@@ -72,7 +72,7 @@ protected:
   std::unique_ptr<imp::cu::Texture2D> p_tex_;
 
   Size2u size_;
-  CuFragPtr fragmentation_;
+  FragmentationPtr fragmentation_;
 
   // algorithm parameters
   VariationalDenoisingParams params_;

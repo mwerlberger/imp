@@ -16,6 +16,7 @@ set(HEADERS
   include/imp/cuimgproc/image_pyramid.hpp
   include/imp/cuimgproc/cu_variational_denoising.cuh
   include/imp/cuimgproc/cu_rof_denoising.cuh
+  include/imp/cuimgproc/cu_tvl1_denoising.cuh
   )
 
 set(SOURCES
@@ -33,6 +34,7 @@ set(CU_SRCS
   src/edge_detectors.cu
   src/cu_variational_denoising.cu
   src/cu_rof_denoising.cu
+  src/cu_tvl1_denoising.cu
   )
 
 cuda_compile(CU_OBJ ${CU_SRCS})

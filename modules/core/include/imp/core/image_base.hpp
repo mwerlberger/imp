@@ -1,7 +1,7 @@
 #ifndef IMP_IMAGE_BASE_HPP
 #define IMP_IMAGE_BASE_HPP
 
-#include <iostream>
+#include <memory>
 
 #include <imp/core/pixel_enums.hpp>
 #include <imp/core/size.hpp>
@@ -18,6 +18,9 @@ namespace imp {
  */
 class ImageBase
 {
+public:
+  using Ptr = std::shared_ptr<ImageBase>;
+
 protected:
   ImageBase() = delete;
 
@@ -191,6 +194,9 @@ inline std::ostream& operator<<(std::ostream &os, const ImageBase& image)
 }
 
 
-} // namespace iuprivate
+// convenience typedefs
+using ImageBasePtr = std::shared_ptr<ImageBase>;
+
+} // namespace imp
 
 #endif // IMP_IMAGE_BASE_HPP

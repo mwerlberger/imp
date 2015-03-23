@@ -15,9 +15,6 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -Wall -g")
 # find_package( OpenCV REQUIRED core highgui imgproc)
 # include_directories(${OpenCV_INCLUDE_DIRS})
 
-cs_add_executable(cu_rof_denoising_test cu_rof_denoising_test.cpp)
-target_link_libraries(cu_rof_denoising_test)
-
 cs_add_executable(image_pyramid_test image_pyramid_test.cpp)
 target_link_libraries(image_pyramid_test)
 
@@ -29,6 +26,14 @@ target_link_libraries(image_filter_gauss_test)
 
 cs_add_executable(natural_edges_test natural_edges_test.cpp)
 target_link_libraries(natural_edges_test)
+
+cs_add_executable(cu_rof_denoising_test cu_rof_denoising_test.cpp)
+target_link_libraries(cu_rof_denoising_test)
+
+cs_add_executable(cu_tvl1_denoising_test cu_tvl1_denoising_test.cpp)
+target_link_libraries(cu_tvl1_denoising_test)
+
+
 
 #cs_add_executable(example_executable src/main.cc)
 #target_link_libraries(example_executable example_library)

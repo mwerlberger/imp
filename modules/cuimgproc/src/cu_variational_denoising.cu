@@ -22,7 +22,7 @@ VariationalDenoising::~VariationalDenoising()
 __host__ void VariationalDenoising::init(const Size2u& size)
 {
   size_ = size;
-  fragmentation_.reset(new CuFrag(size));
+  fragmentation_.reset(new Fragmentation(size));
 
   // setup internal memory
   this->u_.reset(new ImageGpu32fC1(size));
