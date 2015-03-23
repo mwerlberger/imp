@@ -13,7 +13,7 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
-  <build_depend>opencv2_catkin</build_depend>
+  <build_depend>cv_bridge</build_depend>
     
   <build_depend>imp_core</build_depend>
   <build_depend>imp_cucore</build_depend>
