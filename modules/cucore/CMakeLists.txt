@@ -21,6 +21,7 @@ set(HEADERS
   include/imp/cucore/cu_math.cuh
   include/imp/cucore/cu_k_setvalue.cuh
   include/imp/cucore/cu_k_derivative.cuh
+  include/imp/cucore/cu_matrix.cuh
   )
 
 set(SOURCES
