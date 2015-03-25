@@ -25,7 +25,7 @@ StereoCtFWarpingLevelPrecondHuberL1::~StereoCtFWarpingLevelPrecondHuberL1()
 //------------------------------------------------------------------------------
 StereoCtFWarpingLevelPrecondHuberL1::StereoCtFWarpingLevelPrecondHuberL1(
     const std::shared_ptr<Parameters>& params, imp::Size2u size, size_type level)
-  : StereoCtFWarpingLevel(params, size, level)
+  : SolverStereoAbstract(params, size, level)
 {
   u_.reset(new Image(size));
   u_prev_.reset(new Image(size));
@@ -57,7 +57,7 @@ void StereoCtFWarpingLevelPrecondHuberL1::init()
 }
 
 //------------------------------------------------------------------------------
-void StereoCtFWarpingLevelPrecondHuberL1::init(const StereoCtFWarpingLevel& rhs)
+void StereoCtFWarpingLevelPrecondHuberL1::init(const SolverStereoAbstract& rhs)
 {
   const StereoCtFWarpingLevelPrecondHuberL1* from =
       dynamic_cast<const StereoCtFWarpingLevelPrecondHuberL1*>(&rhs);

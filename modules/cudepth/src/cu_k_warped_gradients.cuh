@@ -48,7 +48,6 @@ __global__ void k_warpedGradients(Pixel* ix, Pixel* it, size_type stride,
     }
 
   }
-
 }
 
 

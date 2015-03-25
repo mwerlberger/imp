@@ -1,5 +1,5 @@
-#ifndef IMP_CU_STEREO_HPP
-#define IMP_CU_STEREO_HPP
+#ifndef IMP_CU_VARIATIONAL_STEREO_HPP
+#define IMP_CU_VARIATIONAL_STEREO_HPP
 
 
 #include <cstdint>
@@ -37,15 +37,15 @@ public:
   VariationalStereo(ParametersPtr params=nullptr);
   virtual ~VariationalStereo(); //= default;
 
-  void addImage(ImagePtr image);
-  void solve();
+  virtual void addImage(ImagePtr image);
+  virtual void solve();
 
-  ImagePtr getDisparities(size_type level=0);
+  virtual ImagePtr getDisparities(size_type level=0);
 
   // getters / setters
-  inline ParametersPtr parameters() {return params_;}
+  virtual inline ParametersPtr parameters() {return params_;}
 
-private:
+protected:
   ParametersPtr params_;  //!< configuration parameters
   std::unique_ptr<StereoCtFWarping> ctf_;  //!< performing a coarse-to-fine warping scheme
 };
@@ -56,4 +56,4 @@ private:
 } // namespace cu
 } // namespace imp
 
-#endif // IMP_CU_STEREO_HPP
+#endif // IMP_CU_VARIATIONAL_STEREO_HPP

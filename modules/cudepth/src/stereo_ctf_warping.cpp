@@ -5,6 +5,8 @@
 #include <imp/cudepth/stereo_ctf_warping_level_huber_l1.cuh>
 #include <imp/cudepth/stereo_ctf_warping_level_precond_huber_l1.cuh>
 #include <imp/cudepth/stereo_ctf_warping_level_precond_huber_l1_weighted.cuh>
+#include <imp/cudepth/solver_epipolar_stereo_precond_huber_l1.cuh>
+
 #include <imp/cucore/cu_utils.hpp>
 
 namespace imp {
@@ -48,6 +50,8 @@ void StereoCtFWarping::init()
     case StereoPDSolver::PrecondHuberL1Weighted:
       levels_.emplace_back(new StereoCtFWarpingLevelPrecondHuberL1Weighted(params_, sz, i));
     break;
+    case StereoPDSolver::EpipolarPrecondHuberL1:
+      levels_.emplace_back(new SolverEpipolarStereoPrecondHuberL1(params_, sz, i));
     }
 
   }
@@ -150,6 +154,35 @@ StereoCtFWarping::ImagePtr StereoCtFWarping::getDisparities(size_type level)
   level = max(params_->ctf.finest_level,
               min(params_->ctf.coarsest_level, level));
   return levels_.at(level)->getDisparities();
+}
+
+//------------------------------------------------------------------------------
+void StereoCtFWarping::setCorrespondenceGuess(ConstVectorImagePtr disp)
+{
+  // TODO: downscale towards the correct level size :/
+
+  switch (params_->solver)
+  {
+  case StereoPDSolver::EpipolarPrecondHuberL1:
+    //TODO
+  break;
+  default:
+    throw Exception("fundamental geometry not supported by the selected model.");
+  }
+}
+
+//------------------------------------------------------------------------------
+void StereoCtFWarping::setEpiVecs(ConstVectorImagePtr epi_vec)
+{
+  // TODO: downscale towards the correct level size :/
+  switch (params_->solver)
+  {
+  case StereoPDSolver::EpipolarPrecondHuberL1:
+    //TODO
+  break;
+  default:
+    throw Exception("fundamental geometry not supported by the selected model.");
+  }
 }
 
 } // namespace cu
