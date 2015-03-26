@@ -50,8 +50,8 @@ public:
 
   // if we have a guess about the correspondence points and the epipolar geometry
   // given we can set these as a prior
-  void setCorrespondenceGuess(ConstVectorImagePtr pts);
-  void setEpiVecs(ConstVectorImagePtr pts);
+  void setCorrespondenceGuess(ConstVectorImagePtr correspondence_guess);
+  void setEpiVecs(ConstVectorImagePtr epi_vecs);
 
 protected:
   /**
@@ -70,6 +70,8 @@ private:
   std::vector<ImagePtr> images_; //!< all unprocessed input images
   std::vector<ImagePyramidPtr> image_pyramids_; //!< image pyramids corresponding to the unprocesed input images
   std::vector<std::unique_ptr<SolverStereoAbstract>> levels_;
+  VectorImagePtr init_correspondence_guess_;
+  VectorImagePtr init_epi_vec_;
 };
 
 } // namespace cu

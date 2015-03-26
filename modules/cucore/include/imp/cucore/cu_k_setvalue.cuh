@@ -47,8 +47,8 @@ __global__ void k_setValue(Pixel* d_dst, size_t stride, const Pixel value,
   }
 }
 
-template<typename Pixel>
-__global__ void k_pixelWiseMul(Pixel* d_dst, size_t stride, const Pixel rhs,
+template<typename DPixel, typename FPixel>
+__global__ void k_pixelWiseMul(DPixel* d_dst, size_t stride, const FPixel rhs,
                                size_t width, size_t height)
 {
   int x = blockIdx.x*blockDim.x + threadIdx.x;

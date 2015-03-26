@@ -25,7 +25,9 @@ SolverEpipolarStereoPrecondHuberL1::~SolverEpipolarStereoPrecondHuberL1()
 
 //------------------------------------------------------------------------------
 SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
-    const std::shared_ptr<Parameters>& params, imp::Size2u size, size_type level)
+    const std::shared_ptr<Parameters>& params, imp::Size2u size, size_type level,
+    ConstVectorImagePtr init_correspondence_guess,
+    ConstVectorImagePtr init_epi_vec)
   : SolverStereoAbstract(params, size, level)
 {
   u_.reset(new Image(size));
@@ -46,6 +48,31 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
   ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
   it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
   xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
+
+  if (init_correspondence_guess && init_epi_vec)
+  {
+    if (level == 0 && init_correspondence_guess->size() == size &&
+        init_epi_vec->size() == size)
+    {
+      correspondence_guess_ = init_correspondence_guess;
+      epi_vec_ = init_epi_vec;
+    }
+    else
+    {
+      float scale_factor = 0.5f*(size.width()/correspondence_guess_->width()+
+                                 size.height()/correspondence_guess_->height());
+
+      correspondence_guess_.reset(new VectorImage(size));
+      epi_vec_.reset(new VectorImage(size));
+
+      imp::cu::resample(*correspondence_guess_, *init_correspondence_guess,
+                        InterpolationMode::point, false);
+      *correspondence_guess_ *= Pixel32fC1(scale_factor);
+
+      imp::cu::resample(*epi_vec_, *init_epi_vec, InterpolationMode::point, false);
+      *epi_vec_ *= Pixel32fC1(scale_factor);
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -100,7 +127,7 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
   // textures
   i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
   i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
-  disp_guess_tex_ =  disp_guess_->genTexture(false, cudaFilterModeLinear);
+  correspondence_guess_tex_ =  correspondence_guess_->genTexture(false, cudaFilterModeLinear);
   epi_vec_tex_ =  epi_vec_->genTexture(false, cudaFilterModeLinear);
 
   u_->copyTo(*u_prev_);

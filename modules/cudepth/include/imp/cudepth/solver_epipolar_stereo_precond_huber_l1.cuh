@@ -26,12 +26,22 @@ public:
   virtual ~SolverEpipolarStereoPrecondHuberL1();
 
   SolverEpipolarStereoPrecondHuberL1(const std::shared_ptr<Parameters>& params,
-                                      imp::Size2u size, size_type level);
+                                     imp::Size2u size, size_type level)
+    : SolverEpipolarStereoPrecondHuberL1(params, size, level, nullptr, nullptr)
+  {
+
+  }
+
+
+  SolverEpipolarStereoPrecondHuberL1(const std::shared_ptr<Parameters>& params,
+                                     imp::Size2u size, size_type level,
+                                     ConstVectorImagePtr init_correspondence_guess,
+                                     ConstVectorImagePtr init_epi_vec);
 
   virtual void init();
   virtual void init(const SolverStereoAbstract& rhs);
   //virtual inline void setFundamentalMatrices(const cu::Matrix3f& Fs) {F_ = Fs;}
-  virtual inline void setDisparityGuess(ConstVectorImagePtr disp_guess) {disp_guess_ = disp_guess;}
+  virtual inline void setDisparityGuess(ConstVectorImagePtr disp_guess) {correspondence_guess_ = disp_guess;}
   virtual inline void setEpiVecs(ConstVectorImagePtr epi_vec) {epi_vec_ = epi_vec;}
 
   virtual void solve(std::vector<ImagePtr> images);
@@ -50,7 +60,7 @@ protected:
   std::unique_ptr<Image> it_; //!< temporal gradients between warped and fixed image
   std::unique_ptr<Image> xi_; //!< preconditioner
 
-  VectorImagePtr disp_guess_;
+  VectorImagePtr correspondence_guess_;
   VectorImagePtr epi_vec_;
 
   // textures
@@ -65,7 +75,7 @@ protected:
   std::unique_ptr<Texture2D> it_tex_;
   std::unique_ptr<Texture2D> xi_tex_;
 
-  std::unique_ptr<Texture2D> disp_guess_tex_;
+  std::unique_ptr<Texture2D> correspondence_guess_tex_;
   std::unique_ptr<Texture2D> epi_vec_tex_;
 
 };

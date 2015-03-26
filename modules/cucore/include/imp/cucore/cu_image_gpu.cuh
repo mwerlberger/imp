@@ -147,7 +147,8 @@ public:
 
   // operators
   /** Pixel-wise multiplication. */
-  ImageGpu<Pixel, pixel_type>& operator*=(const Pixel& rhs);
+  template<typename RPixel>
+  ImageGpu<Pixel, pixel_type>& operator*=(const RPixel& rhs);
 
 
 protected:

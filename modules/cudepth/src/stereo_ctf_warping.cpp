@@ -33,8 +33,8 @@ void StereoCtFWarping::init()
                     __FILE__, __FUNCTION__, __LINE__);
   }
 
-  // just in case
-  levels_.clear();
+//  // just in case
+//  levels_.clear();
 
   for (size_type i=params_->ctf.finest_level; i<=params_->ctf.coarsest_level; ++i)
   {
@@ -52,8 +52,8 @@ void StereoCtFWarping::init()
     break;
     case StereoPDSolver::EpipolarPrecondHuberL1:
       levels_.emplace_back(new SolverEpipolarStereoPrecondHuberL1(params_, sz, i));
-    }
 
+    }
   }
 }
 
@@ -96,15 +96,16 @@ void StereoCtFWarping::addImage(ImagePtr image)
              << " (" << params_->ctf.coarsest_level << " -> " << params_->ctf.finest_level << ")"
              << std::endl;
 
-  if (levels_.empty())
-  {
-    this->init();
-  }
 }
 
 //------------------------------------------------------------------------------
 void StereoCtFWarping::solve()
 {
+  if (levels_.empty())
+  {
+    this->init();
+  }
+
   if (!this->ready())
   {
     throw imp::Exception("not initialized correctly. bailing out.",
@@ -157,32 +158,15 @@ StereoCtFWarping::ImagePtr StereoCtFWarping::getDisparities(size_type level)
 }
 
 //------------------------------------------------------------------------------
-void StereoCtFWarping::setCorrespondenceGuess(ConstVectorImagePtr disp)
+void StereoCtFWarping::setCorrespondenceGuess(ConstVectorImagePtr correspondence_guess)
 {
-  // TODO: downscale towards the correct level size :/
-
-  switch (params_->solver)
-  {
-  case StereoPDSolver::EpipolarPrecondHuberL1:
-    //TODO
-  break;
-  default:
-    throw Exception("fundamental geometry not supported by the selected model.");
-  }
+  init_correspondence_guess_ = correspondence_guess;
 }
 
 //------------------------------------------------------------------------------
 void StereoCtFWarping::setEpiVecs(ConstVectorImagePtr epi_vec)
 {
-  // TODO: downscale towards the correct level size :/
-  switch (params_->solver)
-  {
-  case StereoPDSolver::EpipolarPrecondHuberL1:
-    //TODO
-  break;
-  default:
-    throw Exception("fundamental geometry not supported by the selected model.");
-  }
+  init_epi_vec_ = epi_vec;
 }
 
 } // namespace cu
