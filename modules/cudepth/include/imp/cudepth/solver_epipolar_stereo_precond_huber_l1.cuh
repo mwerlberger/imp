@@ -56,6 +56,7 @@ protected:
   std::unique_ptr<Image> u0_; //!< disparities results from previous warp
   std::unique_ptr<VectorImage> pu_; //!< dual variable for primal variable
   std::unique_ptr<Image> q_; //!< dual variable for data term
+  std::unique_ptr<Image> iw_; //!< warped moving image
   std::unique_ptr<Image> ix_; //!< spatial gradients on moving (warped) image
   std::unique_ptr<Image> it_; //!< temporal gradients between warped and fixed image
   std::unique_ptr<Image> xi_; //!< preconditioner

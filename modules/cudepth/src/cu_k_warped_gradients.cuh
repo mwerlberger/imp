@@ -54,7 +54,7 @@ __global__ void k_warpedGradients(Pixel* ix, Pixel* it, size_type stride,
 //------------------------------------------------------------------------------
 template<typename Pixel>
 __global__ void k_warpedGradientsEpipolarConstraint(
-    Pixel* ix, Pixel* it, size_type stride,
+    Pixel* iw, Pixel* ix, Pixel* it, size_type stride,
     std::uint32_t width, std::uint32_t height,
     // std::uint32_t roi_x, std::uint32_t roi_y,
     Texture2D i1_tex, Texture2D i2_tex, Texture2D u0_tex,
@@ -70,7 +70,7 @@ __global__ void k_warpedGradientsEpipolarConstraint(
     float2 epi_vec = epi_vec_tex.fetch<float2>(x,y);
 
     float disparity = u0_tex.fetch<float>(x,y);
-    float2 w_pt_p = pt_p + epi_vec*disparity; // assuming that epi_vec is the unit vec
+    float2 w_pt_p = pt_p + normalize(epi_vec)*disparity; // assuming that epi_vec is the unit vec
 
     float bd = .5f;
     if ((w_pt_p.x < bd) || (x < bd) || (w_pt_p.y > width-bd-1) || (x > width-bd-1) ||
@@ -87,13 +87,15 @@ __global__ void k_warpedGradientsEpipolarConstraint(
 
        /// @todo (MWE) don't we want to have the gradient along the epipolar line??
       i2_tex.fetch(i2_w_c, w_pt_p.x, w_pt_p.y);
-      i2_tex.fetch(i2_w_m, w_pt_p.x-0.5f, w_pt_p.y);
-      i2_tex.fetch(i2_w_p, w_pt_p.x+0.5f, w_pt_p.y);
+      i2_tex.fetch(i2_w_m, w_pt_p.x-0.5f*epi_vec.x, w_pt_p.y-0.5f*epi_vec.y);
+      i2_tex.fetch(i2_w_p, w_pt_p.x+0.5f*epi_vec.x, w_pt_p.y+0.5f*epi_vec.y);
 
       // spatial gradient on warped image
       ix[c] = i2_w_p - i2_w_m;
       // temporal gradient between the warped moving image and the fixed image
       it[c] = i2_w_c - i1_c;
+      // warped image
+      iw[c] = i2_w_c;
     }
 
   }

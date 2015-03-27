@@ -9,6 +9,8 @@ catkin_simple()
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -Wall -Werror -g")
 
+add_definitions(-DIMP_THROW_ON_CUDA_ERROR)
+
 set(HEADERS
   include/imp/cucore/cu_utils.hpp
   include/imp/cucore/cu_exception.hpp

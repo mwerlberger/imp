@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <glog/logging.h>
+
 #include <imp/cudepth/stereo_ctf_warping_level_huber_l1.cuh>
 #include <imp/cudepth/stereo_ctf_warping_level_precond_huber_l1.cuh>
 #include <imp/cudepth/stereo_ctf_warping_level_precond_huber_l1_weighted.cuh>
@@ -51,8 +53,10 @@ void StereoCtFWarping::init()
       levels_.emplace_back(new StereoCtFWarpingLevelPrecondHuberL1Weighted(params_, sz, i));
     break;
     case StereoPDSolver::EpipolarPrecondHuberL1:
-      levels_.emplace_back(new SolverEpipolarStereoPrecondHuberL1(params_, sz, i));
-
+      levels_.emplace_back(new SolverEpipolarStereoPrecondHuberL1(
+                             params_, sz, i,
+                             init_correspondence_guess_, init_epi_vec_));
+    break;
     }
   }
 }
@@ -90,12 +94,11 @@ void StereoCtFWarping::addImage(ImagePtr image)
   images_.push_back(image);
   image_pyramids_.push_back(pyr);
 
-  std::cout << "we have now " << images_.size() << " images and "
+  LOG(INFO) << "we have now " << images_.size() << " images and "
             <<  image_pyramids_.size() << " pyramids in the CTF instance. "
              << "params_->ctf.levels: " << params_->ctf.levels
-             << " (" << params_->ctf.coarsest_level << " -> " << params_->ctf.finest_level << ")"
-             << std::endl;
-
+             << " (" << params_->ctf.coarsest_level
+             << " -> " << params_->ctf.finest_level << ")";
 }
 
 //------------------------------------------------------------------------------

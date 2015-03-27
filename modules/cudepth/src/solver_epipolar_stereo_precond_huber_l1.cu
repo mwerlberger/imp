@@ -2,6 +2,8 @@
 
 #include <cuda_runtime.h>
 
+#include <glog/logging.h>
+
 #include <imp/cudepth/variational_stereo_parameters.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cuimgproc/cu_image_filter.cuh>
@@ -36,6 +38,7 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
   u0_.reset(new Image(size));
   pu_.reset(new VectorImage(size));
   q_.reset(new Image(size));
+  iw_.reset(new Image(size));
   ix_.reset(new Image(size));
   it_.reset(new Image(size));
   xi_.reset(new Image(size));
@@ -52,9 +55,11 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
 
   if (init_correspondence_guess && init_epi_vec)
   {
-    if (level == 0 && init_correspondence_guess->size() == size &&
-        init_epi_vec->size() == size)
+    LOG(INFO) << "SolverEpipolarStereoPrecondHuberL1 created with epipolar constraints"
+              << " (" << level_ << ")";
+    if (level_ == 0)
     {
+      LOG(INFO) << "level 0 -- size: " << size << "(simply setting it)";
       correspondence_guess_ = init_correspondence_guess;
       epi_vec_ = init_epi_vec;
     }
@@ -62,30 +67,37 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
     {
       Fragmentation<16,16> frag(size);
 
-      float downscale_factor = 0.5f*(size.width()/correspondence_guess_->width()+
-                                     size.height()/correspondence_guess_->height());
+      float downscale_factor = 0.5f*((float)size.width()/(float)init_correspondence_guess->width()+
+                                     (float)size.height()/(float)init_correspondence_guess->height());
+
+      LOG(INFO) << "level " << level << "; size: " << size
+                << "; downscale_factor:" << downscale_factor;
 
       correspondence_guess_.reset(new VectorImage(size));
       epi_vec_.reset(new VectorImage(size));
 
       imp::cu::resample(*correspondence_guess_, *init_correspondence_guess,
                         InterpolationMode::point, false);
-      //*correspondence_guess_ *= downscale_factor;
-      imp::cu::k_pixelWiseMul
-          <<<
-            frag.dimGrid, frag.dimBlock
-          >>> (correspondence_guess_->data(), correspondence_guess_->stride(),
-               imp::Pixel32fC1(downscale_factor),
-               correspondence_guess_->width(), correspondence_guess_->height());
+      *correspondence_guess_ *= downscale_factor;
+//      imp::cu::k_pixelWiseMul
+//          <<<
+//            frag.dimGrid, frag.dimBlock
+//          >>> (correspondence_guess_->data(), correspondence_guess_->stride(),
+//               imp::Pixel32fC1(downscale_factor),
+//               correspondence_guess_->width(), correspondence_guess_->height());
       imp::cu::resample(*epi_vec_, *init_epi_vec, InterpolationMode::point, false);
-      //      *epi_vec_ *= downscale_factor;
-      imp::cu::k_pixelWiseMul
-          <<<
-            frag.dimGrid, frag.dimBlock
-          >>> (epi_vec_->data(), epi_vec_->stride(),
-               imp::Pixel32fC1(downscale_factor),
-               epi_vec_->width(), epi_vec_->height());
+      *epi_vec_ *= downscale_factor;
+//      imp::cu::k_pixelWiseMul
+//          <<<
+//            frag.dimGrid, frag.dimBlock
+//          >>> (epi_vec_->data(), epi_vec_->stride(),
+//               imp::Pixel32fC1(downscale_factor),
+//               epi_vec_->width(), epi_vec_->height());
     }
+  }
+  else
+  {
+    LOG(WARNING) << "SolverEpipolarStereoPrecondHuberL1 created without epipolar constraints";
   }
 }
 
@@ -133,7 +145,7 @@ void SolverEpipolarStereoPrecondHuberL1::init(const SolverStereoAbstract& rhs)
 void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
 {
   if (params_->verbose > 0)
-    std::cout << "StereoCtFWarpingLevelPrecondHuberL1: solving level " << level_ << " with " << images.size() << " images" << std::endl;
+    std::cout << "SolverEpipolarStereoPrecondHuberL1: solving level " << level_ << " with " << images.size() << " images" << std::endl;
 
   // sanity check:
   // TODO
@@ -167,7 +179,7 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
     k_warpedGradientsEpipolarConstraint
         <<<
           frag.dimGrid, frag.dimBlock
-        >>> (ix_->data(), it_->data(), ix_->stride(), ix_->width(), ix_->height(),
+        >>> (iw_->data(), ix_->data(), it_->data(), ix_->stride(), ix_->width(), ix_->height(),
              *i1_tex_, *i2_tex_, *u0_tex_, *correspondence_guess_tex_, *epi_vec_tex_);
 
     // compute preconditioner
@@ -201,6 +213,8 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
     lin_step /= 1.2f;
 
   } // warps
+
+
   IMP_CUDA_CHECK();
 }
 

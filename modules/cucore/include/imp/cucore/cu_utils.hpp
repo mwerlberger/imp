@@ -109,7 +109,7 @@ static inline void checkCudaErrorState(const char* file, const char* function,
  * @note This check is only enabled when the compile time flag is set
  */
 #ifdef IMP_THROW_ON_CUDA_ERROR
-#  define IMP_CUDA_CHECK() checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__)
+#  define IMP_CUDA_CHECK() imp::cu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__)
 #else
 #  define IMP_CUDA_CHECK() do{}while(0)
 #endif
