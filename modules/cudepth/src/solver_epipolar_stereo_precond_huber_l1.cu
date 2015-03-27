@@ -9,6 +9,7 @@
 #include <imp/cucore/cu_utils.hpp>
 #include <imp/cucore/cu_texture.cuh>
 #include <imp/cucore/cu_math.cuh>
+#include <imp/cucore/cu_k_setvalue.cuh>
 
 #include "cu_k_warped_gradients.cuh"
 #include "cu_k_stereo_ctf_warping_level_precond_huber_l1.cuh"
@@ -59,18 +60,31 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
     }
     else
     {
-      float scale_factor = 0.5f*(size.width()/correspondence_guess_->width()+
-                                 size.height()/correspondence_guess_->height());
+      Fragmentation<16,16> frag(size);
+
+      float downscale_factor = 0.5f*(size.width()/correspondence_guess_->width()+
+                                     size.height()/correspondence_guess_->height());
 
       correspondence_guess_.reset(new VectorImage(size));
       epi_vec_.reset(new VectorImage(size));
 
       imp::cu::resample(*correspondence_guess_, *init_correspondence_guess,
                         InterpolationMode::point, false);
-      *correspondence_guess_ *= Pixel32fC1(scale_factor);
-
+      //*correspondence_guess_ *= downscale_factor;
+      imp::cu::k_pixelWiseMul
+          <<<
+            frag.dimGrid, frag.dimBlock
+          >>> (correspondence_guess_->data(), correspondence_guess_->stride(),
+               imp::Pixel32fC1(downscale_factor),
+               correspondence_guess_->width(), correspondence_guess_->height());
       imp::cu::resample(*epi_vec_, *init_epi_vec, InterpolationMode::point, false);
-      *epi_vec_ *= Pixel32fC1(scale_factor);
+      //      *epi_vec_ *= downscale_factor;
+      imp::cu::k_pixelWiseMul
+          <<<
+            frag.dimGrid, frag.dimBlock
+          >>> (epi_vec_->data(), epi_vec_->stride(),
+               imp::Pixel32fC1(downscale_factor),
+               epi_vec_->width(), epi_vec_->height());
     }
   }
 }
@@ -150,11 +164,11 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
     u_->copyTo(*u0_);
 
     // compute warped spatial and temporal gradients
-    k_warpedGradients
+    k_warpedGradientsEpipolarConstraint
         <<<
           frag.dimGrid, frag.dimBlock
         >>> (ix_->data(), it_->data(), ix_->stride(), ix_->width(), ix_->height(),
-             *i1_tex_, *i2_tex_, *u0_tex_);
+             *i1_tex_, *i2_tex_, *u0_tex_, *correspondence_guess_tex_, *epi_vec_tex_);
 
     // compute preconditioner
     k_preconditioner

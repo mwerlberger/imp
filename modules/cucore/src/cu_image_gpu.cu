@@ -238,8 +238,8 @@ std::unique_ptr<Texture2D> ImageGpu<Pixel, pixel_type>::genTexture(bool normaliz
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-template<typename RPixel>
-ImageGpu<Pixel, pixel_type>& ImageGpu<Pixel, pixel_type>::operator*=(const RPixel& rhs)
+template<typename T>
+ImageGpu<Pixel, pixel_type>& ImageGpu<Pixel, pixel_type>::operator*=(const T& rhs)
 {
   // fragmentation
   cu::Fragmentation<16> frag(this->size());

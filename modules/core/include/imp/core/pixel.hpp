@@ -44,6 +44,11 @@ union Pixel1
     c[0] *= rhs[0];
     return *this;
   }
+  CUDA_HOST CUDA_DEVICE Pixel1<T>& operator*(const T& rhs)
+  {
+    c[0] *= rhs;
+    return *this;
+  }
 };
 
 //------------------------------------------------------------------------------
@@ -82,6 +87,12 @@ union Pixel2
   {
     c[0] *= rhs[0];
     c[1] *= rhs[1];
+    return *this;
+  }
+  CUDA_HOST CUDA_DEVICE Pixel2<T>& operator*(const T& rhs)
+  {
+    c[0] *= rhs;
+    c[1] *= rhs;
     return *this;
   }
 };
@@ -126,6 +137,13 @@ union Pixel3
     c[2] *= rhs[2];
     return *this;
   }
+  CUDA_HOST CUDA_DEVICE Pixel3<T>& operator*(const T& rhs)
+  {
+    c[0] *= rhs;
+    c[1] *= rhs;
+    c[2] *= rhs;
+    return *this;
+  }
 };
 
 //------------------------------------------------------------------------------
@@ -168,6 +186,14 @@ union Pixel4
     c[1] *= rhs[1];
     c[2] *= rhs[2];
     c[3] *= rhs[3];
+    return *this;
+  }
+  CUDA_HOST CUDA_DEVICE Pixel4<T>& operator*(const T& rhs)
+  {
+    c[0] *= rhs;
+    c[1] *= rhs;
+    c[2] *= rhs;
+    c[3] *= rhs;
     return *this;
   }
 };
