@@ -27,10 +27,12 @@ class ImageCv : public imp::Image<Pixel, pixel_type>
 {
 public:
   using Base = Image<Pixel, pixel_type>;
-  typedef ImageCv<Pixel, pixel_type> ImCv;
-  typedef Pixel pixel_t;
-  typedef pixel_t* pixel_container_t;
+
+  using pixel_t = Pixel;
+  using pixel_container_t = pixel_t*;
+
   using Ptr = typename std::shared_ptr<ImageCv<Pixel,pixel_type>>;
+  using ConstPtrRef = const Ptr&;
   using ConstPtr = typename std::shared_ptr<ImageCv<Pixel,pixel_type> const>;
 
 public:
@@ -39,7 +41,7 @@ public:
 
   ImageCv(std::uint32_t width, std::uint32_t height);
   ImageCv(const imp::Size2u& size);
-  ImageCv(const ImCv& from);
+  ImageCv(const ImageCv<Pixel, pixel_type>& from);
   ImageCv(const Base& from);
   ImageCv(cv::Mat mat, imp::PixelOrder pixel_order_=imp::PixelOrder::undefined);
 //  ImageCv(pixel_container_t data, std::uint32_t width, std::uint32_t height,
@@ -105,6 +107,10 @@ typedef ImageCv<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageCv32fC4;
 
 template <typename Pixel, imp::PixelType pixel_type>
 using ImageCvPtr = typename ImageCv<Pixel,pixel_type>::Ptr;
+
+template <typename Pixel, imp::PixelType pixel_type>
+using ConstImageCvPtrRef = typename ImageCv<Pixel,pixel_type>::ConstPtrRef;
+
 
 template <typename Pixel, imp::PixelType pixel_type>
 using ImageCvConstPtr = typename ImageCv<Pixel,pixel_type>::ConstPtr;

@@ -25,6 +25,7 @@ set(HEADERS
   include/imp/core/image_raw.hpp
   include/imp/core/cv_connector_pixel_types.hpp
   include/imp/core/image_cv.hpp
+  include/imp/core/image_defs.hpp
   )
 
 set(SOURCES
