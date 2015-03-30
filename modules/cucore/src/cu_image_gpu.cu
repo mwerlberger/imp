@@ -188,12 +188,14 @@ const Pixel* ImageGpu<Pixel, pixel_type>::data(
   return data_.get();
 }
 
+//-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 auto ImageGpu<Pixel, pixel_type>::cuData() -> decltype(imp::cu::toCudaVectorType(this->data()))
 {
   return imp::cu::toCudaVectorType(this->data());
 }
 
+//-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 auto ImageGpu<Pixel, pixel_type>::cuData() const -> decltype(imp::cu::toConstCudaVectorType(this->data()))
 {
@@ -211,7 +213,7 @@ void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
   else
   {
     // fragmentation
-    cu::Fragmentation<16> frag(this->size());
+    cu::Fragmentation<16,16> frag(this->size());
 
     // todo add roi to kernel!
     imp::cu::k_setValue
@@ -242,7 +244,7 @@ template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>& ImageGpu<Pixel, pixel_type>::operator*=(const Pixel& rhs)
 {
   // fragmentation
-  cu::Fragmentation<16> frag(this->size());
+  cu::Fragmentation<16,16> frag(this->size());
 
   // todo add roi to kernel!
   imp::cu::k_pixelWiseMul

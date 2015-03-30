@@ -168,6 +168,14 @@ const Pixel* ImageCv<Pixel, pixel_type>::data(
   return reinterpret_cast<const pixel_container_t>(&buffer[oy*this->stride() + ox]);
 }
 
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+void ImageCv<Pixel,pixel_type>::setValue(const pixel_t& value)
+{
+  mat_ = cv::Scalar::all(value);
+}
+
+
 //=============================================================================
 // Explicitely instantiate the desired classes
 // (sync with typedefs at the end of the hpp file)

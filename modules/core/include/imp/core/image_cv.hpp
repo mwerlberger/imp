@@ -6,6 +6,7 @@
 
 #include <opencv2/core/core.hpp>
 
+#include <imp/core/image_defs.hpp>
 #include <imp/core/image.hpp>
 //#include <imp/core/memory_storage.hpp>
 #include <imp/core/pixel_enums.hpp>
@@ -61,6 +62,12 @@ public:
   virtual pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
   virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
 
+  /**
+   * @brief setValue Sets image data to the specified \a value.
+   * @param value Value to be set to the whole image data.
+   */
+  virtual void setValue(const pixel_t& value) override;
+
   /** Returns the distance in bytes between starts of consecutive rows. */
   virtual size_type pitch() const override { return mat_.step; }
 
@@ -105,11 +112,11 @@ typedef ImageCv<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageCv32fC4;
 
 // shared pointers
 
-template <typename Pixel, imp::PixelType pixel_type>
-using ImageCvPtr = typename ImageCv<Pixel,pixel_type>::Ptr;
+//template <typename Pixel, imp::PixelType pixel_type>
+//using ImageCvPtr = typename ImageCv<Pixel,pixel_type>::Ptr;
 
-template <typename Pixel, imp::PixelType pixel_type>
-using ConstImageCvPtrRef = typename ImageCv<Pixel,pixel_type>::ConstPtrRef;
+//template <typename Pixel, imp::PixelType pixel_type>
+//using ConstImageCvPtrRef = typename ImageCv<Pixel,pixel_type>::ConstPtrRef;
 
 
 template <typename Pixel, imp::PixelType pixel_type>

@@ -65,7 +65,7 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
     }
     else
     {
-      Fragmentation<16,16> frag(size);
+//      Fragmentation<16,16> frag(size);
 
       float downscale_factor = 0.5f*((float)size.width()/(float)init_correspondence_guess->width()+
                                      (float)size.height()/(float)init_correspondence_guess->height());

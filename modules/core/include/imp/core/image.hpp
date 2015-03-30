@@ -63,6 +63,29 @@ public:
 //    return data(0,row);
 //  }
 
+
+  /**
+   * @brief setValue Sets image data to the specified \a value.
+   * @param value Value to be set to the whole image data.
+   */
+  virtual void setValue(const pixel_t& value)
+  {
+    if (this->bytes() == this->pitch()*this->height())
+    {
+      std::fill(this->data(), this->data()+this->stride()*this->height(), value);
+    }
+    else
+    {
+      for (std::uint32_t y=0; y<this->height(); ++y)
+      {
+        for (std::uint32_t x=0; x<this->width(); ++x)
+        {
+          this->data()[y*this->stride()+x] = value;
+        }
+      }
+    }
+  }
+
   /**
    * @brief copyTo copies the internal image data to another class instance
    * @param dst Image class that will receive this image's data.
@@ -74,7 +97,14 @@ public:
       throw imp::Exception("Copying failed: Image size differs.", __FILE__, __FUNCTION__, __LINE__);
     }
 
-    if (this->bytes() == dst.bytes())
+    // check if dst image is on the gpu and the src image is not so we can
+    // use the copyFrom functionality from the dst image as the Image class
+    // doesn't know anything about gpu memory (poor thing)
+    if (dst.isGpuMemory())
+    {
+      dst.copyFrom(*this);
+    }
+    else if (this->bytes() == dst.bytes())
     {
       std::copy(this->data(), this->data()+this->stride()*this->height(), dst.data());
     }
@@ -101,7 +131,11 @@ public:
       throw imp::Exception("Copying failed: Image sizes differ.", __FILE__, __FUNCTION__, __LINE__);
     }
 
-    if (this->bytes() == from.bytes())
+    if (from.isGpuMemory())
+    {
+      from.copyTo(*this);
+    }
+    else if (this->bytes() == from.bytes())
     {
       std::copy(from.data(), from.data()+from.stride()*from.height(), this->data());
     }

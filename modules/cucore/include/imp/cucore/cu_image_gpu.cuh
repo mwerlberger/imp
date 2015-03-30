@@ -47,6 +47,7 @@ public:
   typedef Pixel pixel_t;
   typedef pixel_t* pixel_container_t;
   using Ptr = typename std::shared_ptr<ImageGpu<Pixel,pixel_type>>;
+  using UPtr = typename std::unique_ptr<ImageGpu<Pixel,pixel_type>>;
 
 public:
   ImageGpu() = delete;
@@ -124,7 +125,7 @@ public:
    * @param value Value to be set to the whole image data.
    * @note @todo (MWE) TBD: region-of-interest is considered
    */
-  virtual void setValue(const pixel_t& value);
+  virtual void setValue(const pixel_t& value) override;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
   virtual size_type pitch() const override { return pitch_; }

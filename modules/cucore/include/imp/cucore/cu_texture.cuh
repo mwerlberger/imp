@@ -1,6 +1,7 @@
 #ifndef IMP_CU_TEXTURE_CUH
 #define IMP_CU_TEXTURE_CUH
 
+#include <memory>
 #include <cstring>
 #include <cuda_runtime.h>
 #include <imp/core/types.hpp>
@@ -30,7 +31,11 @@ struct Texture
  */
 struct Texture2D : Texture
 {
+  using Ptr = std::shared_ptr<Texture2D>;
+  using UPtr = std::unique_ptr<Texture2D>;
+
   using Texture::Texture;
+
   __host__ Texture2D(void* data, size_type pitch,
                      cudaChannelFormatDesc channel_desc,
                      imp::Size2u size,
