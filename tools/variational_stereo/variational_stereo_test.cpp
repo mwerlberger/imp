@@ -29,7 +29,7 @@ int main(int /*argc*/, char** /*argv*/)
 
     {
       imp::Pixel32fC1 min_val,max_val;
-      imp::cu::minMax(d_cones1_32fC1, min_val, max_val);
+      imp::cu::minMax(*d_cones1_32fC1, min_val, max_val);
       std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
     }
 
@@ -53,7 +53,7 @@ int main(int /*argc*/, char** /*argv*/)
 
     {
       imp::Pixel32fC1 min_val,max_val;
-      imp::cu::minMax(d_disp, min_val, max_val);
+      imp::cu::minMax(*d_disp, min_val, max_val);
       std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
     }
 
@@ -62,7 +62,7 @@ int main(int /*argc*/, char** /*argv*/)
     *d_disp *= -1;
     {
       imp::Pixel32fC1 min_val,max_val;
-      imp::cu::minMax(d_disp, min_val, max_val);
+      imp::cu::minMax(*d_disp, min_val, max_val);
       std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
     }
 

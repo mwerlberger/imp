@@ -93,6 +93,21 @@ struct Fragmentation
   }
 };
 
+//------------------------------------------------------------------------------
+template <std::uint16_t block_size_x=16,
+          std::uint16_t block_size_y=16,
+          std::uint16_t block_size_z=1>
+inline std::ostream& operator<<(
+    std::ostream &os,
+    const  Fragmentation<block_size_x, block_size_y, block_size_z>& frag)
+{
+  os << "GPU Fragmentation: block: "
+     << frag.dimBlock.x << "," << frag.dimBlock.y << "," << frag.dimBlock.z
+     << "; grid: " << frag.dimGrid.x << "," << frag.dimGrid.y << "," << frag.dimGrid.z
+     << ";";
+  return os;
+}
+
 //##############################################################################
 
 /** Check for CUDA error */

@@ -77,14 +77,6 @@ void StereoCtFWarpingLevelPrecondHuberL1::init(const SolverStereoAbstract& rhs)
 
   imp::cu::resample(*pu_, *from->pu_, imp::InterpolationMode::point, false);
   imp::cu::resample(*q_, *from->q_, imp::InterpolationMode::point, false);
-
-  if (params_->verbose > 2)
-  {
-    std::cout << "inv_sf: " << inv_sf << std::endl;
-    imp::Pixel32fC1 min_val,max_val;
-    imp::cu::minMax(u_, min_val, max_val);
-    std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
-  }
 }
 
 //------------------------------------------------------------------------------

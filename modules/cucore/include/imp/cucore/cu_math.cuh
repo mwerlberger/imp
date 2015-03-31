@@ -12,7 +12,7 @@ namespace cu {
  * @note For multi-channel images, the seperate channels are not handeled individually.
  */
 template<typename Pixel, imp::PixelType pixel_type>
-void minMax(const std::shared_ptr<ImageGpu<Pixel, pixel_type>>& img, Pixel& min, Pixel& max);
+void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min, Pixel& max);
 
 
 } // namespace cu
