@@ -16,23 +16,23 @@ namespace cu {
 //-----------------------------------------------------------------------------
 template<typename Pixel>
 __global__ void k_minMax(Pixel* d_col_mins, Pixel* d_col_maxs,
+                         std::uint32_t roi_x, std::uint32_t roi_y,
                          std::uint32_t roi_width, std::uint32_t roi_height,
                          Texture2D img_tex)
 {
   int x = blockIdx.x*blockDim.x + threadIdx.x;
-  int y = 0;
 
   if (x<roi_width)
   {
-    float xx = x + 0; // roi_offset TODO
-    float yy = y + 0; // roi_offset TODO
+    float xx = x + roi_x; // roi_offset TODO
+    float yy = roi_y; // roi_offset TODO
 
     Pixel cur_min, cur_max;
     img_tex.fetch(cur_min, xx, ++yy);
     cur_max = cur_min;
 
     Pixel val;
-    for (; yy<0+roi_height; ++yy)
+    for (; yy<roi_y+roi_height; ++yy)
     {
       img_tex.fetch(val, xx, yy);
       if (val<cur_min) cur_min = val;
@@ -46,11 +46,9 @@ __global__ void k_minMax(Pixel* d_col_mins, Pixel* d_col_maxs,
 
 
 //-----------------------------------------------------------------------------
-template<typename Pixel, imp::PixelType pixel_type>
-void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min_val, Pixel& max_val)
+template<typename Pixel>
+void minMax(const Texture2D& img_tex, Pixel& min_val, Pixel& max_val, const imp::Roi2u& roi)
 {
-  std::unique_ptr<Texture2D> img_tex = img.genTexture();
-  imp::Roi2u roi = img.roi();
   Fragmentation<512,1,1> frag(roi.width(), 1);
 
   imp::cu::LinearMemory<Pixel> d_col_mins(roi.width());
@@ -60,7 +58,7 @@ void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min_val, Pixel& max_v
       <<<
         frag.dimGrid, frag.dimBlock
       >>> (d_col_mins.data(), d_col_maxs.data(),
-           roi.width(), roi.height(), *img_tex);
+           roi.x(), roi.y(), roi.width(), roi.height(), img_tex);
 
   imp::LinearMemory<Pixel> h_col_mins(roi.width());
   imp::LinearMemory<Pixel> h_col_maxs(roi.width());
@@ -72,12 +70,24 @@ void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min_val, Pixel& max_v
 
   for (auto i=1u; i<roi.width(); ++i)
   {
-    min_val = std::min(min_val, h_col_mins(i));
-    max_val = std::max(max_val, h_col_maxs(i));
+    min_val = imp::cu::min<Pixel>(min_val, h_col_mins(i));
+    max_val = imp::cu::max<Pixel>(max_val, h_col_maxs(i));
   }
 
   IMP_CUDA_CHECK();
 }
+
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min_val, Pixel& max_val)
+{
+  std::unique_ptr<Texture2D> img_tex = img.genTexture();
+  imp::Roi2u roi = img.roi();
+  imp::cu::minMax(*img_tex, min_val, max_val, roi);
+  IMP_CUDA_CHECK();
+}
+
 
 // template instantiations for all our image types
 template void minMax(const ImageGpu8uC1& img, imp::Pixel8uC1& min, imp::Pixel8uC1& max);
@@ -99,7 +109,6 @@ template void minMax(const ImageGpu32fC1& img, imp::Pixel32fC1& min, imp::Pixel3
 template void minMax(const ImageGpu32fC2& img, imp::Pixel32fC2& min, imp::Pixel32fC2& max);
 //template void minMax(const ImageGpu32fC3& img, imp::Pixel32fC3& min, imp::Pixel32fC3& max);
 template void minMax(const ImageGpu32fC4& img, imp::Pixel32fC4& min, imp::Pixel32fC4& max);
-
 
 } // namespace cu
 } // namespace imp
