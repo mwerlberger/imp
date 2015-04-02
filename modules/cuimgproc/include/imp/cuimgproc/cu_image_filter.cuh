@@ -31,63 +31,12 @@ void filterGauss(ImageGpu<Pixel, pixel_type>& dst,
                  ImageGpuPtr<Pixel, pixel_type> tmp_img=nullptr);
 //                 cudaStream_t stream);
 
-///* ***************************************************************************/
-//template<typename Pixel, imp::PixelType pixel_type>
-//void cuCubicBSplinePrefilter_32f_C1I(ImageGpu<Pixel, pixel_type>* src);
-
-///* ***************************************************************************/
-//// edge filter
-//template<typename PixelDst, imp::PixelType pixel_type_dst,
-//         typename PixelSrc, imp::PixelType pixel_type_src>
-//void filterEdge(ImageGpu<PixelDst, pixel_type_dst>* dst,
-//                ImageGpu<PixelSrc, pixel_type_src>* src);
-
-//// edge filter  + evaluation
-//template<typename PixelDst, imp::PixelType pixel_type_dst,
-//         typename PixelSrc, imp::PixelType pixel_type_src>
-//void filterEdge(ImageGpu<PixelDst, pixel_type_dst>* dst,
-//                ImageGpu<PixelSrc, pixel_type_src>* src,
-//                float alpha, float beta, float minval);
-
-////// edge filter  + evaluation
-////void filterEdge(const ImageGpu<Pixel, pixel_type>* src, iu::ImageGpu_32f_C2* dst,
-////                float alpha, float beta, float minval);
-
-////// edge filter  + evaluation
-////void filterEdge(const ImageGpu<Pixel, pixel_type>* src, iu::ImageGpu_32f_C4* dst,
-////                float alpha, float beta, float minval);
-
-////// edge filter  + evaluation
-////void filterEdge(const iu::ImageGpu_32f_C4* src, ImageGpu<Pixel, pixel_type>* dst,
-////                float alpha, float beta, float minval);
-
-////// edge filter  + evaluation
-////void filterEdge(const iu::ImageGpu_32f_C4* src, iu::ImageGpu_32f_C2* dst,
-////                float alpha, float beta, float minval);
-
-////// edge filter  + evaluation
-////void filterEdge(const iu::ImageGpu_32f_C4* src, iu::ImageGpu_32f_C4* dst,
-////                float alpha, float beta, float minval);
-
-///* ***************************************************************************/
-//// bilateral filter
-//void filterBilateral(ImageGpu<Pixel, pixel_type>* dst,
-//                     ImageGpu<Pixel, pixel_type>* src,
-//                     const ImageGpu<Pixel, pixel_type>* prior,
-//                     const int iters,
-//                     const float sigma_spatial, const float sigma_range,
-//                     const int radius);
-
-////void filterBilateral(ImageGpu<Pixel, pixel_type>* dst, ImageGpu<Pixel, pixel_type>* src,
-////                     const iu::ImageGpu_32f_C4* prior, const int iters,
-////                     const float sigma_spatial, const float sigma_range,
-////                     const int radius);
-
-////void filterBilateral(const iu::ImageGpu_32f_C4* src, iu::ImageGpu_32f_C4* dst,
-////                     const iu::ImageGpu_32f_C4* prior, const int iters,
-////                     const float sigma_spatial, const float sigma_range,
-////                     const int radius);
-
+template<typename Pixel, imp::PixelType pixel_type>
+void filterGauss(ImageGpu<Pixel, pixel_type>& dst,
+                 const Texture2D& src_tex,
+                 float sigma, int kernel_size=0,
+                 ImageGpuPtr<Pixel, pixel_type> tmp_img=nullptr);
+//                 cudaStream_t stream);
 
 } // namespace cu
 } // namespace imp

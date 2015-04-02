@@ -77,7 +77,6 @@ void minMax(const Texture2D& img_tex, Pixel& min_val, Pixel& max_val, const imp:
   IMP_CUDA_CHECK();
 }
 
-
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min_val, Pixel& max_val)
@@ -85,6 +84,31 @@ void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min_val, Pixel& max_v
   std::unique_ptr<Texture2D> img_tex = img.genTexture();
   imp::Roi2u roi = img.roi();
   imp::cu::minMax(*img_tex, min_val, max_val, roi);
+  IMP_CUDA_CHECK();
+}
+
+//-----------------------------------------------------------------------------
+__global__ void k_bla(Pixel32fC1* mem, size_t stride, int width, int height)
+{
+  int x = blockIdx.x*blockDim.x + threadIdx.x;
+  int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+  if (x<width && y<height)
+  {
+    mem[y*stride+x] = 0.5f;
+  }
+}
+
+
+//-----------------------------------------------------------------------------
+void minMax2(ImageGpu32fC1& img)
+{
+  imp::Roi2u roi = img.roi();
+  Fragmentation<16,16,1> frag(roi);
+  k_bla
+      <<<
+        frag.dimGrid, frag.dimBlock
+      >>> (img.data(), img.stride(), roi.width(), roi.height());
   IMP_CUDA_CHECK();
 }
 

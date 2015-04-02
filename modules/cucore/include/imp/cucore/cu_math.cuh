@@ -17,6 +17,7 @@ void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min, Pixel& max);
 template<typename Pixel>
 void minMax(const Texture2D& img_tex, Pixel& min_val, Pixel& max_val, const imp::Roi2u& roi);
 
+void minMax2(ImageGpu32fC1& img);
 
 } // namespace cu
 } // namespace imp

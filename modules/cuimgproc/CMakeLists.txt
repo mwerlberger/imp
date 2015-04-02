@@ -10,37 +10,40 @@ catkin_simple()
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -Wall -g")
 
 set(HEADERS
-  include/imp/cuimgproc/cu_image_transform.cuh
-  include/imp/cuimgproc/cu_image_filter.cuh
-  include/imp/cuimgproc/edge_detectors.cuh
   include/imp/cuimgproc/image_pyramid.hpp
-  include/imp/cuimgproc/cu_variational_denoising.cuh
-  include/imp/cuimgproc/cu_rof_denoising.cuh
-  include/imp/cuimgproc/cu_tvl1_denoising.cuh
   )
 
 set(SOURCES
   src/image_pyramid.cpp
   )
 
+set(CU_HDRS
+  include/imp/cuimgproc/cu_image_transform.cuh
+  include/imp/cuimgproc/cu_image_filter.cuh
+  include/imp/cuimgproc/edge_detectors.cuh
+  include/imp/cuimgproc/cu_variational_denoising.cuh
+  include/imp/cuimgproc/cu_rof_denoising.cuh
+  include/imp/cuimgproc/cu_tvl1_denoising.cuh
+  )
+
 set(CU_SRCS
-  src/image_transform/cu_reduce_impl.cu
-  src/image_transform/cu_resample_impl.cu
+#  src/image_transform/cu_reduce_impl.cu
+#  src/image_transform/cu_resample_impl.cu
   src/cu_image_transform.cu
-  src/image_filter/cu_median3x3_impl.cu
-  src/image_filter/cu_gauss_impl.cu
+#  src/image_filter/cu_median3x3_impl.cu
+#  src/image_filter/cu_gauss_impl.cu
   src/cu_image_filter.cu
-  src/edge_detectors/natural_edges_impl.cu
+#  src/edge_detectors/natural_edges_impl.cu
   src/edge_detectors.cu
   src/cu_variational_denoising.cu
   src/cu_rof_denoising.cu
   src/cu_tvl1_denoising.cu
   )
 
-cuda_compile(CU_OBJ ${CU_SRCS})
+cuda_compile(CU_OBJ ${CU_SRCS} ${CU_HDRS})
 
 cs_add_library(${PROJECT_NAME}
-   ${CU_OBJ} ${SOURCES} ${HEADERS}
+   ${CU_OBJ} ${SOURCES} ${HEADERS} ${CU_HDRS}
    )
 target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
 

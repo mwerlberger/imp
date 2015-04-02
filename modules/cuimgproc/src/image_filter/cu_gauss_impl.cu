@@ -98,26 +98,23 @@ __global__ void k_gauss(Pixel* dst, const size_type stride,
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 void filterGauss(ImageGpu<Pixel, pixel_type>& dst,
-                 const ImageGpu<Pixel, pixel_type>& src,
+                 const Texture2D& src_tex,
                  float sigma, int kernel_size,
                  ImageGpuPtr<Pixel, pixel_type> tmp_img)
 //                 cudaStream_t stream);
 {
+  Roi2u roi = dst.roi();
+
   if (kernel_size == 0)
     kernel_size = max(5, static_cast<int>(std::ceil(sigma*3)*2 + 1));
   if (kernel_size % 2 == 0)
     ++kernel_size;
 
-  Roi2u roi = src.roi();
-
   // temporary variable for filtering (separabel kernel!)
-  if (!tmp_img || src.size() != tmp_img->size());
+  if (!tmp_img || dst.roi().size() != tmp_img->size());
   {
     tmp_img.reset(new ImageGpu<Pixel, pixel_type>(roi.size()));
   }
-
- if (dst.roi().size() != roi.size())
-    dst.setRoi(roi);
 
   // fragmentation
   Fragmentation<16,16> frag(roi);
@@ -126,25 +123,44 @@ void filterGauss(ImageGpu<Pixel, pixel_type>& dst,
   float c1 = std::exp(-0.5f / (sigma * sigma));
 
   // Convolve horizontally
-  std::unique_ptr<Texture2D> src_tex =
-      src.genTexture(false,(src.bitDepth()<32) ? cudaFilterModePoint
-                                                 : cudaFilterModeLinear);
   k_gauss
       <<<
         frag.dimGrid, frag.dimBlock//, 0, stream
       >>> (tmp_img->data(), tmp_img->stride(),
            roi.x(), roi.y(), tmp_img->width(), tmp_img->height(),
-           *src_tex, /*sigma, */kernel_size, c0, c1, false);
+           src_tex, /*sigma, */kernel_size, c0, c1, false);
 
+  std::unique_ptr<Texture2D> tmp_tex =
+      tmp_img->genTexture(false,(tmp_img->bitDepth()<32) ? cudaFilterModePoint
+                                                         : cudaFilterModeLinear);
   // Convolve vertically
-  src_tex = tmp_img->genTexture(false,(tmp_img->bitDepth()<32) ? cudaFilterModePoint
-                                                               : cudaFilterModeLinear);
   k_gauss
       <<<
         frag.dimGrid, frag.dimBlock//, 0, stream
-      >>> (dst.data(roi.x(), roi.y()), dst.stride(),
+      >>> (dst.data(), dst.stride(),
            roi.x(), roi.y(), roi.width(), roi.height(),
-           *src_tex, /*sigma, */kernel_size, c0, c1, true);
+           *tmp_tex, /*sigma, */kernel_size, c0, c1, true);
+
+  IMP_CUDA_CHECK();
+}
+
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+void filterGauss(ImageGpu<Pixel, pixel_type>& dst,
+                 const ImageGpu<Pixel, pixel_type>& src,
+                 float sigma, int kernel_size,
+                 ImageGpuPtr<Pixel, pixel_type> tmp_img)
+//                 cudaStream_t stream);
+{
+  std::unique_ptr<Texture2D> src_tex =
+      src.genTexture(false,(src.bitDepth()<32) ? cudaFilterModePoint
+                                               : cudaFilterModeLinear);
+  imp::Roi2u roi = src.roi();
+  if (dst.roi().size() != roi.size())
+     dst.setRoi(roi);
+
+  imp::cu::filterGauss(dst, *src_tex, sigma, kernel_size, tmp_img);
 
   IMP_CUDA_CHECK();
 }

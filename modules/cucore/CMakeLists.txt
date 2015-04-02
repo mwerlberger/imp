@@ -33,7 +33,7 @@ set(SOURCES
 set(CU_SRC
   src/cu_linearmemory.cu
   src/cu_image_gpu.cu
-  src/math/cu_min_max_impl.cu
+#  src/math/cu_min_max_impl.cu
   src/cu_math.cu
   )
 

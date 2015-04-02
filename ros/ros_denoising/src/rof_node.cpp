@@ -2,7 +2,7 @@
 #include <image_transport/image_transport.h>
 
 #include <dynamic_reconfigure/server.h>
-#include <imp_ros_denoising/RofConfig.h>
+#include <imp_ros_denoising/RofNodeConfig.h>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
@@ -26,7 +26,7 @@ public:
 
   void imgCb(const sensor_msgs::ImageConstPtr& img_msg);
 
-  void paramCb(imp_ros_denoising::RofConfig& config, uint32_t level);
+  void paramCb(imp_ros_denoising::RofNodeConfig& config, uint32_t level);
 
 
 private:
@@ -74,7 +74,7 @@ void RofNode::imgCb(const sensor_msgs::ImageConstPtr &img_msg)
 }
 
 //------------------------------------------------------------------------------
-void RofNode::paramCb(imp_ros_denoising::RofConfig& config, uint32_t level)
+void RofNode::paramCb(imp_ros_denoising::RofNodeConfig& config, uint32_t level)
 {
   if(!rof_)
     return;
@@ -95,8 +95,8 @@ int main(int argc, char **argv)
   imp::RofNode rof_node;
 
   // reconfigure stuff
-  dynamic_reconfigure::Server<imp_ros_denoising::RofConfig> server;
-  dynamic_reconfigure::Server<imp_ros_denoising::RofConfig>::CallbackType f;
+  dynamic_reconfigure::Server<imp_ros_denoising::RofNodeConfig> server;
+  dynamic_reconfigure::Server<imp_ros_denoising::RofNodeConfig>::CallbackType f;
   f = boost::bind(&imp::RofNode::paramCb, &rof_node, _1, _2);
   server.setCallback(f);
 
