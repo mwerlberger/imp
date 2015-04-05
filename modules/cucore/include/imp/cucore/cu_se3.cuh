@@ -1,6 +1,7 @@
 #ifndef IMP_CU_SE3_CUH
 #define IMP_CU_SE3_CUH
 
+#include <ostream>
 //#include <imp/cuda_toolkit/helper_math.h>
 #include <imp/core/pixel.hpp>
 #include <imp/cucore/cu_matrix.cuh>
@@ -183,11 +184,7 @@ inline std::ostream& operator<<(std::ostream &os, const cu::SE3<T>& rhs)
   {
     for (int c=0; c<4; ++c)
     {
-      os << rhs(r,c);
-      if (r<2)
-      {
-        os << ", ";
-      }
+      os << rhs(r,c) << " ";
     }
     os << "\n";
   }

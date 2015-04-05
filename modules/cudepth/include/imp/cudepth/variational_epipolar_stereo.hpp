@@ -6,6 +6,8 @@
 #include <memory>
 
 #include <imp/cucore/cu_matrix.cuh>
+#include <imp/cucore/cu_se3.cuh>
+#include <imp/cucore/cu_pinhole_camera.cuh>
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cudepth/variational_stereo_parameters.hpp>
 #include <imp/cudepth/variational_stereo.hpp>
@@ -40,6 +42,8 @@ public:
 
 //  virtual void setTransformation
   virtual void setFundamentalMatrix(const cu::Matrix3f& F);
+  virtual void setIntrinsics(const cu::PinholeCamera& cam);
+  virtual void setExtrinstics(const cu::SE3<float>& T_mov_fix);
   virtual void setCorrespondenceGuess(ConstVectorImagePtr disp);
   virtual void setEpiVecs(ConstVectorImagePtr epi_vec);
 

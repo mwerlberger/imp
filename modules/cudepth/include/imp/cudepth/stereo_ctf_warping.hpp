@@ -6,6 +6,8 @@
 
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cuimgproc/image_pyramid.hpp>
+#include <imp/cucore/cu_pinhole_camera.cuh>
+#include <imp/cucore/cu_se3.cuh>
 #include <imp/cucore/cu_matrix.cuh>
 
 #include <imp/cudepth/variational_stereo_parameters.hpp>
@@ -54,6 +56,9 @@ public:
   // if we have a guess about the correspondence points and the epipolar geometry
   // given we can set these as a prior
   inline virtual void setFundamentalMatrix(const cu::Matrix3f& F) {F_ = F;}
+  virtual void setIntrinsics(const cu::PinholeCamera& cam) {cam_ = cam;}
+  virtual void setExtrinsics(const cu::SE3<float>& T_mov_fix) {T_mov_fix_=T_mov_fix;}
+
   inline virtual void setCorrespondenceGuess(ConstVectorImagePtr correspondence_guess)
   {init_correspondence_guess_ = correspondence_guess;}
   inline virtual void setEpiVecs(ConstVectorImagePtr epi_vec) {init_epi_vec_ = epi_vec;}
@@ -77,6 +82,9 @@ private:
   std::vector<std::unique_ptr<SolverStereoAbstract>> levels_;
 
   cu::Matrix3f F_;
+  cu::PinholeCamera cam_;
+  cu::SE3<float> T_mov_fix_;
+
   VectorImagePtr init_correspondence_guess_;
   VectorImagePtr init_epi_vec_;
 };

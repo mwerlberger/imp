@@ -24,6 +24,20 @@ void VariationalEpipolarStereo::setFundamentalMatrix(const cu::Matrix3f& F)
 
 
 //------------------------------------------------------------------------------
+void VariationalEpipolarStereo::setIntrinsics(const cu::PinholeCamera& cam)
+{
+  ctf_->setIntrinsics(cam);
+}
+
+//------------------------------------------------------------------------------
+void VariationalEpipolarStereo::setExtrinstics(const cu::SE3<float>& T_mov_fix)
+{
+  ctf_->setExtrinsics(T_mov_fix);
+}
+
+
+
+//------------------------------------------------------------------------------
 void VariationalEpipolarStereo::setCorrespondenceGuess(ConstVectorImagePtr disp)
 {
   ctf_->setCorrespondenceGuess(disp);

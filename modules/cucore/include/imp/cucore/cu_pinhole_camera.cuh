@@ -2,7 +2,6 @@
 #define IMP_CU_PINHOLE_CAMERA_CUH
 
 #include <cuda_runtime_api.h>
-#include <imp/cuda_toolkit/helper_math.h>
 #include <imp/core/pixel.hpp>
 #include <imp/cucore/cu_matrix.cuh>
 
