@@ -59,6 +59,13 @@ public:
                     f_.y*p.y/p.z + c_.y);
   }
 
+  inline const Vec32fC2& f() {return f_;}
+  inline const Vec32fC2& c() {return c_;}
+
+  inline float fx() {return f_.x;}
+  inline float fy() {return f_.y;}
+  inline float cx() {return c_.x;}
+  inline float cy() {return c_.y;}
 
 private:
   Vec32fC2 f_; //!< focal length {fx, fy}

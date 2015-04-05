@@ -43,7 +43,7 @@ public:
 //  virtual void setTransformation
   virtual void setFundamentalMatrix(const cu::Matrix3f& F);
   virtual void setIntrinsics(const cu::PinholeCamera& cam);
-  virtual void setExtrinstics(const cu::SE3<float>& T_mov_fix);
+  virtual void setExtrinsics(const cu::SE3<float>& T_mov_fix);
   virtual void setCorrespondenceGuess(ConstVectorImagePtr disp);
   virtual void setEpiVecs(ConstVectorImagePtr epi_vec);
 
