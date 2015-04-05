@@ -38,6 +38,7 @@ public:
   VariationalEpipolarStereo(ParametersPtr params=nullptr);
   virtual ~VariationalEpipolarStereo(); //= default;
 
+//  virtual void setTransformation
   virtual void setFundamentalMatrix(const cu::Matrix3f& F);
   virtual void setCorrespondenceGuess(ConstVectorImagePtr disp);
   virtual void setEpiVecs(ConstVectorImagePtr epi_vec);
