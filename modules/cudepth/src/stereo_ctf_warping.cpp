@@ -160,18 +160,6 @@ StereoCtFWarping::ImagePtr StereoCtFWarping::getDisparities(size_type level)
   return levels_.at(level)->getDisparities();
 }
 
-//------------------------------------------------------------------------------
-void StereoCtFWarping::setCorrespondenceGuess(ConstVectorImagePtr correspondence_guess)
-{
-  init_correspondence_guess_ = correspondence_guess;
-}
-
-//------------------------------------------------------------------------------
-void StereoCtFWarping::setEpiVecs(ConstVectorImagePtr epi_vec)
-{
-  init_epi_vec_ = epi_vec;
-}
-
 } // namespace cu
 } // namespace imp
 

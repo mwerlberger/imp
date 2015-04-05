@@ -221,6 +221,34 @@ typedef Pixel3<float> Pixel32fC3;
 typedef Pixel4<float> Pixel32fC4;
 
 
+// vector types (same as pixel)
+template<typename T> using Vec1 = Pixel1<T>;
+template<typename T> using Vec2 = Pixel2<T>;
+template<typename T> using Vec3 = Pixel3<T>;
+template<typename T> using Vec4 = Pixel4<T>;
+
+using Vec8uC1 = Vec1<std::uint8_t>;
+using Vec8uC2 = Vec2<std::uint8_t>;
+using Vec8uC3 = Vec3<std::uint8_t>;
+using Vec8uC4 = Vec4<std::uint8_t>;
+
+using Vec16uC1 = Vec1<std::uint16_t>;
+using Vec16uC2 = Vec2<std::uint16_t>;
+using Vec16uC3 = Vec3<std::uint16_t>;
+using Vec16uC4 = Vec4<std::uint16_t>;
+
+using Vec32sC1 = Vec1<std::int32_t>;
+using Vec32sC2 = Vec2<std::int32_t>;
+using Vec32sC3 = Vec3<std::int32_t>;
+using Vec32sC4 = Vec4<std::int32_t>;
+
+using Vec32fC1 = Vec1<float>;
+using Vec32fC2 = Vec2<float>;
+using Vec32fC3 = Vec3<float>;
+using Vec32fC4 = Vec4<float>;
+
+
+
 //------------------------------------------------------------------------------
 // comparison operators
 template<typename T>

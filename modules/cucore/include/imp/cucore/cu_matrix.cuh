@@ -94,7 +94,7 @@ using Vector3f = Matrix<float,1,3>;
 template<typename Type, size_t _rows, size_t CR, size_t _cols>
 __host__ __device__ __forceinline__
 Matrix<Type, _rows, _cols> operator*(const Matrix<Type, _rows, CR> & lhs,
-                             const Matrix<Type, CR, _cols> & rhs)
+                                     const Matrix<Type, CR, _cols> & rhs)
 {
   Matrix<Type, _rows, _cols> result;
   for(size_t row=0; row<_rows; ++row)

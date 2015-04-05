@@ -40,7 +40,7 @@ public:
 
   virtual void init();
   virtual void init(const SolverStereoAbstract& rhs);
-  //virtual inline void setFundamentalMatrices(const cu::Matrix3f& Fs) {F_ = Fs;}
+  virtual inline void setFundamentalMatrix(const cu::Matrix3f& F) {F_ = F;}
   virtual inline void setDisparityGuess(ConstVectorImagePtr disp_guess) {correspondence_guess_ = disp_guess;}
   virtual inline void setEpiVecs(ConstVectorImagePtr epi_vec) {epi_vec_ = epi_vec;}
 
@@ -49,8 +49,6 @@ public:
   virtual inline ImagePtr getDisparities() {return u_;}
 
 protected:
-
-
   ImagePtr u_; //!< disparities (result)
   std::unique_ptr<Image> u_prev_; //!< disparities results from previous iteration
   std::unique_ptr<Image> u0_; //!< disparities results from previous warp
@@ -61,6 +59,7 @@ protected:
   std::unique_ptr<Image> it_; //!< temporal gradients between warped and fixed image
   std::unique_ptr<Image> xi_; //!< preconditioner
 
+  cu::Matrix3f F_;
   VectorImagePtr correspondence_guess_;
   VectorImagePtr epi_vec_;
 

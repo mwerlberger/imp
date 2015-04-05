@@ -6,6 +6,7 @@
 
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cuimgproc/image_pyramid.hpp>
+#include <imp/cucore/cu_matrix.cuh>
 
 #include <imp/cudepth/variational_stereo_parameters.hpp>
 //#include <imp/cudepth/solver_stereo_abstract.hpp>
@@ -19,6 +20,8 @@ class SolverStereoAbstract;
 
 /**
  * @brief The StereoCtFWarping class
+ * @todo (MWE) better handling of fixed vs. moving images when adding (incremental updates)
+ * @todo (MWE) better interface for multiple input images with fundamental matrix prior
  */
 class StereoCtFWarping
 {
@@ -50,8 +53,10 @@ public:
 
   // if we have a guess about the correspondence points and the epipolar geometry
   // given we can set these as a prior
-  void setCorrespondenceGuess(ConstVectorImagePtr correspondence_guess);
-  void setEpiVecs(ConstVectorImagePtr epi_vecs);
+  inline virtual void setFundamentalMatrix(const cu::Matrix3f& F) {F_ = F;}
+  inline virtual void setCorrespondenceGuess(ConstVectorImagePtr correspondence_guess)
+  {init_correspondence_guess_ = correspondence_guess;}
+  inline virtual void setEpiVecs(ConstVectorImagePtr epi_vec) {init_epi_vec_ = epi_vec;}
 
 protected:
   /**
@@ -70,6 +75,8 @@ private:
   std::vector<ImagePtr> images_; //!< all unprocessed input images
   std::vector<ImagePyramidPtr> image_pyramids_; //!< image pyramids corresponding to the unprocesed input images
   std::vector<std::unique_ptr<SolverStereoAbstract>> levels_;
+
+  cu::Matrix3f F_;
   VectorImagePtr init_correspondence_guess_;
   VectorImagePtr init_epi_vec_;
 };

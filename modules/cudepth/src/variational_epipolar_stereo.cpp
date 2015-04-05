@@ -17,6 +17,13 @@ VariationalEpipolarStereo::~VariationalEpipolarStereo()
 }
 
 //------------------------------------------------------------------------------
+void VariationalEpipolarStereo::setFundamentalMatrix(const cu::Matrix3f& F)
+{
+  ctf_->setFundamentalMatrix(F);
+}
+
+
+//------------------------------------------------------------------------------
 void VariationalEpipolarStereo::setCorrespondenceGuess(ConstVectorImagePtr disp)
 {
   ctf_->setCorrespondenceGuess(disp);
