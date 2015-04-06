@@ -35,8 +35,8 @@ void StereoCtFWarping::init()
                     __FILE__, __FUNCTION__, __LINE__);
   }
 
-//  // just in case
-//  levels_.clear();
+  //  // just in case
+  //  levels_.clear();
 
   for (size_type i=params_->ctf.finest_level; i<=params_->ctf.coarsest_level; ++i)
   {
@@ -54,8 +54,8 @@ void StereoCtFWarping::init()
     break;
     case StereoPDSolver::EpipolarPrecondHuberL1:
       levels_.emplace_back(new SolverEpipolarStereoPrecondHuberL1(
-                             params_, sz, i,
-                             init_correspondence_guess_, init_epi_vec_));
+                             params_, sz, i, cams_, F_, T_mov_fix_,
+                             *depth_proposal_, *depth_proposal_sigma2_));
     break;
     }
   }
@@ -80,7 +80,7 @@ bool StereoCtFWarping::ready()
 }
 
 //------------------------------------------------------------------------------
-void StereoCtFWarping::addImage(ImagePtr image)
+void StereoCtFWarping::addImage(const ImagePtr& image)
 {
   // generate image pyramid
   ImagePyramidPtr pyr(new ImagePyramid(image, params_->ctf.scale_factor, 4));

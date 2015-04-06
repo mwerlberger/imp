@@ -25,6 +25,10 @@ public:
 
   using Image = imp::cu::ImageGpu32fC1;
   using ImagePtr = std::shared_ptr<Image>;
+
+  using DisparityImage = imp::cu::ImageGpu32fC1;
+  using DisparityImagePtr = std::shared_ptr<Image>;
+
   using ConstImagePtrRef = const std::shared_ptr<Image>&;
 
   using VectorImage = imp::cu::ImageGpu32fC2;

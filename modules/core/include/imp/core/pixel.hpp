@@ -2,6 +2,7 @@
 #define IMP_PIXEL_HPP
 
 #include <cstdint>
+#include <cmath>
 
 #ifdef IMP_WITH_CUDA
 #  include<cuda_runtime_api.h>
@@ -256,6 +257,48 @@ inline bool operator==(const Pixel1<T>& lhs, const Pixel1<T>& rhs)
 {
   return (lhs.x == rhs.x);
 }
+
+//------------------------------------------------------------------------------
+// dot product
+
+template<typename T>
+inline CUDA_HOST CUDA_DEVICE T dot(Vec2<T> a, Vec2<T> b)
+{
+    return a.x * b.x + a.y * b.y;
+}
+template<typename T>
+inline CUDA_HOST CUDA_DEVICE T dot(Vec3<T> a, Vec3<T> b)
+{
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+template<typename T>
+inline CUDA_HOST CUDA_DEVICE T dot(Vec4<T> a, Vec4<T> b)
+{
+    return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+}
+
+//------------------------------------------------------------------------------
+//normalize
+
+template<typename T>
+inline CUDA_HOST CUDA_DEVICE Vec2<T> normalize(Vec2<T> v)
+{
+    float invLen = 1.0f / std::sqrt((float)dot(v, v));
+    return static_cast<T>(v*invLen);
+}
+template<typename T>
+inline CUDA_HOST CUDA_DEVICE Vec3<T> normalize(Vec3<T> v)
+{
+    float invLen = 1.0f / std::sqrt((float)dot(v, v));
+    return static_cast<T>(v*invLen);
+}
+template<typename T>
+inline CUDA_HOST CUDA_DEVICE Vec4<T> normalize(Vec4<T> v)
+{
+    float invLen = 1.0f / std::sqrt((float)dot(v, v));
+    return static_cast<T>(v*invLen);
+}
+
 
 
 } // namespace imp

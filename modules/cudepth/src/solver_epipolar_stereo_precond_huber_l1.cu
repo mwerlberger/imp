@@ -29,11 +29,17 @@ SolverEpipolarStereoPrecondHuberL1::~SolverEpipolarStereoPrecondHuberL1()
 //------------------------------------------------------------------------------
 SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
     const std::shared_ptr<Parameters>& params, imp::Size2u size, size_type level,
-    ConstVectorImagePtr init_correspondence_guess,
-    ConstVectorImagePtr init_epi_vec)
+    const std::vector<cu::PinholeCamera>& cams,
+    const cu::Matrix3f& F,
+    const cu::SE3<float>& T_mov_fix,
+    const imp::cu::ImageGpu32fC1& depth_proposal,
+    const imp::cu::ImageGpu32fC1& depth_proposal_sigma2)
   : SolverStereoAbstract(params, size, level)
+  , cams_(cams)
+  , F_(F)
+  , T_mov_fix_(T_mov_fix)
 {
-  u_.reset(new Image(size));
+  u_.reset(new DisparityImage(size));
   u_prev_.reset(new Image(size));
   u0_.reset(new Image(size));
   pu_.reset(new VectorImage(size));
@@ -42,6 +48,9 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
   ix_.reset(new Image(size));
   it_.reset(new Image(size));
   xi_.reset(new Image(size));
+
+  depth_proposal_.reset(new DisparityImage(size));
+  depth_proposal_sigma2_.reset(new DisparityImage(size));
 
   // and its textures
   u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
@@ -53,51 +62,29 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
   it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
   xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
 
-  if (init_correspondence_guess && init_epi_vec)
+  depth_proposal_tex_ =  depth_proposal_->genTexture(false, cudaFilterModeLinear);
+  depth_proposal_sigma2_tex_ =  depth_proposal_sigma2_->genTexture(false, cudaFilterModeLinear);
+
+
+  if (level_ == 0)
   {
-    LOG(INFO) << "SolverEpipolarStereoPrecondHuberL1 created with epipolar constraints"
-              << " (" << level_ << ")";
-    if (level_ == 0)
-    {
-      LOG(INFO) << "level 0 -- size: " << size << "(simply setting it)";
-      correspondence_guess_ = init_correspondence_guess;
-      epi_vec_ = init_epi_vec;
-    }
-    else
-    {
-//      Fragmentation<16,16> frag(size);
-
-      float downscale_factor = 0.5f*((float)size.width()/(float)init_correspondence_guess->width()+
-                                     (float)size.height()/(float)init_correspondence_guess->height());
-
-      LOG(INFO) << "level " << level << "; size: " << size
-                << "; downscale_factor:" << downscale_factor;
-
-      correspondence_guess_.reset(new VectorImage(size));
-      epi_vec_.reset(new VectorImage(size));
-
-      imp::cu::resample(*correspondence_guess_, *init_correspondence_guess,
-                        InterpolationMode::point, false);
-      *correspondence_guess_ *= downscale_factor;
-//      imp::cu::k_pixelWiseMul
-//          <<<
-//            frag.dimGrid, frag.dimBlock
-//          >>> (correspondence_guess_->data(), correspondence_guess_->stride(),
-//               imp::Pixel32fC1(downscale_factor),
-//               correspondence_guess_->width(), correspondence_guess_->height());
-      imp::cu::resample(*epi_vec_, *init_epi_vec, InterpolationMode::point, false);
-      *epi_vec_ *= downscale_factor;
-//      imp::cu::k_pixelWiseMul
-//          <<<
-//            frag.dimGrid, frag.dimBlock
-//          >>> (epi_vec_->data(), epi_vec_->stride(),
-//               imp::Pixel32fC1(downscale_factor),
-//               epi_vec_->width(), epi_vec_->height());
-    }
+    LOG(INFO) << "Copy depth proposals (" << depth_proposal.size() << ") to level0 ("
+              << depth_proposal_->size() << ")";
+    depth_proposal.copyTo(*depth_proposal_);
+    depth_proposal_sigma2.copyTo(*depth_proposal_sigma2_);
   }
   else
   {
-    LOG(WARNING) << "SolverEpipolarStereoPrecondHuberL1 created without epipolar constraints";
+    float downscale_factor = 0.5f*((float)size.width()/(float)depth_proposal.width()+
+                                   (float)size.height()/(float)depth_proposal.height());
+
+    LOG(INFO) << "depth proposal downscaled to level " << level << "with size " << size
+              << "(downscale_factor: " << downscale_factor;
+
+    imp::cu::resample(*depth_proposal_, depth_proposal);
+    imp::cu::resample(*depth_proposal_sigma2_, depth_proposal_sigma2);
+    *depth_proposal_ *= downscale_factor;
+    *depth_proposal_sigma2_ *= downscale_factor; //!< @todo (MWE) do we need to scale this?
   }
 }
 
@@ -145,8 +132,8 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
   // textures
   i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
   i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
-  correspondence_guess_tex_ =  correspondence_guess_->genTexture(false, cudaFilterModeLinear);
-  epi_vec_tex_ =  epi_vec_->genTexture(false, cudaFilterModeLinear);
+//  correspondence_guess_tex_ =  correspondence_guess_->genTexture(false, cudaFilterModeLinear);
+//  epi_vec_tex_ =  epi_vec_->genTexture(false, cudaFilterModeLinear);
 
   u_->copyTo(*u_prev_);
   Fragmentation<16,16> frag(size_);
@@ -172,7 +159,8 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
         <<<
           frag.dimGrid, frag.dimBlock
         >>> (iw_->data(), ix_->data(), it_->data(), ix_->stride(), ix_->width(), ix_->height(),
-             *i1_tex_, *i2_tex_, *u0_tex_, *correspondence_guess_tex_, *epi_vec_tex_);
+             cams_.at(0), cams_.at(1), F_, T_mov_fix_,
+             *i1_tex_, *i2_tex_, *u0_tex_, *depth_proposal_tex_, *depth_proposal_sigma2_tex_);
 
     // compute preconditioner
     k_preconditioner

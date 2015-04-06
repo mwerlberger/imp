@@ -2,7 +2,7 @@
 #define IMP_CU_MATRIX_CUH
 
 #include <cuda_runtime.h>
-#include <array>
+#include <imp/core/pixel.hpp>
 
 namespace imp{
 namespace cu{
@@ -132,6 +132,18 @@ __host__ __device__ inline
 float3 operator*(const Matrix3f& mat, const float3& v)
 {
   return make_float3(
+        mat(0,0)*v.x + mat(0,1)*v.y + mat(0,2)*v.z,
+        mat(1,0)*v.x + mat(1,1)*v.y + mat(1,2)*v.z,
+        mat(2,0)*v.x + mat(2,1)*v.y + mat(2,2)*v.z
+        );
+}
+
+//------------------------------------------------------------------------------
+// matrix vector multiplication
+__host__ __device__ inline
+Vec32fC3 operator*(const Matrix3f& mat, const Vec32fC3& v)
+{
+  return Vec32fC3(
         mat(0,0)*v.x + mat(0,1)*v.y + mat(0,2)*v.z,
         mat(1,0)*v.x + mat(1,1)*v.y + mat(1,2)*v.z,
         mat(2,0)*v.x + mat(2,1)*v.y + mat(2,2)*v.z

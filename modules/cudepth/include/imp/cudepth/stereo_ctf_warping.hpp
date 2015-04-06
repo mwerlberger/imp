@@ -49,19 +49,21 @@ public:
 
   StereoCtFWarping(std::shared_ptr<Parameters> params);
 
-  void addImage(ImagePtr image);
+  void addImage(const ImagePtr& image);
   void solve();
   ImagePtr getDisparities(size_type level=0);
 
   // if we have a guess about the correspondence points and the epipolar geometry
   // given we can set these as a prior
   inline virtual void setFundamentalMatrix(const cu::Matrix3f& F) {F_ = F;}
-  virtual void setIntrinsics(const cu::PinholeCamera& cam) {cam_ = cam;}
+  virtual void setIntrinsics(const std::vector<cu::PinholeCamera>& cams) {cams_ = cams;}
   virtual void setExtrinsics(const cu::SE3<float>& T_mov_fix) {T_mov_fix_=T_mov_fix;}
 
-  inline virtual void setCorrespondenceGuess(ConstVectorImagePtr correspondence_guess)
-  {init_correspondence_guess_ = correspondence_guess;}
-  inline virtual void setEpiVecs(ConstVectorImagePtr epi_vec) {init_epi_vec_ = epi_vec;}
+  inline virtual void setDepthProposal(ImagePtr depth_proposal, ImagePtr depth_proposal_sigma2=nullptr)
+  {
+    depth_proposal_ = depth_proposal;
+    depth_proposal_sigma2_ = depth_proposal_sigma2;
+  }
 
 protected:
   /**
@@ -82,11 +84,11 @@ private:
   std::vector<std::unique_ptr<SolverStereoAbstract>> levels_;
 
   cu::Matrix3f F_;
-  cu::PinholeCamera cam_;
+  std::vector<cu::PinholeCamera> cams_;
   cu::SE3<float> T_mov_fix_;
 
-  VectorImagePtr init_correspondence_guess_;
-  VectorImagePtr init_epi_vec_;
+  ImagePtr depth_proposal_;
+  ImagePtr depth_proposal_sigma2_;
 };
 
 } // namespace cu
