@@ -130,6 +130,13 @@ public:
                     data_(1,0)*p.x + data_(1,1)*p.y + data_(1,2)*p.z,
                     data_(2,0)*p.x + data_(2,1)*p.y + data_(2,2)*p.z);
   }
+  __host__ __device__ __forceinline__
+  float3 rotate(const float3& p) const
+  {
+    return make_float3(data_(0,0)*p.x + data_(0,1)*p.y + data_(0,2)*p.z,
+                       data_(1,0)*p.x + data_(1,1)*p.y + data_(1,2)*p.z,
+                       data_(2,0)*p.x + data_(2,1)*p.y + data_(2,2)*p.z);
+  }
 
   __host__ __device__ __forceinline__
   Vec32fC3 translate(const Vec32fC3& p) const
@@ -137,6 +144,14 @@ public:
     return Vec32fC3(p.x + data_(0,3),
                     p.y + data_(1,3),
                     p.z + data_(2,3));
+  }
+
+  __host__ __device__ __forceinline__
+  float3 translate(const float3& p) const
+  {
+    return make_float3(p.x + data_(0,3),
+                       p.y + data_(1,3),
+                       p.z + data_(2,3));
   }
 
   __host__ __device__ __forceinline__
@@ -173,6 +188,12 @@ SE3<Type> operator*(const SE3<Type>& lhs, const SE3<Type>& rhs)
 
 __host__ __device__ __forceinline__
 Vec32fC3 operator*(const SE3<float>& se3, const Vec32fC3& p)
+{
+  return se3.translate(se3.rotate(p));
+}
+
+__host__ __device__ __forceinline__
+float3 operator*(const SE3<float>& se3, const float3& p)
 {
   return se3.translate(se3.rotate(p));
 }

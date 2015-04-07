@@ -59,13 +59,34 @@ public:
                     f_.y*p.y/p.z + c_.y);
   }
 
-  inline const Vec32fC2& f() {return f_;}
-  inline const Vec32fC2& c() {return c_;}
+  __host__ __device__ __forceinline__
+  float3 cam2world(const float2& uv) const
+  {
+    return make_float3((uv.x-c_.x)/f_.x,
+                       (uv.y-c_.y)/f_.y,
+                       1.0f);
+  }
 
-  inline float fx() {return f_.x;}
-  inline float fy() {return f_.y;}
-  inline float cx() {return c_.x;}
-  inline float cy() {return c_.y;}
+  __host__ __device__ __forceinline__
+  float2 world2cam(const float3& p) const
+  {
+    return make_float2(f_.x*p.x/p.z + c_.x,
+                       f_.y*p.y/p.z + c_.y);
+  }
+
+  __host__ __device__ __forceinline__
+  const Vec32fC2& f() {return f_;}
+  __host__ __device__ __forceinline__
+  const Vec32fC2& c() {return c_;}
+
+  __host__ __device__ __forceinline__
+  float fx() {return f_.x;}
+  __host__ __device__ __forceinline__
+  float fy() {return f_.y;}
+  __host__ __device__ __forceinline__
+  float cx() {return c_.x;}
+  __host__ __device__ __forceinline__
+  float cy() {return c_.y;}
 
 private:
   Vec32fC2 f_; //!< focal length {fx, fy}
