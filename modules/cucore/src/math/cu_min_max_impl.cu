@@ -87,31 +87,6 @@ void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min_val, Pixel& max_v
   IMP_CUDA_CHECK();
 }
 
-//-----------------------------------------------------------------------------
-__global__ void k_bla(Pixel32fC1* mem, size_t stride, int width, int height)
-{
-  int x = blockIdx.x*blockDim.x + threadIdx.x;
-  int y = blockIdx.y*blockDim.y + threadIdx.y;
-
-  if (x<width && y<height)
-  {
-    mem[y*stride+x] = 0.5f;
-  }
-}
-
-
-//-----------------------------------------------------------------------------
-void minMax2(ImageGpu32fC1& img)
-{
-  imp::Roi2u roi = img.roi();
-  Fragmentation<16,16,1> frag(roi);
-  k_bla
-      <<<
-        frag.dimGrid, frag.dimBlock
-      >>> (img.data(), img.stride(), roi.width(), roi.height());
-  IMP_CUDA_CHECK();
-}
-
 
 // template instantiations for all our image types
 template void minMax(const ImageGpu8uC1& img, imp::Pixel8uC1& min, imp::Pixel8uC1& max);
