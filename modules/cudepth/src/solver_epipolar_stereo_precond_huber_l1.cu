@@ -66,7 +66,7 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
   depth_proposal_sigma2_tex_ =  depth_proposal_sigma2_->genTexture(false, cudaFilterModeLinear);
 
 
-  if (level_ == 0)
+  if (depth_proposal.size() == size)
   {
     LOG(INFO) << "Copy depth proposals (" << depth_proposal.size() << ") to level0 ("
               << depth_proposal_->size() << ")";
@@ -78,14 +78,18 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
     float downscale_factor = 0.5f*((float)size.width()/(float)depth_proposal.width()+
                                    (float)size.height()/(float)depth_proposal.height());
 
-    LOG(INFO) << "depth proposal downscaled to level " << level << "with size " << size
-              << "(downscale_factor: " << downscale_factor;
+    LOG(INFO) << "depth proposal downscaled to level: " << level << "; size: " << size
+              << "; downscale_factor: " << downscale_factor;
 
     imp::cu::resample(*depth_proposal_, depth_proposal);
     imp::cu::resample(*depth_proposal_sigma2_, depth_proposal_sigma2);
     *depth_proposal_ *= downscale_factor;
     *depth_proposal_sigma2_ *= downscale_factor; //!< @todo (MWE) do we need to scale this?
   }
+
+  imp::Pixel32fC1 min_val, max_val;
+  imp::cu::minMax(*depth_proposal_tex_, min_val, max_val, size);
+  LOG(INFO) << "depth_proposal_tex_: " << min_val << " - " << max_val;
 }
 
 //------------------------------------------------------------------------------
@@ -193,6 +197,7 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
     lin_step /= 1.2f;
 
   } // warps
+
 
 
   IMP_CUDA_CHECK();
