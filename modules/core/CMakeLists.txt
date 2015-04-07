@@ -46,6 +46,7 @@ catkin_add_gtest(${PROJECT_NAME}-test
   test/test_main.cpp
   test/size_test.cpp
   test/roi_test.cpp
+  test/vec_test.cpp
 )
 target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME} pthread)
 

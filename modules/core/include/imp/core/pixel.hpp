@@ -45,9 +45,16 @@ union Pixel1
     c[0] *= rhs[0];
     return *this;
   }
-  CUDA_HOST CUDA_DEVICE Pixel1<T>& operator*(const T& rhs)
+  template<typename TRHS>
+  CUDA_HOST CUDA_DEVICE Pixel1<T>& operator*(const TRHS& rhs)
   {
     c[0] *= rhs;
+    return *this;
+  }
+  template<typename TRHS>
+  CUDA_HOST CUDA_DEVICE Pixel1<T>& operator/(const TRHS& rhs)
+  {
+    c[0] /= rhs;
     return *this;
   }
 };
@@ -90,10 +97,18 @@ union Pixel2
     c[1] *= rhs[1];
     return *this;
   }
-  CUDA_HOST CUDA_DEVICE Pixel2<T>& operator*(const T& rhs)
+  template<typename TRHS>
+  CUDA_HOST CUDA_DEVICE Pixel2<T>& operator*(const TRHS& rhs)
   {
     c[0] *= rhs;
     c[1] *= rhs;
+    return *this;
+  }
+  template<typename TRHS>
+  CUDA_HOST CUDA_DEVICE Pixel2<T>& operator/(const TRHS& rhs)
+  {
+    c[0] /= rhs;
+    c[1] /= rhs;
     return *this;
   }
 };
@@ -138,11 +153,20 @@ union Pixel3
     c[2] *= rhs[2];
     return *this;
   }
-  CUDA_HOST CUDA_DEVICE Pixel3<T>& operator*(const T& rhs)
+  template<typename TRHS>
+  CUDA_HOST CUDA_DEVICE Pixel3<T>& operator*(const TRHS& rhs)
   {
     c[0] *= rhs;
     c[1] *= rhs;
     c[2] *= rhs;
+    return *this;
+  }
+  template<typename TRHS>
+  CUDA_HOST CUDA_DEVICE Pixel3<T>& operator/(const TRHS& rhs)
+  {
+    c[0] /= rhs;
+    c[1] /= rhs;
+    c[2] /= rhs;
     return *this;
   }
 };
@@ -189,12 +213,22 @@ union Pixel4
     c[3] *= rhs[3];
     return *this;
   }
-  CUDA_HOST CUDA_DEVICE Pixel4<T>& operator*(const T& rhs)
+  template<typename TRHS>
+  CUDA_HOST CUDA_DEVICE Pixel4<T>& operator*(const TRHS& rhs)
   {
     c[0] *= rhs;
     c[1] *= rhs;
     c[2] *= rhs;
     c[3] *= rhs;
+    return *this;
+  }
+  template<typename TRHS>
+  CUDA_HOST CUDA_DEVICE Pixel4<T>& operator/(const TRHS& rhs)
+  {
+    c[0] /= rhs;
+    c[1] /= rhs;
+    c[2] /= rhs;
+    c[3] /= rhs;
     return *this;
   }
 };
@@ -264,39 +298,47 @@ inline bool operator==(const Pixel1<T>& lhs, const Pixel1<T>& rhs)
 template<typename T>
 inline CUDA_HOST CUDA_DEVICE T dot(Vec2<T> a, Vec2<T> b)
 {
-    return a.x * b.x + a.y * b.y;
+  return a.x * b.x + a.y * b.y;
 }
 template<typename T>
 inline CUDA_HOST CUDA_DEVICE T dot(Vec3<T> a, Vec3<T> b)
 {
-    return a.x * b.x + a.y * b.y + a.z * b.z;
+  return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 template<typename T>
 inline CUDA_HOST CUDA_DEVICE T dot(Vec4<T> a, Vec4<T> b)
 {
-    return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+  return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+}
+
+//------------------------------------------------------------------------------
+// length
+template<typename T>
+inline CUDA_HOST CUDA_DEVICE float length(T v)
+{
+  return std::sqrt((float)dot(v,v));
 }
 
 //------------------------------------------------------------------------------
 //normalize
 
 template<typename T>
-inline CUDA_HOST CUDA_DEVICE Vec2<T> normalize(Vec2<T> v)
+inline CUDA_HOST CUDA_DEVICE Vec32fC2 normalize(Vec2<T> v)
 {
-    float invLen = 1.0f / std::sqrt((float)dot(v, v));
-    return static_cast<T>(v*invLen);
+  float inv_len = 1.0f/length(v);
+  return Vec32fC2(v.x*inv_len, v.y*inv_len);
 }
 template<typename T>
-inline CUDA_HOST CUDA_DEVICE Vec3<T> normalize(Vec3<T> v)
+inline CUDA_HOST CUDA_DEVICE Vec32fC3 normalize(Vec3<T> v)
 {
-    float invLen = 1.0f / std::sqrt((float)dot(v, v));
-    return static_cast<T>(v*invLen);
+  float inv_len = 1.0f/length(v);
+  return Vec32fC3(v.x*inv_len, v.y*inv_len, v.z*inv_len);
 }
 template<typename T>
-inline CUDA_HOST CUDA_DEVICE Vec4<T> normalize(Vec4<T> v)
+inline CUDA_HOST CUDA_DEVICE Vec32fC4 normalize(Vec4<T> v)
 {
-    float invLen = 1.0f / std::sqrt((float)dot(v, v));
-    return static_cast<T>(v*invLen);
+  float inv_len = 1.0f/length(v);
+  return Vec32fC4(v.x*inv_len, v.y*inv_len, v.z*inv_len, v.w*inv_len);
 }
 
 
