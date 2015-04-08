@@ -124,6 +124,12 @@ public:
   }
 
   __host__ __device__ __forceinline__
+  const Type& operator[](int idx) const
+  {
+    return data_[idx];
+  }
+
+  __host__ __device__ __forceinline__
   Vec32fC3 rotate(const Vec32fC3& p) const
   {
     return Vec32fC3(data_(0,0)*p.x + data_(0,1)*p.y + data_(0,2)*p.z,
@@ -205,9 +211,9 @@ inline std::ostream& operator<<(std::ostream &os, const cu::SE3<T>& rhs)
   {
     for (int c=0; c<4; ++c)
     {
-      os << rhs(r,c) << " ";
+      os << rhs(r,c) << ", ";
     }
-    os << "\n";
+    os << "; ";
   }
   return os;
 }

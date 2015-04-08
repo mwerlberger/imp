@@ -183,7 +183,7 @@ cudaChannelFormatDesc toCudaChannelFormatDesc(imp::PixelType pixel_type)
   switch (pixel_type)
   {
   case imp::PixelType::i8uC1:
-  return cudaCreateChannelDesc<uchar1>();
+  return cudaCreateChannelDesc<unsigned char>();
   case imp::PixelType::i8uC2:
   return cudaCreateChannelDesc<uchar2>();
   case imp::PixelType::i8uC3:
@@ -191,15 +191,15 @@ cudaChannelFormatDesc toCudaChannelFormatDesc(imp::PixelType pixel_type)
   case imp::PixelType::i8uC4:
   return cudaCreateChannelDesc<uchar4>();
   case imp::PixelType::i16uC1:
-  return cudaCreateChannelDesc<short1>();
+  return cudaCreateChannelDesc<unsigned short>();
   case imp::PixelType::i16uC2:
-  return cudaCreateChannelDesc<short2>();
+  return cudaCreateChannelDesc<ushort2>();
   case imp::PixelType::i16uC3:
-  return cudaCreateChannelDesc<short3>();
+  return cudaCreateChannelDesc<ushort3>();
   case imp::PixelType::i16uC4:
-  return cudaCreateChannelDesc<short4>();
+  return cudaCreateChannelDesc<ushort4>();
   case imp::PixelType::i32sC1:
-  return cudaCreateChannelDesc<int1>();
+  return cudaCreateChannelDesc<int>();
   case imp::PixelType::i32sC2:
   return cudaCreateChannelDesc<int2>();
   case imp::PixelType::i32sC3:
@@ -207,7 +207,7 @@ cudaChannelFormatDesc toCudaChannelFormatDesc(imp::PixelType pixel_type)
   case imp::PixelType::i32sC4:
   return cudaCreateChannelDesc<int4>();
   case imp::PixelType::i32fC1:
-  return cudaCreateChannelDesc<float1>();
+  return cudaCreateChannelDesc<float>();
   case imp::PixelType::i32fC2:
   return cudaCreateChannelDesc<float2>();
   case imp::PixelType::i32fC3:

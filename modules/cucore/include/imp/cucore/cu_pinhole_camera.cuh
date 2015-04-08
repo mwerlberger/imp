@@ -44,20 +44,20 @@ public:
     return K;
   }
 
-  __host__ __device__ __forceinline__
-  Vec32fC3 cam2world(const Vec32fC2& uv) const
-  {
-    return Vec32fC3((uv.x-c_.x)/f_.x,
-                    (uv.y-c_.y)/f_.y,
-                    1.0f);
-  }
+//  __host__ __device__ __forceinline__
+//  Vec32fC3 cam2world(const Vec32fC2& uv) const
+//  {
+//    return Vec32fC3((uv.x-c_.x)/f_.x,
+//                    (uv.y-c_.y)/f_.y,
+//                    1.0f);
+//  }
 
-  __host__ __device__ __forceinline__
-  Vec32fC2 world2cam(const Vec32fC3& p) const
-  {
-    return Vec32fC2(f_.x*p.x/p.z + c_.x,
-                    f_.y*p.y/p.z + c_.y);
-  }
+//  __host__ __device__ __forceinline__
+//  Vec32fC2 world2cam(const Vec32fC3& p) const
+//  {
+//    return Vec32fC2(f_.x*p.x/p.z + c_.x,
+//                    f_.y*p.y/p.z + c_.y);
+//  }
 
   __host__ __device__ __forceinline__
   float3 cam2world(const float2& uv) const

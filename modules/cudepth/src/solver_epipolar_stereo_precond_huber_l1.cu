@@ -52,24 +52,10 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
   depth_proposal_.reset(new DisparityImage(size));
   depth_proposal_sigma2_.reset(new DisparityImage(size));
 
-  // and its textures
-  u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
-  u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
-  u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
-  pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
-  q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
-  ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
-  it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
-  xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
-
-  depth_proposal_tex_ =  depth_proposal_->genTexture(false, cudaFilterModeLinear);
-  depth_proposal_sigma2_tex_ =  depth_proposal_sigma2_->genTexture(false, cudaFilterModeLinear);
-
-
   if (depth_proposal.size() == size)
   {
-    LOG(INFO) << "Copy depth proposals (" << depth_proposal.size() << ") to level0 ("
-              << depth_proposal_->size() << ")";
+    LOG(INFO) << "Copy depth proposals " << depth_proposal.size() << " to level0 "
+              << depth_proposal_->size();
     depth_proposal.copyTo(*depth_proposal_);
     depth_proposal_sigma2.copyTo(*depth_proposal_sigma2_);
   }
@@ -87,9 +73,9 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
     *depth_proposal_sigma2_ *= downscale_factor; //!< @todo (MWE) do we need to scale this?
   }
 
-  imp::Pixel32fC1 min_val, max_val;
-  imp::cu::minMax(*depth_proposal_tex_, min_val, max_val, size);
-  LOG(INFO) << "depth_proposal_tex_: " << min_val << " - " << max_val;
+//  imp::Pixel32fC1 min_val, max_val;
+//  imp::cu::minMax(*depth_proposal_tex_, min_val, max_val, size);
+//  LOG(INFO) << "depth_proposal_tex_: " << min_val << " - " << max_val;
 }
 
 //------------------------------------------------------------------------------
@@ -136,8 +122,17 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
   // textures
   i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
   i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
-//  correspondence_guess_tex_ =  correspondence_guess_->genTexture(false, cudaFilterModeLinear);
-//  epi_vec_tex_ =  epi_vec_->genTexture(false, cudaFilterModeLinear);
+  u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
+  u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
+  u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
+  pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
+  q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
+  ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
+  it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
+  xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
+  depth_proposal_tex_ =  depth_proposal_->genTexture(false, cudaFilterModeLinear);
+  depth_proposal_sigma2_tex_ =  depth_proposal_sigma2_->genTexture(false, cudaFilterModeLinear);
+
 
   u_->copyTo(*u_prev_);
   Fragmentation<16,16> frag(size_);
@@ -164,7 +159,8 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
           frag.dimGrid, frag.dimBlock
         >>> (iw_->data(), ix_->data(), it_->data(), ix_->stride(), ix_->width(), ix_->height(),
              cams_.at(0), cams_.at(1), F_, T_mov_fix_,
-             *i1_tex_, *i2_tex_, *u0_tex_, *depth_proposal_tex_, *depth_proposal_sigma2_tex_);
+             *i1_tex_, *i2_tex_, *u0_tex_,
+             *depth_proposal_tex_);
 
     // compute preconditioner
     k_preconditioner

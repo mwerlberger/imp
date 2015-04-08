@@ -54,14 +54,14 @@ public:
   virtual ~ImageGpu();/* = default;*/
 
   /**
-   * @brief ImageGpu construcs an image of given size \a width x \a height
-   */
-  ImageGpu(std::uint32_t width, std::uint32_t height);
-
-  /**
    * @brief ImageGpu construcs an image of given \a size
    */
   ImageGpu(const imp::Size2u& size);
+
+  /**
+   * @brief ImageGpu construcs an image of given size \a width x \a height
+   */
+  ImageGpu(std::uint32_t width, std::uint32_t height);
 
   /**
    * @brief ImageGpu copy constructs an image from the given image \a from
@@ -137,7 +137,7 @@ public:
 //  std::unique_ptr<GpuData2D<pixel_t>> gpuData() { return gpu_data_; }
 
   /** Returns the channel descriptor for Cuda's texture memory. */
-  cudaChannelFormatDesc channelFormatDesc() { return channel_format_desc_; }
+  inline cudaChannelFormatDesc channelFormatDesc() const { return channel_format_desc_; }
 
   /** Returns a cuda texture object. */
   std::unique_ptr<Texture2D> genTexture(
@@ -159,7 +159,6 @@ protected:
   size_type pitch_ = 0; //!< Row alignment in bytes.
 
 private:
-  void initMemory();
   cudaChannelFormatDesc channel_format_desc_;
 
   //std::unique_ptr<GpuData2D<pixel_t>> gpu_data_; //!< data collection that can be directly used within a kernel.

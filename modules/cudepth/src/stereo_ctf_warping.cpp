@@ -53,9 +53,22 @@ void StereoCtFWarping::init()
       levels_.emplace_back(new StereoCtFWarpingLevelPrecondHuberL1Weighted(params_, sz, i));
     break;
     case StereoPDSolver::EpipolarPrecondHuberL1:
+    {
+      if (!depth_proposal_)
+      {
+        depth_proposal_.reset(new Image(image_pyramids_.front()->size(0)));
+        depth_proposal_->setValue(0.f);
+      }
+      if (!depth_proposal_sigma2_)
+      {
+        depth_proposal_sigma2_.reset(new Image(image_pyramids_.front()->size(0)));
+        depth_proposal_sigma2_->setValue(0.f);
+      }
+
       levels_.emplace_back(new SolverEpipolarStereoPrecondHuberL1(
                              params_, sz, i, cams_, F_, T_mov_fix_,
                              *depth_proposal_, *depth_proposal_sigma2_));
+    }
     break;
     }
   }
