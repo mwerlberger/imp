@@ -161,8 +161,6 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
   // precond
   constexpr float eta = 2.0f;
 
-  std::cout << "F: " << F_ << std::endl;
-
   // warping
   for (std::uint32_t warp = 0; warp < params_->ctf.warps; ++warp)
   {

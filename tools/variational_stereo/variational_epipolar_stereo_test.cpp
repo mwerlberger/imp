@@ -52,6 +52,8 @@ int main(int /*argc*/, char** /*argv*/)
 
     // im0: fixed image; im1: moving image
     imp::cu::Matrix3f F_fix_mov;
+    imp::cu::Matrix3f F_mov_fix;
+    Eigen::Matrix3d F_fm, F_mf;
     { // compute fundamental matrix
       Eigen::Matrix3d R_world_mov = q_world_im1.matrix();
       Eigen::Matrix3d R_world_fix = q_world_im0.matrix();
@@ -71,16 +73,18 @@ int main(int /*argc*/, char** /*argv*/)
           0, 0, 1;
 
       Eigen::Matrix3d Kinv = K.inverse();
-      Eigen::Matrix3d F_fm = Kinv.transpose() * E_fix_mov * Kinv;
-      // convert the Eigen-thingy to something that we can use in CUDA
-      for(size_t row=0; row<F_fix_mov.rows(); ++row)
-      {
-        for(size_t col=0; col<F_fix_mov.cols(); ++col)
-        {
-          F_fix_mov(row,col) = (float)F_fm(row,col);
-        }
-      }
+      F_fm = Kinv.transpose() * E_fix_mov * Kinv;
+      F_mf = F_fm.transpose();
     } // end .. compute fundamental matrix
+    // convert the Eigen-thingy to something that we can use in CUDA
+    for(size_t row=0; row<F_fix_mov.rows(); ++row)
+    {
+      for(size_t col=0; col<F_fix_mov.cols(); ++col)
+      {
+        F_fix_mov(row,col) = (float)F_fm(row,col);
+        F_mov_fix(row,col) = (float)F_mf(row,col);
+      }
+    }
 
     // compute SE3 transformation
     imp::cu::SE3<float> T_world_fix(
@@ -114,10 +118,10 @@ int main(int /*argc*/, char** /*argv*/)
 
     imp::cu::ImageGpu32fC1::Ptr cu_mu = std::make_shared<imp::cu::ImageGpu32fC1>(im0->size());
     imp::cu::ImageGpu32fC1::Ptr cu_sigma2 = std::make_shared<imp::cu::ImageGpu32fC1>(im0->size());
-    cu_mu->setValue(-10.f);
+    cu_mu->setValue(-5.f);
     cu_sigma2->setValue(0.0f);
 
-    stereo->setFundamentalMatrix(F_fix_mov);
+    stereo->setFundamentalMatrix(F_mov_fix);
     stereo->setIntrinsics({cu_cam, cu_cam});
     stereo->setExtrinsics(T_mov_fix);
     stereo->setDepthProposal(cu_mu, cu_sigma2);
