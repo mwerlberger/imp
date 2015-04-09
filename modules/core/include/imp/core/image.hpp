@@ -51,6 +51,12 @@ public:
     return *data(x, y);
   }
 
+  /** Get Pixel value at position x,y. */
+  pixel_t operator()(std::uint32_t x, std::uint32_t y) const
+  {
+    return *data(x, y);
+  }
+
   /** Get Pointer to beginning of row \a row (y index).
    * This enables the usage of [y][x] operator.
    */
@@ -58,10 +64,10 @@ public:
   {
     return data(0,row);
   }
-//  const pixel_container_t operator[] (std::uint32_t row) const
-//  {
-//    return data(0,row);
-//  }
+  const Pixel* operator[] (std::uint32_t row) const
+  {
+    return data(0,row);
+  }
 
 
   /**
