@@ -65,7 +65,7 @@ void cvBridgeSave(const std::string& filename, const ImageCv<Pixel,pixel_type>& 
 //------------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 void cvBridgeShow(const std::string& winname, const ImageCv<Pixel,pixel_type>& img,
-                   bool normalize=false)
+                  bool normalize=false)
 {
   if (normalize)
   {
@@ -78,6 +78,16 @@ void cvBridgeShow(const std::string& winname, const ImageCv<Pixel,pixel_type>& i
   {
     cv::imshow(winname, img.cvMat());
   }
+}
+
+//------------------------------------------------------------------------------
+template<typename Pixel, typename T, imp::PixelType pixel_type>
+void cvBridgeShow(const std::string& winname, const ImageCv<Pixel,pixel_type>& img,
+                  const T& min, const T& max)
+{
+  cv::Mat norm_mat = img.cvMat().clone();
+  norm_mat = (norm_mat-min) / (max-min);
+  cv::imshow(winname, norm_mat);
 }
 
 
