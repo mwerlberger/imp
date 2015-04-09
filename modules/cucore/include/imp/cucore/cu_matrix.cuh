@@ -1,6 +1,7 @@
 #ifndef IMP_CU_MATRIX_CUH
 #define IMP_CU_MATRIX_CUH
 
+#include <ostream>
 #include <cuda_runtime.h>
 #include <imp/core/pixel.hpp>
 
@@ -19,6 +20,25 @@ public:
 
   __host__ __device__
   ~Matrix() = default;
+
+//  // copy and asignment operator
+//  __host__ __device__
+//  Matrix(const Matrix& other)
+//    : f_(other.f())
+//    , c_(other.c())
+//  {
+//  }
+//  __host__ __device__
+//  Matrix& operator=(const Matrix& other)
+//  {
+//    if  (this != &other)
+//    {
+//      f_ = other.f();
+//      c_ = other.c();
+//    }
+//    return *this;
+//  }
+
 
   __host__ __device__ __forceinline__
   size_t rows() const { return rows_; }
@@ -128,7 +148,7 @@ Matrix<Type, 2, 2> invert(const Matrix<Type, 2, 2> & in)
 
 //------------------------------------------------------------------------------
 // matrix vector multiplication
-__host__ __device__ inline
+__host__ __device__ __forceinline__
 float3 operator*(const Matrix3f& mat, const float3& v)
 {
   return make_float3(
@@ -140,7 +160,7 @@ float3 operator*(const Matrix3f& mat, const float3& v)
 
 //------------------------------------------------------------------------------
 // matrix vector multiplication
-__host__ __device__ inline
+__host__ __device__ __forceinline__
 Vec32fC3 operator*(const Matrix3f& mat, const Vec32fC3& v)
 {
   return Vec32fC3(
@@ -150,6 +170,26 @@ Vec32fC3 operator*(const Matrix3f& mat, const Vec32fC3& v)
         );
 }
 
+//------------------------------------------------------------------------------
+template<typename T, size_t rows, size_t cols>
+__host__
+inline std::ostream& operator<<(std::ostream &os,
+                                const cu::Matrix<T, rows, cols>& m)
+{
+  os << "[";
+  for (int r=0; r<rows; ++r)
+  {
+    for (int c=0; c<cols; ++c)
+    {
+      os << m(r,c);
+      if (c<cols-1)
+        os << ",";
+    }
+    os << "; ";
+  }
+  os << "]";
+  return os;
+}
 
 }
 }

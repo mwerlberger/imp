@@ -27,12 +27,21 @@ int main(int /*argc*/, char** /*argv*/)
 {
   try
   {
-    imp::cu::ImageGpu32fC1::Ptr im0;
-    imp::cu::cvBridgeLoad(im0, "/home/mwerlberger/data/epipolar_stereo_test/00000.png",
-                          imp::PixelOrder::gray);
-    imp::cu::ImageGpu32fC1::Ptr im1;
-    imp::cu::cvBridgeLoad(im1, "/home/mwerlberger/data/epipolar_stereo_test/00001.png",
-                          imp::PixelOrder::gray);
+    imp::ImageCv32fC1::Ptr cv_im0;
+    imp::cvBridgeLoad(cv_im0,
+                      "/home/mwerlberger/data/epipolar_stereo_test/00000.png",
+                      imp::PixelOrder::gray);
+
+    imp::ImageCv32fC1::Ptr cv_im1;
+    imp::cvBridgeLoad(cv_im1,
+                      "/home/mwerlberger/data/epipolar_stereo_test/00001.png",
+                      imp::PixelOrder::gray);
+
+    // rectify images for testing
+
+    imp::cu::ImageGpu32fC1::Ptr im0 = std::make_shared<imp::cu::ImageGpu32fC1>(*cv_im0);
+    imp::cu::ImageGpu32fC1::Ptr im1 = std::make_shared<imp::cu::ImageGpu32fC1>(*cv_im1);
+
 
     Eigen::Quaterniond q_world_im0(0.14062777, 0.98558398, 0.02351040, -0.09107859);
     Eigen::Quaterniond q_world_im1(0.14118687, 0.98569744, 0.01930722, -0.08996696);
@@ -96,9 +105,9 @@ int main(int /*argc*/, char** /*argv*/)
     stereo->parameters()->verbose = 1;
     stereo->parameters()->solver = imp::cu::StereoPDSolver::EpipolarPrecondHuberL1;
     stereo->parameters()->ctf.scale_factor = 0.8f;
-    stereo->parameters()->ctf.iters = 100;
-    stereo->parameters()->ctf.warps  = 10;
-    stereo->parameters()->ctf.apply_median_filter = false;
+    stereo->parameters()->ctf.iters = 30;
+    stereo->parameters()->ctf.warps  = 5;
+    stereo->parameters()->ctf.apply_median_filter = true;
 
     stereo->addImage(im0);
     stereo->addImage(im1);
@@ -133,7 +142,8 @@ int main(int /*argc*/, char** /*argv*/)
       std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
     }
 
-    imp::cu::cvBridgeShow("disparities", *d_disp, true);
+    imp::cu::cvBridgeShow("disparities", *d_disp, -18.0f, 11.0f);
+    imp::cu::cvBridgeShow("disparities minmax", *d_disp, true);
     cv::waitKey();
   }
   catch (std::exception& e)

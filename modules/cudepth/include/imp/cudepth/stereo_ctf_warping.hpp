@@ -41,6 +41,9 @@ public:
   using ImagePyramid = imp::ImagePyramid32fC1;
   using ImagePyramidPtr = std::shared_ptr<ImagePyramid>;
 
+  using Cameras = std::vector<cu::PinholeCamera>;
+  using CamerasPyramid = std::vector<Cameras>;
+
 public:
   StereoCtFWarping() = delete;
   virtual ~StereoCtFWarping();// = default;

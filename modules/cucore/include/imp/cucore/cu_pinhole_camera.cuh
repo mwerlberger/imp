@@ -64,6 +64,7 @@ public:
 
   /** Multiplies the focal length as well as the principal point with the given \a scale \a factor
    */
+  __host__ __device__ __forceinline__
   void scale(float scale_factor)
   {
     f_ *= scale_factor;

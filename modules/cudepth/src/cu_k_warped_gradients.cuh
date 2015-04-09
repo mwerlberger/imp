@@ -25,8 +25,8 @@ __global__ void k_warpedGradients(Pixel* ix, Pixel* it, size_type stride,
 
   if (x<width && y<height)
   {
-    float disparity = u0_tex.fetch<float>(x,y);
-    float wx = x+disparity;
+    float u0 = u0_tex.fetch<float>(x,y);
+    float wx = x+u0;
 
     float bd = .5f;
     if ((wx < bd) || (x < bd) || (wx > width-bd-1) || (x > width-bd-1) ||
@@ -85,14 +85,28 @@ __global__ void k_warpedGradientsEpipolarConstraint(
 
     //    Vec32fC2 px_p3s = cam2.world2cam(T_mov_fix * (f_ref*(mu + 3.f*sigma)));
     float3 px_mean_h = make_float3(px_mean.x, px_mean.y, 1.0f);
-    float3 epi_line = F_ref_cur*px_mean_h;
-    float2 epi_line_vec = make_float2(-epi_line.y, epi_line.x);
-    float2 epi_vec = ::normalize(epi_line_vec);
+    float3 px_ref_h = make_float3(px_ref.x, px_ref.y, 1.f);
 
-    if(x==123 && y==246)
+    //    float3 epi_line = F_ref_cur*px_ref_h;
+    //    float3 epi_line = F_ref_cur*px_mean_h;
+    //float2 epi_line_slope = make_float2(epi_line.y, -epi_line.x);
+    //float2 epi_vec = ::normalize(epi_line_slope);
+
+    float3 epi_line = F_ref_cur*px_ref_h;
+    // from line equation: ax+by+c=0 -> y=(-c-ax)/b -> k=-a/b
+    float2 epi_line_slope = make_float2(1.0f, -epi_line.x/epi_line.y);
+    float2 epi_vec = ::normalize(epi_line_slope);
+
+#if 0
+    if(x==20 && y==20)
     {
       printf("mu: %f\n", mu);
       printf("cam: %f, %f; %f, %f\n", cam1.fx(), cam1.fy(), cam1.cx(), cam1.cy());
+      printf("F: %e, %e, %e; %e, %e, %e; %e, %e, %e\n",
+             F_ref_cur(0,0), F_ref_cur(0,1), F_ref_cur(0,2),
+             F_ref_cur(1,0), F_ref_cur(1,1), F_ref_cur(1,2),
+             F_ref_cur(2,0), F_ref_cur(2,1), F_ref_cur(2,2));
+
       printf("px_ref_w: %f, %f, %f\n", px_ref_w.x, px_ref_w.y, px_ref_w.z);
 
       printf("f_ref: %f, %f %f\n", f_ref.x, f_ref.y, f_ref.z);
@@ -100,11 +114,13 @@ __global__ void k_warpedGradientsEpipolarConstraint(
 
       printf("px_ref: %f, %f\n", px_ref.x, px_ref.y);
       printf("px_mean: %f, %f\n", px_mean.x, px_mean.y);
-      printf("epi_line: %f, %f %f\n", epi_line.x, epi_line.y, epi_line.z);
+      printf("px_mean_h: %f, %f, %f\n", px_mean_h.x, px_mean_h.y, px_mean_h.z);
 
-      printf("epi_line_vec: %f, %f (length: %f)\n", epi_line_vec.x, epi_line_vec.y, ::length(epi_line_vec));
+      printf("epi_line: %f, %f %f\n", epi_line.x, epi_line.y, epi_line.z);
+      printf("epi_line_slope: %f, %f (length: %f)\n", epi_line_slope.x, epi_line_slope.y, ::length(epi_line_slope));
       printf("epi_vec: %f, %f (length: %f)\n\n", epi_vec.x, epi_vec.y, ::length(epi_vec));
     }
+#endif
 
     float u0 = u0_tex.fetch<float>(x,y);
     float2 w_pt_p = px_mean + epi_vec*u0; // assuming that epi_vec is the unit vec
@@ -128,12 +144,28 @@ __global__ void k_warpedGradientsEpipolarConstraint(
       i1_tex.fetch(i1_c, x, y);
 
       /// @todo (MWE) don't we want to have the gradient along the epipolar line??
-//      i2_tex.fetch(i2_w_c, w_pt_p.x, w_pt_p.y);
-//      i2_tex.fetch(i2_w_m, w_pt_p.x-0.5f*epi_vec.x, w_pt_p.y-0.5f*epi_vec.y);
-//      i2_tex.fetch(i2_w_p, w_pt_p.x+0.5f*epi_vec.x, w_pt_p.y+0.5f*epi_vec.y);
-      i2_tex.fetch(i2_w_c, px_ref.x+epi_vec.x*u0, y);
+#if 1
+      i2_tex.fetch(i2_w_c, w_pt_p.x, w_pt_p.y);
+      i2_tex.fetch(i2_w_m, w_pt_p.x-0.5f*epi_vec.x, w_pt_p.y-0.5f*epi_vec.y);
+      i2_tex.fetch(i2_w_p, w_pt_p.x+0.5f*epi_vec.x, w_pt_p.y+0.5f*epi_vec.y);
+#endif
+#if 0
+      i2_tex.fetch(i2_w_c, px_ref.x+epi_vec.x*u0, px_ref.y);
       i2_tex.fetch(i2_w_m, px_ref.x+epi_vec.x*u0-epi_vec.x*0.5f, px_ref.y-0.5f*epi_vec.y);
       i2_tex.fetch(i2_w_p, px_ref.x+epi_vec.x*u0+epi_vec.x*0.5f, px_ref.y+0.5f*epi_vec.y);
+#endif
+#if 0
+      float wx = x+u0;
+      i2_tex.fetch(i2_w_c, wx, y);
+      i2_tex.fetch(i2_w_m, wx-epi_vec.x*0.5f, y-epi_vec.y*0.5f);
+      i2_tex.fetch(i2_w_p, wx+epi_vec.x*0.5f, y+epi_vec.y*0.5f);
+#endif
+#if 0
+      float wx = x+u0;
+      i2_tex.fetch(i2_w_c, wx, y);
+      i2_tex.fetch(i2_w_m, wx-0.5f, y);
+      i2_tex.fetch(i2_w_p, wx+0.5f, y);
+#endif
 
 
       // spatial gradient on warped image

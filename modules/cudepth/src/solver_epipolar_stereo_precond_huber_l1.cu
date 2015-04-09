@@ -35,9 +35,6 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
     const imp::cu::ImageGpu32fC1& depth_proposal,
     const imp::cu::ImageGpu32fC1& depth_proposal_sigma2)
   : SolverStereoAbstract(params, size, level)
-  , cams_(cams)
-  , F_(F)
-  , T_mov_fix_(T_mov_fix)
 {
   u_.reset(new DisparityImage(size));
   u_prev_.reset(new Image(size));
@@ -51,6 +48,8 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
 
   depth_proposal_.reset(new DisparityImage(size));
   depth_proposal_sigma2_.reset(new DisparityImage(size));
+
+  float scale_factor = std::pow(params->ctf.scale_factor, level);
 
   if (depth_proposal.size() == size)
   {
@@ -69,8 +68,25 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
 
     imp::cu::resample(*depth_proposal_, depth_proposal);
     imp::cu::resample(*depth_proposal_sigma2_, depth_proposal_sigma2);
-    *depth_proposal_ *= downscale_factor;
-    *depth_proposal_sigma2_ *= downscale_factor; //!< @todo (MWE) do we need to scale this?
+//    *depth_proposal_ *= downscale_factor;
+    //*depth_proposal_sigma2_ *= downscale_factor; //!< @todo (MWE) do we need to scale this?
+  }
+
+  F_ = F;
+  T_mov_fix_ = T_mov_fix;
+
+  // assuming we receive the camera matrix for level0
+  if  (level == 0)
+  {
+    cams_ = cams;
+  }
+  else
+  {
+    for (auto cam : cams)
+    {
+      cu::PinholeCamera scaled_cam = cam * scale_factor;
+      cams_.push_back(scaled_cam);
+    }
   }
 
 //  imp::Pixel32fC1 min_val, max_val;
@@ -145,6 +161,8 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
   // precond
   constexpr float eta = 2.0f;
 
+  std::cout << "F: " << F_ << std::endl;
+
   // warping
   for (std::uint32_t warp = 0; warp < params_->ctf.warps; ++warp)
   {
@@ -152,6 +170,7 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
       std::cout << "SOLVING warp iteration of Huber-L1 stereo model." << std::endl;
 
     u_->copyTo(*u0_);
+
 
     // compute warped spatial and temporal gradients
     k_warpedGradientsEpipolarConstraint
