@@ -40,13 +40,13 @@ union Pixel1
   CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
   CUDA_HOST CUDA_DEVICE T& operator[](size_t i) { return c[i]; }
   CUDA_HOST CUDA_DEVICE const T& operator[](size_t i) const { return c[i]; }
-  CUDA_HOST CUDA_DEVICE Pixel1<T>& operator*(const Pixel1<T>& rhs)
+  CUDA_HOST CUDA_DEVICE Pixel1<T>& operator*=(const Pixel1<T>& rhs)
   {
     c[0] *= rhs[0];
     return *this;
   }
   template<typename TRHS>
-  CUDA_HOST CUDA_DEVICE Pixel1<T>& operator*(const TRHS& rhs)
+  CUDA_HOST CUDA_DEVICE Pixel1<T>& operator*=(const TRHS& rhs)
   {
     c[0] *= rhs;
     return *this;
@@ -85,20 +85,20 @@ union Pixel2
   CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
   CUDA_HOST CUDA_DEVICE T& operator[](size_t i) { return c[i]; }
   CUDA_HOST CUDA_DEVICE const T& operator[](size_t i) const { return c[i]; }
-  CUDA_HOST CUDA_DEVICE Pixel2<T>& operator*(const Pixel1<T>& rhs)
+  CUDA_HOST CUDA_DEVICE Pixel2<T>& operator*=(const Pixel1<T>& rhs)
   {
     c[0] *= rhs[0];
     c[1] *= rhs[0];
     return *this;
   }
-  CUDA_HOST CUDA_DEVICE Pixel2<T>& operator*(const Pixel2<T>& rhs)
+  CUDA_HOST CUDA_DEVICE Pixel2<T>& operator*=(const Pixel2<T>& rhs)
   {
     c[0] *= rhs[0];
     c[1] *= rhs[1];
     return *this;
   }
   template<typename TRHS>
-  CUDA_HOST CUDA_DEVICE Pixel2<T>& operator*(const TRHS& rhs)
+  CUDA_HOST CUDA_DEVICE Pixel2<T>& operator*=(const TRHS& rhs)
   {
     c[0] *= rhs;
     c[1] *= rhs;
@@ -139,14 +139,14 @@ union Pixel3
   CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
   CUDA_HOST CUDA_DEVICE T& operator[](size_t i) { return c[i]; }
   CUDA_HOST CUDA_DEVICE const T& operator[](size_t i) const { return c[i]; }
-  CUDA_HOST CUDA_DEVICE Pixel3<T>& operator*(const Pixel1<T>& rhs)
+  CUDA_HOST CUDA_DEVICE Pixel3<T>& operator*=(const Pixel1<T>& rhs)
   {
     c[0] *= rhs[0];
     c[1] *= rhs[0];
     c[2] *= rhs[0];
     return *this;
   }
-  CUDA_HOST CUDA_DEVICE Pixel3<T>& operator*(const Pixel3<T>& rhs)
+  CUDA_HOST CUDA_DEVICE Pixel3<T>& operator*=(const Pixel3<T>& rhs)
   {
     c[0] *= rhs[0];
     c[1] *= rhs[1];
@@ -154,7 +154,7 @@ union Pixel3
     return *this;
   }
   template<typename TRHS>
-  CUDA_HOST CUDA_DEVICE Pixel3<T>& operator*(const TRHS& rhs)
+  CUDA_HOST CUDA_DEVICE Pixel3<T>& operator*=(const TRHS& rhs)
   {
     c[0] *= rhs;
     c[1] *= rhs;
@@ -197,7 +197,7 @@ union Pixel4
   CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
   CUDA_HOST CUDA_DEVICE T& operator[](size_t i) { return c[i]; }
   CUDA_HOST CUDA_DEVICE const T& operator[](size_t i) const { return c[i]; }
-  CUDA_HOST CUDA_DEVICE Pixel4<T>& operator*(const Pixel1<T>& rhs)
+  CUDA_HOST CUDA_DEVICE Pixel4<T>& operator*=(const Pixel1<T>& rhs)
   {
     c[0] *= rhs[0];
     c[1] *= rhs[0];
@@ -205,7 +205,7 @@ union Pixel4
     c[3] *= rhs[0];
     return *this;
   }
-  CUDA_HOST CUDA_DEVICE Pixel4<T>& operator*(const Pixel4<T>& rhs)
+  CUDA_HOST CUDA_DEVICE Pixel4<T>& operator*=(const Pixel4<T>& rhs)
   {
     c[0] *= rhs[0];
     c[1] *= rhs[1];
@@ -214,7 +214,7 @@ union Pixel4
     return *this;
   }
   template<typename TRHS>
-  CUDA_HOST CUDA_DEVICE Pixel4<T>& operator*(const TRHS& rhs)
+  CUDA_HOST CUDA_DEVICE Pixel4<T>& operator*=(const TRHS& rhs)
   {
     c[0] *= rhs;
     c[1] *= rhs;

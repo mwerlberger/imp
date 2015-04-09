@@ -28,6 +28,24 @@ public:
   {
   }
 
+  // copy and asignment operator
+  __host__ __device__
+  PinholeCamera(const PinholeCamera& other)
+    : f_(other.f())
+    , c_(other.c())
+  {
+  }
+  __host__ __device__
+  PinholeCamera& operator=(const PinholeCamera& other)
+  {
+    if  (this != &other)
+    {
+      f_ = other.f();
+      c_ = other.c();
+    }
+    return *this;
+  }
+
   __host__ __device__ __forceinline__
   imp::cu::Matrix3f intrinsics()
   {
@@ -43,6 +61,29 @@ public:
     K(2,2) = 1.0f;
     return K;
   }
+
+  /** Multiplies the focal length as well as the principal point with the given \a scale \a factor
+   */
+  void scale(float scale_factor)
+  {
+    f_ *= scale_factor;
+    c_ *= scale_factor;
+  }
+
+  __host__ __device__ __forceinline__
+  PinholeCamera& operator*=(float rhs)
+  {
+    this->scale(rhs);
+    return *this;
+  }
+  __host__ __device__ __forceinline__
+  PinholeCamera operator*(float rhs) const
+  {
+    PinholeCamera result = *this;
+    result *= rhs;
+    return result;
+  }
+
 
 //  __host__ __device__ __forceinline__
 //  Vec32fC3 cam2world(const Vec32fC2& uv) const
@@ -74,19 +115,18 @@ public:
                        f_.y*p.y/p.z + c_.y);
   }
 
-  __host__ __device__ __forceinline__
-  const Vec32fC2& f() {return f_;}
-  __host__ __device__ __forceinline__
-  const Vec32fC2& c() {return c_;}
 
-  __host__ __device__ __forceinline__
-  float fx() {return f_.x;}
-  __host__ __device__ __forceinline__
-  float fy() {return f_.y;}
-  __host__ __device__ __forceinline__
-  float cx() {return c_.x;}
-  __host__ __device__ __forceinline__
-  float cy() {return c_.y;}
+  //
+  // accessors
+  //
+
+  __host__ __device__ __forceinline__ const Vec32fC2& f() const {return f_;}
+  __host__ __device__ __forceinline__ const Vec32fC2& c() const  {return c_;}
+
+  __host__ __device__ __forceinline__ float fx() const  {return f_.x;}
+  __host__ __device__ __forceinline__ float fy() const  {return f_.y;}
+  __host__ __device__ __forceinline__ float cx() const  {return c_.x;}
+  __host__ __device__ __forceinline__ float cy() const  {return c_.y;}
 
 private:
   Vec32fC2 f_; //!< focal length {fx, fy}
