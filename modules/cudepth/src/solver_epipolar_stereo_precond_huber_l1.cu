@@ -63,13 +63,12 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
     float downscale_factor = 0.5f*((float)size.width()/(float)depth_proposal.width()+
                                    (float)size.height()/(float)depth_proposal.height());
 
-    LOG(INFO) << "depth proposal downscaled to level: " << level << "; size: " << size
-              << "; downscale_factor: " << downscale_factor;
+    if (params_->verbose>2)
+      LOG(INFO) << "depth proposal downscaled to level: " << level << "; size: " << size
+                << "; downscale_factor: " << downscale_factor;
 
     imp::cu::resample(*depth_proposal_, depth_proposal);
     imp::cu::resample(*depth_proposal_sigma2_, depth_proposal_sigma2);
-//    *depth_proposal_ *= downscale_factor;
-    //*depth_proposal_sigma2_ *= downscale_factor; //!< @todo (MWE) do we need to scale this?
   }
 
   F_ = F;
@@ -88,10 +87,6 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
       cams_.push_back(scaled_cam);
     }
   }
-
-//  imp::Pixel32fC1 min_val, max_val;
-//  imp::cu::minMax(*depth_proposal_tex_, min_val, max_val, size);
-//  LOG(INFO) << "depth_proposal_tex_: " << min_val << " - " << max_val;
 }
 
 //------------------------------------------------------------------------------

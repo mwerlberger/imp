@@ -96,6 +96,7 @@ __global__ void k_warpedGradientsEpipolarConstraint(
     float2 epi_line_slope = make_float2(1.0f, -epi_line.x/epi_line.y);
     float2 epi_vec = ::normalize(epi_line_slope);
 
+#if 0
     if(x==20 && y==20)
     {
       printf("mu: %f\n", mu);
@@ -118,6 +119,7 @@ __global__ void k_warpedGradientsEpipolarConstraint(
       printf("epi_line_slope: %f, %f (length: %f)\n", epi_line_slope.x, epi_line_slope.y, ::length(epi_line_slope));
       printf("epi_vec: %f, %f (length: %f)\n\n", epi_vec.x, epi_vec.y, ::length(epi_vec));
     }
+#endif
 
     float u0 = u0_tex.fetch<float>(x,y);
     float2 w_pt_p = px_mean + epi_vec*u0; // assuming that epi_vec is the unit vec
