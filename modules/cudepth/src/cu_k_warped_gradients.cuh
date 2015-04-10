@@ -122,15 +122,17 @@ __global__ void k_warpedGradientsEpipolarConstraint(
 #endif
 
     float u0 = u0_tex.fetch<float>(x,y);
-    float2 w_pt_p = px_mean + epi_vec*u0; // assuming that epi_vec is the unit vec
+    float2 px_u0 = px_mean + epi_vec*u0; // assuming that epi_vec is the unit vec
+    float2 px_u0_p = px_u0 + 0.5f*epi_vec;
+    float2 px_u0_m = px_u0 - 0.5f*epi_vec;
 
     float bd = .5f;
     // check if current mean projects in image /*and mark if not*/
     // and if warped point is within a certain image area
     if (
         (px_mean.x > width-bd-1) || (px_mean.y > height-bd-1) || (px_mean.x < bd) || (px_mean.y < bd) ||
-        (w_pt_p.x < bd) || (x < bd) || (w_pt_p.y > width-bd-1) || (x > width-bd-1) ||
-        (w_pt_p.y < bd) || (w_pt_p.y > height-bd-1) || (y < bd) || (y > height-bd-1))
+        (px_u0.x < bd) || (x < bd) || (px_u0.y > width-bd-1) || (x > width-bd-1) ||
+        (px_u0.y < bd) || (px_u0.y > height-bd-1) || (y < bd) || (y > height-bd-1))
     {
       ix[c] = 0.0f;
       it[c] = 0.0f;
@@ -144,9 +146,9 @@ __global__ void k_warpedGradientsEpipolarConstraint(
 
       /// @todo (MWE) don't we want to have the gradient along the epipolar line??
 #if 1
-      i2_tex.fetch(i2_w_c, w_pt_p.x, w_pt_p.y);
-      i2_tex.fetch(i2_w_m, w_pt_p.x-0.5f*epi_vec.x, w_pt_p.y-0.5f*epi_vec.y);
-      i2_tex.fetch(i2_w_p, w_pt_p.x+0.5f*epi_vec.x, w_pt_p.y+0.5f*epi_vec.y);
+      i2_tex.fetch(i2_w_c, px_u0.x, px_u0.y);
+      i2_tex.fetch(i2_w_m, px_u0.x-0.5f*epi_vec.x, px_u0.y-0.5f*epi_vec.y);
+      i2_tex.fetch(i2_w_p, px_u0.x+0.5f*epi_vec.x, px_u0.y+0.5f*epi_vec.y);
 #endif
 #if 0
       i2_tex.fetch(i2_w_c, px_ref.x+epi_vec.x*u0, px_ref.y);

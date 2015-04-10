@@ -38,8 +38,6 @@ public:
   virtual void init();
   virtual void init(const SolverStereoAbstract& rhs);
   virtual inline void setFundamentalMatrix(const cu::Matrix3f& F) {F_ = F;}
-//  virtual inline void setDisparityGuess(ConstVectorImagePtr disp_guess) {correspondence_guess_ = disp_guess;}
-//  virtual inline void setEpiVecs(ConstVectorImagePtr epi_vec) {epi_vec_ = epi_vec;}
 
   virtual void solve(std::vector<ImagePtr> images);
 
@@ -55,6 +53,7 @@ protected:
   std::unique_ptr<Image> ix_; //!< spatial gradients on moving (warped) image
   std::unique_ptr<Image> it_; //!< temporal gradients between warped and fixed image
   std::unique_ptr<Image> xi_; //!< preconditioner
+  std::unique_ptr<Image> g_; //!< for edge weighting
 
 
   cu::Matrix3f F_;
@@ -64,6 +63,7 @@ protected:
   std::unique_ptr<DisparityImage> depth_proposal_sigma2_;
 
   // textures
+  std::unique_ptr<Texture2D> lambda_tex_;
   std::unique_ptr<Texture2D> i1_tex_;
   std::unique_ptr<Texture2D> i2_tex_;
   std::unique_ptr<Texture2D> u_tex_;
@@ -74,6 +74,7 @@ protected:
   std::unique_ptr<Texture2D> ix_tex_;
   std::unique_ptr<Texture2D> it_tex_;
   std::unique_ptr<Texture2D> xi_tex_;
+  std::unique_ptr<Texture2D> g_tex_;
 
   std::unique_ptr<Texture2D> depth_proposal_tex_;
   std::unique_ptr<Texture2D> depth_proposal_sigma2_tex_;

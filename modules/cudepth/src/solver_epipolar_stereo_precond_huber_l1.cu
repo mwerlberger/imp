@@ -12,10 +12,15 @@
 #include <imp/cucore/cu_texture.cuh>
 #include <imp/cucore/cu_math.cuh>
 #include <imp/cucore/cu_k_setvalue.cuh>
+#include <imp/cuimgproc/edge_detectors.cuh>
 
 #include "cu_k_warped_gradients.cuh"
 #include "cu_k_stereo_ctf_warping_level_precond_huber_l1.cuh"
+#include "cu_k_stereo_ctf_warping_level_precond_huber_l1_weighted.cuh"
+
 //#include "k_epipolar_stereo_precond_huber_l1.cu"
+
+#define USE_EDGES 1
 
 namespace imp {
 namespace cu {
@@ -45,6 +50,7 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
   ix_.reset(new Image(size));
   it_.reset(new Image(size));
   xi_.reset(new Image(size));
+  g_.reset(new Image(size));
 
   depth_proposal_.reset(new DisparityImage(size));
   depth_proposal_sigma2_.reset(new DisparityImage(size));
@@ -130,6 +136,32 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
   // sanity check:
   // TODO
 
+  // constants
+  constexpr float tau = 0.95f;
+  constexpr float sigma = 0.95f;
+  float lin_step = 0.5f;
+  Fragmentation<16,16> frag(size_);
+  constexpr float eta = 2.0f;
+
+  // init
+  u_->copyTo(*u_prev_);
+
+
+  // check if a pointwise lambda is set in the parameters. otherwise we create
+  // a local one to simplify kernel interfaces
+  cu::ImageGpu32fC1::Ptr lambda;
+  if (params_->lambda_pointwise)
+    lambda = params_->lambda_pointwise;
+  else
+  {
+    // make it as small as possible to reduce memory overhead. access is then
+    // handled by the texture
+    lambda.reset(new ImageGpu32fC1(1,1));
+    lambda->setValue(params_->lambda);
+  }
+  lambda_tex_ = lambda->genTexture(false,cudaFilterModePoint,
+                                   cudaAddressModeClamp, cudaReadModeElementType);
+
   // textures
   i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
   i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
@@ -141,20 +173,17 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
   ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
   it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
   xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
+  g_tex_ =  g_->genTexture(false, cudaFilterModeLinear);
   depth_proposal_tex_ =  depth_proposal_->genTexture(false, cudaFilterModeLinear);
   depth_proposal_sigma2_tex_ =  depth_proposal_sigma2_->genTexture(false, cudaFilterModeLinear);
 
 
-  u_->copyTo(*u_prev_);
-  Fragmentation<16,16> frag(size_);
 
-  // constants
-  constexpr float tau = 0.95f;
-  constexpr float sigma = 0.95f;
-  float lin_step = 0.5f;
+  // compute edge weight
+  imp::cu::naturalEdges(*g_, *images.at(0),
+                        params_->edge_sigma, params_->edge_alpha, params_->edge_q);
 
-  // precond
-  constexpr float eta = 2.0f;
+
 
   // warping
   for (std::uint32_t warp = 0; warp < params_->ctf.warps; ++warp)
@@ -175,12 +204,20 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
              *depth_proposal_tex_);
 
     // compute preconditioner
+#if USE_EDGES
+    // compute preconditioner
+    k_preconditionerWeighted
+        <<<
+          frag.dimGrid, frag.dimBlock
+        >>> (xi_->data(), xi_->stride(), xi_->width(), xi_->height(),
+             params_->lambda, *ix_tex_, *g_tex_);
+#else
     k_preconditioner
         <<<
           frag.dimGrid, frag.dimBlock
         >>> (xi_->data(), xi_->stride(), xi_->width(), xi_->height(),
              params_->lambda, *ix_tex_);
-
+#endif
 
     for (std::uint32_t iter = 0; iter < params_->ctf.iters; ++iter)
     {
@@ -190,17 +227,28 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
             frag.dimGrid, frag.dimBlock
           >>> (pu_->data(), pu_->stride(), q_->data(), q_->stride(),
                size_.width(), size_.height(),
-               params_->lambda, params_->eps_u, sigma, eta,
+               params_->eps_u, sigma, eta, *lambda_tex_,
                *u_prev_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *it_tex_);
 
       // and primal update kernel
+#if USE_EDGES
+      // and primal update kernel
+      k_primalUpdateWeighted
+          <<<
+            frag.dimGrid, frag.dimBlock
+          >>> (u_->data(), u_prev_->data(), u_->stride(),
+               size_.width(), size_.height(),
+               tau, lin_step, *lambda_tex_,
+               *u_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *xi_tex_, *g_tex_);
+#else
       k_primalUpdate
           <<<
             frag.dimGrid, frag.dimBlock
           >>> (u_->data(), u_prev_->data(), u_->stride(),
                size_.width(), size_.height(),
-               params_->lambda, tau, lin_step,
+               tau, lin_step, *lambda_tex_,
                *u_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *xi_tex_);
+#endif
     } // iters
     lin_step /= 1.2f;
 

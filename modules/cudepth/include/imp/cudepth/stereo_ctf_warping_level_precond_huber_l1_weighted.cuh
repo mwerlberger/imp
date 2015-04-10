@@ -54,6 +54,7 @@ protected:
   std::unique_ptr<Image> g_; //!< (edge) image for weighting the regularizer
 
   // textures
+  std::unique_ptr<Texture2D> lambda_tex_; //!< For pointwise lambda
   std::unique_ptr<Texture2D> i1_tex_;
   std::unique_ptr<Texture2D> i2_tex_;
   std::unique_ptr<Texture2D> u_tex_;
