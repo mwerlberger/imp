@@ -93,6 +93,21 @@ struct Fragmentation
   }
 };
 
+//------------------------------------------------------------------------------
+template <std::uint16_t block_size_x=16,
+          std::uint16_t block_size_y=16,
+          std::uint16_t block_size_z=1>
+inline std::ostream& operator<<(
+    std::ostream &os,
+    const  Fragmentation<block_size_x, block_size_y, block_size_z>& frag)
+{
+  os << "GPU Fragmentation: block: "
+     << frag.dimBlock.x << "," << frag.dimBlock.y << "," << frag.dimBlock.z
+     << "; grid: " << frag.dimGrid.x << "," << frag.dimGrid.y << "," << frag.dimGrid.z
+     << ";";
+  return os;
+}
+
 //##############################################################################
 
 /** Check for CUDA error */
@@ -107,9 +122,10 @@ static inline void checkCudaErrorState(const char* file, const char* function,
 
 /** Macro for checking on cuda errors
  * @note This check is only enabled when the compile time flag is set
+ * @todo (MWE) we should enable this whenever we compile in debug mode
  */
 #ifdef IMP_THROW_ON_CUDA_ERROR
-#  define IMP_CUDA_CHECK() checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__)
+#  define IMP_CUDA_CHECK() imp::cu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__)
 #else
 #  define IMP_CUDA_CHECK() do{}while(0)
 #endif

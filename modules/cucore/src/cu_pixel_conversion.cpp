@@ -15,9 +15,9 @@ namespace cu {
 //
 // uchar
 //
-uchar1* __host__ __device__ toCudaVectorType(imp::Pixel8uC1* buffer)
+unsigned char* __host__ __device__ toCudaVectorType(imp::Pixel8uC1* buffer)
 {
-  return reinterpret_cast<uchar1*>(buffer);
+  return reinterpret_cast<unsigned char*>(buffer);
 }
 uchar2* __host__ __device__ toCudaVectorType(imp::Pixel8uC2* buffer)
 {
@@ -35,9 +35,9 @@ uchar4* __host__ __device__ toCudaVectorType(imp::Pixel8uC4* buffer)
 //
 // ushort
 //
-ushort1* __host__ __device__ toCudaVectorType(imp::Pixel16uC1* buffer)
+unsigned short* __host__ __device__ toCudaVectorType(imp::Pixel16uC1* buffer)
 {
-  return reinterpret_cast<ushort1*>(buffer);
+  return reinterpret_cast<unsigned short*>(buffer);
 }
 ushort2* __host__ __device__ toCudaVectorType(imp::Pixel16uC2* buffer)
 {
@@ -55,9 +55,9 @@ ushort4* __host__ __device__ toCudaVectorType(imp::Pixel16uC4* buffer)
 //
 // int
 //
-int1* __host__ __device__ toCudaVectorType(imp::Pixel32sC1* buffer)
+int* __host__ __device__ toCudaVectorType(imp::Pixel32sC1* buffer)
 {
-  return reinterpret_cast<int1*>(buffer);
+  return reinterpret_cast<int*>(buffer);
 }
 int2* __host__ __device__ toCudaVectorType(imp::Pixel32sC2* buffer)
 {
@@ -75,9 +75,9 @@ int4* __host__ __device__ toCudaVectorType(imp::Pixel32sC4* buffer)
 //
 // float
 //
-float1* __host__ __device__ toCudaVectorType(imp::Pixel32fC1* buffer)
+float* __host__ __device__ toCudaVectorType(imp::Pixel32fC1* buffer)
 {
-  return reinterpret_cast<float1*>(buffer);
+  return reinterpret_cast<float*>(buffer);
 }
 float2* __host__ __device__ toCudaVectorType(imp::Pixel32fC2* buffer)
 {
@@ -99,9 +99,9 @@ float4* __host__ __device__ toCudaVectorType(imp::Pixel32fC4* buffer)
 //
 // uchar
 //
-const uchar1* __host__ __device__ toConstCudaVectorType(const imp::Pixel8uC1* buffer)
+const unsigned char* __host__ __device__ toConstCudaVectorType(const imp::Pixel8uC1* buffer)
 {
-  return reinterpret_cast<const uchar1*>(buffer);
+  return reinterpret_cast<const unsigned char*>(buffer);
 }
 const uchar2* __host__ __device__ toConstCudaVectorType(const imp::Pixel8uC2* buffer)
 {
@@ -119,9 +119,9 @@ const uchar4* __host__ __device__ toConstCudaVectorType(const imp::Pixel8uC4* bu
 //
 // ushort
 //
-const ushort1* __host__ __device__ toConstCudaVectorType(const imp::Pixel16uC1* buffer)
+const unsigned short* __host__ __device__ toConstCudaVectorType(const imp::Pixel16uC1* buffer)
 {
-  return reinterpret_cast<const ushort1*>(buffer);
+  return reinterpret_cast<const unsigned short*>(buffer);
 }
 const ushort2* __host__ __device__ toConstCudaVectorType(const imp::Pixel16uC2* buffer)
 {
@@ -139,9 +139,9 @@ const ushort4* __host__ __device__ toConstCudaVectorType(const imp::Pixel16uC4* 
 //
 // int
 //
-const int1* __host__ __device__ toConstCudaVectorType(const imp::Pixel32sC1* buffer)
+const int* __host__ __device__ toConstCudaVectorType(const imp::Pixel32sC1* buffer)
 {
-  return reinterpret_cast<const int1*>(buffer);
+  return reinterpret_cast<const int*>(buffer);
 }
 const int2* __host__ __device__ toConstCudaVectorType(const imp::Pixel32sC2* buffer)
 {
@@ -159,9 +159,9 @@ const int4* __host__ __device__ toConstCudaVectorType(const imp::Pixel32sC4* buf
 //
 // float
 //
-const float1* __host__ __device__ toConstCudaVectorType(const imp::Pixel32fC1* buffer)
+const float* __host__ __device__ toConstCudaVectorType(const imp::Pixel32fC1* buffer)
 {
-  return reinterpret_cast<const float1*>(buffer);
+  return reinterpret_cast<const float*>(buffer);
 }
 const float2* __host__ __device__ toConstCudaVectorType(const imp::Pixel32fC2* buffer)
 {
@@ -183,7 +183,7 @@ cudaChannelFormatDesc toCudaChannelFormatDesc(imp::PixelType pixel_type)
   switch (pixel_type)
   {
   case imp::PixelType::i8uC1:
-  return cudaCreateChannelDesc<uchar1>();
+  return cudaCreateChannelDesc<unsigned char>();
   case imp::PixelType::i8uC2:
   return cudaCreateChannelDesc<uchar2>();
   case imp::PixelType::i8uC3:
@@ -191,15 +191,15 @@ cudaChannelFormatDesc toCudaChannelFormatDesc(imp::PixelType pixel_type)
   case imp::PixelType::i8uC4:
   return cudaCreateChannelDesc<uchar4>();
   case imp::PixelType::i16uC1:
-  return cudaCreateChannelDesc<short1>();
+  return cudaCreateChannelDesc<unsigned short>();
   case imp::PixelType::i16uC2:
-  return cudaCreateChannelDesc<short2>();
+  return cudaCreateChannelDesc<ushort2>();
   case imp::PixelType::i16uC3:
-  return cudaCreateChannelDesc<short3>();
+  return cudaCreateChannelDesc<ushort3>();
   case imp::PixelType::i16uC4:
-  return cudaCreateChannelDesc<short4>();
+  return cudaCreateChannelDesc<ushort4>();
   case imp::PixelType::i32sC1:
-  return cudaCreateChannelDesc<int1>();
+  return cudaCreateChannelDesc<int>();
   case imp::PixelType::i32sC2:
   return cudaCreateChannelDesc<int2>();
   case imp::PixelType::i32sC3:
@@ -207,7 +207,7 @@ cudaChannelFormatDesc toCudaChannelFormatDesc(imp::PixelType pixel_type)
   case imp::PixelType::i32sC4:
   return cudaCreateChannelDesc<int4>();
   case imp::PixelType::i32fC1:
-  return cudaCreateChannelDesc<float1>();
+  return cudaCreateChannelDesc<float>();
   case imp::PixelType::i32fC2:
   return cudaCreateChannelDesc<float2>();
   case imp::PixelType::i32fC3:

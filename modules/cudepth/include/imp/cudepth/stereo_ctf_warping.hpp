@@ -6,19 +6,24 @@
 
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cuimgproc/image_pyramid.hpp>
+#include <imp/cucore/cu_pinhole_camera.cuh>
+#include <imp/cucore/cu_se3.cuh>
+#include <imp/cucore/cu_matrix.cuh>
 
 #include <imp/cudepth/variational_stereo_parameters.hpp>
-//#include <imp/cudepth/stereo_ctf_warping_level.hpp>
+//#include <imp/cudepth/solver_stereo_abstract.hpp>
 
 
 namespace imp {
 namespace cu {
 
 // forward declarations
-class StereoCtFWarpingLevel;
+class SolverStereoAbstract;
 
 /**
  * @brief The StereoCtFWarping class
+ * @todo (MWE) better handling of fixed vs. moving images when adding (incremental updates)
+ * @todo (MWE) better interface for multiple input images with fundamental matrix prior
  */
 class StereoCtFWarping
 {
@@ -29,8 +34,15 @@ public:
   using ImagePtr = std::shared_ptr<Image>;
   using ConstImagePtrRef = const std::shared_ptr<Image>&;
 
+  using VectorImage = imp::cu::ImageGpu32fC2;
+  using VectorImagePtr = std::shared_ptr<VectorImage>;
+  using ConstVectorImagePtr = const std::shared_ptr<VectorImage>&;
+
   using ImagePyramid = imp::ImagePyramid32fC1;
   using ImagePyramidPtr = std::shared_ptr<ImagePyramid>;
+
+  using Cameras = std::vector<cu::PinholeCamera>;
+  using CamerasPyramid = std::vector<Cameras>;
 
 public:
   StereoCtFWarping() = delete;
@@ -40,13 +52,21 @@ public:
 
   StereoCtFWarping(std::shared_ptr<Parameters> params);
 
-  void addImage(ImagePtr image);
+  void addImage(const ImagePtr& image);
   void solve();
   ImagePtr getDisparities(size_type level=0);
 
-  // don't we wanna have this in a vector type?
-  ImagePtr getU(std::uint32_t level);
-  ImagePtr getV(std::uint32_t level);
+  // if we have a guess about the correspondence points and the epipolar geometry
+  // given we can set these as a prior
+  inline virtual void setFundamentalMatrix(const cu::Matrix3f& F) {F_ = F;}
+  virtual void setIntrinsics(const std::vector<cu::PinholeCamera>& cams) {cams_ = cams;}
+  virtual void setExtrinsics(const cu::SE3<float>& T_mov_fix) {T_mov_fix_=T_mov_fix;}
+
+  inline virtual void setDepthProposal(ImagePtr depth_proposal, ImagePtr depth_proposal_sigma2=nullptr)
+  {
+    depth_proposal_ = depth_proposal;
+    depth_proposal_sigma2_ = depth_proposal_sigma2;
+  }
 
 protected:
   /**
@@ -64,7 +84,14 @@ private:
   std::shared_ptr<Parameters> params_; //!< configuration parameters
   std::vector<ImagePtr> images_; //!< all unprocessed input images
   std::vector<ImagePyramidPtr> image_pyramids_; //!< image pyramids corresponding to the unprocesed input images
-  std::vector<std::unique_ptr<StereoCtFWarpingLevel>> levels_;
+  std::vector<std::unique_ptr<SolverStereoAbstract>> levels_;
+
+  cu::Matrix3f F_;
+  std::vector<cu::PinholeCamera> cams_;
+  cu::SE3<float> T_mov_fix_;
+
+  ImagePtr depth_proposal_;
+  ImagePtr depth_proposal_sigma2_;
 };
 
 } // namespace cu

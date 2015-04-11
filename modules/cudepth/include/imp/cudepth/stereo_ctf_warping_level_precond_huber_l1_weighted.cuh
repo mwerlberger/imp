@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <memory>
 
-#include <imp/cudepth/stereo_ctf_warping_level.hpp>
+#include <imp/cudepth/solver_stereo_abstract.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/core/size.hpp>
 
@@ -19,7 +19,7 @@ class Texture2D;
  * @brief The StereoCtFWarpingLevelPrecondHuberL1 class
  * @todo better polymorphism! (derive from StereoCtfWarpingLevelPrecondHuberL1
  */
-class StereoCtFWarpingLevelPrecondHuberL1Weighted : public StereoCtFWarpingLevel
+class StereoCtFWarpingLevelPrecondHuberL1Weighted : public SolverStereoAbstract
 {
 public:
   using Parameters = VariationalStereoParameters;
@@ -35,11 +35,11 @@ public:
   StereoCtFWarpingLevelPrecondHuberL1Weighted(const std::shared_ptr<Parameters>& params,
                                               imp::Size2u size, size_type level);
 
-  virtual void init();
-  virtual void init(const StereoCtFWarpingLevel& rhs);
-  virtual void solve(std::vector<ImagePtr> images);
+  virtual void init() override;
+  virtual void init(const SolverStereoAbstract& rhs) override;
+  virtual void solve(std::vector<ImagePtr> images) override;
 
-  virtual inline ImagePtr getDisparities() {return u_;}
+  virtual inline ImagePtr getDisparities() override {return u_;}
 
 
 protected:
@@ -54,6 +54,7 @@ protected:
   std::unique_ptr<Image> g_; //!< (edge) image for weighting the regularizer
 
   // textures
+  std::unique_ptr<Texture2D> lambda_tex_; //!< For pointwise lambda
   std::unique_ptr<Texture2D> i1_tex_;
   std::unique_ptr<Texture2D> i2_tex_;
   std::unique_ptr<Texture2D> u_tex_;

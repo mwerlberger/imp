@@ -11,18 +11,21 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -Wall -g")
 
 set(HEADERS
   include/imp/cudepth/variational_stereo.hpp
+  include/imp/cudepth/variational_epipolar_stereo.hpp
   include/imp/cudepth/variational_stereo_parameters.hpp
   include/imp/cudepth/stereo_solver_enum.hpp
   include/imp/cudepth/stereo_ctf_warping.hpp
-  include/imp/cudepth/stereo_ctf_warping.hpp
-  include/imp/cudepth/stereo_ctf_warping_level.hpp
+  include/imp/cudepth/solver_stereo_abstract.hpp
   include/imp/cudepth/stereo_ctf_warping_level_huber_l1.cuh
   include/imp/cudepth/stereo_ctf_warping_level_precond_huber_l1.cuh
   include/imp/cudepth/stereo_ctf_warping_level_precond_huber_l1_weighted.cuh
+  # TODO # include/imp/cudepth/solver_epipolar_stereo_abstract.hpp
+  include/imp/cudepth/solver_epipolar_stereo_precond_huber_l1.cuh
   )
 
 set(SOURCES
   src/variational_stereo.cpp
+  src/variational_epipolar_stereo.cpp
   src/stereo_ctf_warping.cpp
   )
 
@@ -37,6 +40,9 @@ set(CU_SRCS
 
   src/cu_k_stereo_ctf_warping_level_precond_huber_l1_weighted.cuh
   src/stereo_ctf_warping_level_precond_huber_l1_weighted.cu
+
+  src/k_solver_epipolar_stereo_precond_huber_l1.cuh
+  src/solver_epipolar_stereo_precond_huber_l1.cu
   )
 
 cuda_compile(CU_OBJ ${CU_SRCS})

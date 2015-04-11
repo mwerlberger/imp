@@ -12,9 +12,11 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
+  <build_depend>glog_catkin</build_depend>
   <build_depend>imp_core</build_depend>
   <build_depend>imp_cucore</build_depend>
   <build_depend>imp_cuimgproc</build_depend>
+  <build_depend>imp_bridge_opencv</build_depend>
 
   <test_depend>gtest</test_depend>
 </package>

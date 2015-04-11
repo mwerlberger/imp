@@ -47,20 +47,21 @@ public:
   typedef Pixel pixel_t;
   typedef pixel_t* pixel_container_t;
   using Ptr = typename std::shared_ptr<ImageGpu<Pixel,pixel_type>>;
+  using UPtr = typename std::unique_ptr<ImageGpu<Pixel,pixel_type>>;
 
 public:
   ImageGpu() = delete;
   virtual ~ImageGpu();/* = default;*/
 
   /**
-   * @brief ImageGpu construcs an image of given size \a width x \a height
-   */
-  ImageGpu(std::uint32_t width, std::uint32_t height);
-
-  /**
    * @brief ImageGpu construcs an image of given \a size
    */
   ImageGpu(const imp::Size2u& size);
+
+  /**
+   * @brief ImageGpu construcs an image of given size \a width x \a height
+   */
+  ImageGpu(std::uint32_t width, std::uint32_t height);
 
   /**
    * @brief ImageGpu copy constructs an image from the given image \a from
@@ -124,7 +125,7 @@ public:
    * @param value Value to be set to the whole image data.
    * @note @todo (MWE) TBD: region-of-interest is considered
    */
-  virtual void setValue(const pixel_t& value);
+  virtual void setValue(const pixel_t& value) override;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
   virtual size_type pitch() const override { return pitch_; }
@@ -136,7 +137,7 @@ public:
 //  std::unique_ptr<GpuData2D<pixel_t>> gpuData() { return gpu_data_; }
 
   /** Returns the channel descriptor for Cuda's texture memory. */
-  cudaChannelFormatDesc channelFormatDesc() { return channel_format_desc_; }
+  inline cudaChannelFormatDesc channelFormatDesc() const { return channel_format_desc_; }
 
   /** Returns a cuda texture object. */
   std::unique_ptr<Texture2D> genTexture(
@@ -147,6 +148,9 @@ public:
 
   // operators
   /** Pixel-wise multiplication. */
+//  template<typename T>
+//  ImageGpu<Pixel, pixel_type>& operator*=(const T& rhs);
+
   ImageGpu<Pixel, pixel_type>& operator*=(const Pixel& rhs);
 
 
@@ -155,7 +159,6 @@ protected:
   size_type pitch_ = 0; //!< Row alignment in bytes.
 
 private:
-  void initMemory();
   cudaChannelFormatDesc channel_format_desc_;
 
   //std::unique_ptr<GpuData2D<pixel_t>> gpu_data_; //!< data collection that can be directly used within a kernel.

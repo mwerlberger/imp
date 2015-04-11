@@ -1,8 +1,9 @@
 #ifndef IMP_CU_MATRIX_CUH
 #define IMP_CU_MATRIX_CUH
 
+#include <ostream>
 #include <cuda_runtime.h>
-#include <array>
+#include <imp/core/pixel.hpp>
 
 namespace imp{
 namespace cu{
@@ -19,6 +20,25 @@ public:
 
   __host__ __device__
   ~Matrix() = default;
+
+//  // copy and asignment operator
+//  __host__ __device__
+//  Matrix(const Matrix& other)
+//    : f_(other.f())
+//    , c_(other.c())
+//  {
+//  }
+//  __host__ __device__
+//  Matrix& operator=(const Matrix& other)
+//  {
+//    if  (this != &other)
+//    {
+//      f_ = other.f();
+//      c_ = other.c();
+//    }
+//    return *this;
+//  }
+
 
   __host__ __device__ __forceinline__
   size_t rows() const { return rows_; }
@@ -94,7 +114,7 @@ using Vector3f = Matrix<float,1,3>;
 template<typename Type, size_t _rows, size_t CR, size_t _cols>
 __host__ __device__ __forceinline__
 Matrix<Type, _rows, _cols> operator*(const Matrix<Type, _rows, CR> & lhs,
-                             const Matrix<Type, CR, _cols> & rhs)
+                                     const Matrix<Type, CR, _cols> & rhs)
 {
   Matrix<Type, _rows, _cols> result;
   for(size_t row=0; row<_rows; ++row)
@@ -128,7 +148,7 @@ Matrix<Type, 2, 2> invert(const Matrix<Type, 2, 2> & in)
 
 //------------------------------------------------------------------------------
 // matrix vector multiplication
-__host__ __device__ inline
+__host__ __device__ __forceinline__
 float3 operator*(const Matrix3f& mat, const float3& v)
 {
   return make_float3(
@@ -138,6 +158,38 @@ float3 operator*(const Matrix3f& mat, const float3& v)
         );
 }
 
+//------------------------------------------------------------------------------
+// matrix vector multiplication
+__host__ __device__ __forceinline__
+Vec32fC3 operator*(const Matrix3f& mat, const Vec32fC3& v)
+{
+  return Vec32fC3(
+        mat(0,0)*v.x + mat(0,1)*v.y + mat(0,2)*v.z,
+        mat(1,0)*v.x + mat(1,1)*v.y + mat(1,2)*v.z,
+        mat(2,0)*v.x + mat(2,1)*v.y + mat(2,2)*v.z
+        );
+}
+
+//------------------------------------------------------------------------------
+template<typename T, size_t rows, size_t cols>
+__host__
+inline std::ostream& operator<<(std::ostream &os,
+                                const cu::Matrix<T, rows, cols>& m)
+{
+  os << "[";
+  for (int r=0; r<rows; ++r)
+  {
+    for (int c=0; c<cols; ++c)
+    {
+      os << m(r,c);
+      if (c<cols-1)
+        os << ",";
+    }
+    os << "; ";
+  }
+  os << "]";
+  return os;
+}
 
 }
 }

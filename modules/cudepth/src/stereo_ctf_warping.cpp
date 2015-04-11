@@ -2,9 +2,13 @@
 
 #include <memory>
 
+#include <glog/logging.h>
+
 #include <imp/cudepth/stereo_ctf_warping_level_huber_l1.cuh>
 #include <imp/cudepth/stereo_ctf_warping_level_precond_huber_l1.cuh>
 #include <imp/cudepth/stereo_ctf_warping_level_precond_huber_l1_weighted.cuh>
+#include <imp/cudepth/solver_epipolar_stereo_precond_huber_l1.cuh>
+
 #include <imp/cucore/cu_utils.hpp>
 
 namespace imp {
@@ -31,8 +35,8 @@ void StereoCtFWarping::init()
                     __FILE__, __FUNCTION__, __LINE__);
   }
 
-  // just in case
-  levels_.clear();
+  //  // just in case
+  //  levels_.clear();
 
   for (size_type i=params_->ctf.finest_level; i<=params_->ctf.coarsest_level; ++i)
   {
@@ -48,8 +52,25 @@ void StereoCtFWarping::init()
     case StereoPDSolver::PrecondHuberL1Weighted:
       levels_.emplace_back(new StereoCtFWarpingLevelPrecondHuberL1Weighted(params_, sz, i));
     break;
-    }
+    case StereoPDSolver::EpipolarPrecondHuberL1:
+    {
+      if (!depth_proposal_)
+      {
+        depth_proposal_.reset(new Image(image_pyramids_.front()->size(0)));
+        depth_proposal_->setValue(0.f);
+      }
+      if (!depth_proposal_sigma2_)
+      {
+        depth_proposal_sigma2_.reset(new Image(image_pyramids_.front()->size(0)));
+        depth_proposal_sigma2_->setValue(0.f);
+      }
 
+      levels_.emplace_back(new SolverEpipolarStereoPrecondHuberL1(
+                             params_, sz, i, cams_, F_, T_mov_fix_,
+                             *depth_proposal_, *depth_proposal_sigma2_));
+    }
+    break;
+    }
   }
 }
 
@@ -72,7 +93,7 @@ bool StereoCtFWarping::ready()
 }
 
 //------------------------------------------------------------------------------
-void StereoCtFWarping::addImage(ImagePtr image)
+void StereoCtFWarping::addImage(const ImagePtr& image)
 {
   // generate image pyramid
   ImagePyramidPtr pyr(new ImagePyramid(image, params_->ctf.scale_factor, 4));
@@ -86,21 +107,21 @@ void StereoCtFWarping::addImage(ImagePtr image)
   images_.push_back(image);
   image_pyramids_.push_back(pyr);
 
-  std::cout << "we have now " << images_.size() << " images and "
+  LOG(INFO) << "we have now " << images_.size() << " images and "
             <<  image_pyramids_.size() << " pyramids in the CTF instance. "
              << "params_->ctf.levels: " << params_->ctf.levels
-             << " (" << params_->ctf.coarsest_level << " -> " << params_->ctf.finest_level << ")"
-             << std::endl;
-
-  if (levels_.empty())
-  {
-    this->init();
-  }
+             << " (" << params_->ctf.coarsest_level
+             << " -> " << params_->ctf.finest_level << ")";
 }
 
 //------------------------------------------------------------------------------
 void StereoCtFWarping::solve()
 {
+  if (levels_.empty())
+  {
+    this->init();
+  }
+
   if (!this->ready())
   {
     throw imp::Exception("not initialized correctly. bailing out.",

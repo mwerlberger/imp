@@ -81,6 +81,18 @@ struct SizeBase
    */
   constexpr std::uint8_t dim() const noexcept {return DIM;}
 
+  /**
+   * @brief prod Computes the product of all elements
+   * @return Product of all elements.
+   */
+  T prod() const noexcept
+  {
+    T a=1;
+    for (auto elem : sz)
+      a *= elem;
+    return a;
+  }
+
 
   /**
    * @brief data gives access to the underlying (raw) data storage
@@ -210,6 +222,12 @@ struct Size<T, 2>
    * @return
    */
   T height() const {return this->sz[1];}
+
+  /**
+   * @brief area Computes the area (width*height)
+   * @return width*height
+   */
+  T area() const noexcept {return (this->sz[0]*this->sz[1]);}
 };
 
 //------------------------------------------------------------------------------
@@ -244,6 +262,13 @@ struct Size<T, 3>
    * @brief depth returns the length of the third dimension of the 3d size
    */
   T depth() const {return this->sz[2];}
+
+  /**
+   * @brief volume Computes the volume (width*height*depth)
+   * @return width*height*depth
+   */
+  T volume() const noexcept {return (this->sz[0]*this->sz[1]*this->sz[2]);}
+
 };
 
 //------------------------------------------------------------------------------

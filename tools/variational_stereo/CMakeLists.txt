@@ -9,12 +9,11 @@ catkin_simple()
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -Wall -g")
 
-find_package( OpenCV REQUIRED core highgui imgproc)
-include_directories(${OpenCV_INCLUDE_DIRS})
-
-
 cs_add_executable(variational_stereo_test variational_stereo_test.cpp)
-target_link_libraries(variational_stereo_test ${OpenCV_LIBS})
+target_link_libraries(variational_stereo_test)
+
+cs_add_executable(variational_epipolar_stereo_test variational_epipolar_stereo_test.cpp)
+target_link_libraries(variational_epipolar_stereo_test)
 
 
 cs_install()

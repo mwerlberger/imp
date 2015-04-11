@@ -27,7 +27,7 @@ StereoCtFWarpingLevelPrecondHuberL1Weighted::~StereoCtFWarpingLevelPrecondHuberL
 //------------------------------------------------------------------------------
 StereoCtFWarpingLevelPrecondHuberL1Weighted::StereoCtFWarpingLevelPrecondHuberL1Weighted(
     const std::shared_ptr<Parameters>& params, imp::Size2u size, size_type level)
-  : StereoCtFWarpingLevel(params, size, level)
+  : SolverStereoAbstract(params, size, level)
 {
   u_.reset(new Image(size));
   u_prev_.reset(new Image(size));
@@ -62,7 +62,7 @@ void StereoCtFWarpingLevelPrecondHuberL1Weighted::init()
 }
 
 //------------------------------------------------------------------------------
-void StereoCtFWarpingLevelPrecondHuberL1Weighted::init(const StereoCtFWarpingLevel& rhs)
+void StereoCtFWarpingLevelPrecondHuberL1Weighted::init(const SolverStereoAbstract& rhs)
 {
   const StereoCtFWarpingLevelPrecondHuberL1Weighted* from =
       dynamic_cast<const StereoCtFWarpingLevelPrecondHuberL1Weighted*>(&rhs);
@@ -82,14 +82,6 @@ void StereoCtFWarpingLevelPrecondHuberL1Weighted::init(const StereoCtFWarpingLev
 
   imp::cu::resample(*pu_, *from->pu_, imp::InterpolationMode::point, false);
   imp::cu::resample(*q_, *from->q_, imp::InterpolationMode::point, false);
-
-  if (params_->verbose > 2)
-  {
-    std::cout << "inv_sf: " << inv_sf << std::endl;
-    imp::Pixel32fC1 min_val,max_val;
-    imp::cu::minMax(u_, min_val, max_val);
-    std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
-  }
 }
 
 //------------------------------------------------------------------------------

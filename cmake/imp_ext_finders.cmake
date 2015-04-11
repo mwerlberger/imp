@@ -49,7 +49,7 @@ macro(find_cuda)
 ##
 # CUDA
 ##
-find_package(CUDA)
+find_package(CUDA ${ARGN})
 add_definitions(-DIMP_WITH_CUDA)
 list(APPEND CUDA_NVCC_FLAGS --compiler-options -fno-strict-aliasing -lineinfo
    -use_fast_math -Xptxas -dlcm=cg -std=c++11)

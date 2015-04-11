@@ -29,6 +29,16 @@ void cvBridgeShow(const std::string& winname,
   imp::cvBridgeShow(winname, cv_img, normalize);
 }
 
+//------------------------------------------------------------------------------
+template<typename Pixel, typename T, imp::PixelType pixel_type>
+void cvBridgeShow(const std::string& winname,
+                  const imp::cu::ImageGpu<Pixel, pixel_type>& img,
+                  const T& min, const T& max)
+{
+  const ImageCv<Pixel, pixel_type> cv_img(img);
+  imp::cvBridgeShow(winname, cv_img, min, max);
+}
+
 } // namespace cu
 } // namespace imp
 

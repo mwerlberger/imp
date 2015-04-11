@@ -14,13 +14,18 @@ TEST(IMPCoreTestSuite,testSize)
   EXPECT_EQ(0, sz2u.height());
 
   // 2D sizes
-  std::int32_t w=10, h=13;
+  const std::int32_t w=10, h=13;
+  const std::int32_t area = w*h;
+
   imp::Size2i sz(w,h);
   EXPECT_EQ(w, sz.width());
   EXPECT_EQ(h, sz.height());
 
   EXPECT_EQ(w, sz.data()[0]);
   EXPECT_EQ(h, sz.data()[1]);
+
+  EXPECT_EQ(area, sz.area());
+  EXPECT_EQ(area, sz.prod());
 
   // comparison operator tests
   imp::Size2i a(123,456);

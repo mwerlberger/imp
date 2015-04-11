@@ -1,44 +1,42 @@
 #ifndef IMP_CU_TEXTURE_CUH
 #define IMP_CU_TEXTURE_CUH
 
+#include <memory>
 #include <cstring>
 #include <cuda_runtime.h>
 #include <imp/core/types.hpp>
 #include <imp/core/pixel.hpp>
-//#include <imp/core/pixel_enums.hpp>
-//#include <imp/cucore/cu_image_gpu.cuh>
-//#include <imp/cucore/cu_pixel_conversion.hpp>
+#include <imp/cucore/cu_exception.hpp>
 
 namespace imp {
 namespace cu {
 
 /**
- * @brief The Texture struct
+ * @brief The Texture2D struct wrappes the cuda texture object
  */
-struct Texture
+struct Texture2D
 {
   cudaTextureObject_t tex_object;
-
-  __host__ Texture() = default;
-  __host__ virtual ~Texture() = default;
   __device__ __forceinline__ operator cudaTextureObject_t() const {return tex_object;}
 
-};
+  using Ptr = std::shared_ptr<Texture2D>;
+  using UPtr = std::unique_ptr<Texture2D>;
 
-/**
- * @brief The Texture2D struct
- */
-struct Texture2D : Texture
-{
-  using Texture::Texture;
-  __host__ Texture2D(void* data, size_type pitch,
+  __host__ Texture2D() = delete;
+
+  __host__ Texture2D(cudaTextureObject_t _tex_object)
+    : tex_object(_tex_object)
+  {
+
+  }
+
+  __host__ Texture2D(const void* data, size_type pitch,
                      cudaChannelFormatDesc channel_desc,
                      imp::Size2u size,
                      bool _normalized_coords = false,
                      cudaTextureFilterMode filter_mode = cudaFilterModePoint,
                      cudaTextureAddressMode address_mode = cudaAddressModeClamp,
                      cudaTextureReadMode read_mode = cudaReadModeElementType)
-    : Texture()
   {
     cudaResourceDesc tex_res;
     std::memset(&tex_res, 0, sizeof(tex_res));
@@ -46,35 +44,50 @@ struct Texture2D : Texture
     tex_res.res.pitch2D.width = size.width();
     tex_res.res.pitch2D.height = size.height();
     tex_res.res.pitch2D.pitchInBytes = pitch;
-    tex_res.res.pitch2D.devPtr = data;
+    tex_res.res.pitch2D.devPtr = const_cast<void*>(data);
     tex_res.res.pitch2D.desc = channel_desc;
 
     cudaTextureDesc tex_desc;
     std::memset(&tex_desc, 0, sizeof(tex_desc));
-    tex_desc.normalizedCoords = _normalized_coords;
+    tex_desc.normalizedCoords = (_normalized_coords==true) ? 1 : 0;
     tex_desc.filterMode = filter_mode;
     tex_desc.addressMode[0] = address_mode;
     tex_desc.addressMode[1] = address_mode;
     tex_desc.readMode = read_mode;
 
-    cudaCreateTextureObject(&(this->tex_object), &tex_res, &tex_desc, 0);
-
+    cudaError_t err = cudaCreateTextureObject(&tex_object, &tex_res, &tex_desc, 0);
+    if  (err != ::cudaSuccess)
+    {
+      throw imp::cu::Exception("Failed to create texture object", err,
+                               __FILE__, __FUNCTION__, __LINE__);
+    }
   }
 
   __host__ virtual ~Texture2D()
   {
-    cudaDestroyTextureObject(this->tex_object);
+    cudaError_t err = cudaDestroyTextureObject(tex_object);
+    if  (err != ::cudaSuccess)
+    {
+      throw imp::cu::Exception("Failed to destroy texture object", err,
+                               __FILE__, __FUNCTION__, __LINE__);
+    }
   }
 
-
-//  /**
-//   * Wrapper for accesing texels. The coordinate are not texture but pixel coords (no need to add 0.5f!)
-//   */
-//  template<typename T>
-//  __device__ __forceinline__ T fetch(float x, float y) const
-//  {
-//    return tex2D<T>(tex_object, x+.5f, y+.5f);
-//  }
+  // copy and asignment operator
+  __host__ __device__
+  Texture2D(const Texture2D& other)
+    : tex_object(other.tex_object)
+  {
+  }
+  __host__ __device__
+  Texture2D& operator=(const Texture2D& other)
+  {
+    if  (this != &other)
+    {
+      tex_object = other.tex_object;
+    }
+    return *this;
+  }
 
   /**
    * @brief Wrapper for accesing texels including coord manipulation {e.g. x = (x+.5f)*mul_x + add_x}
@@ -204,6 +217,37 @@ struct Texture2D : Texture
 
 };
 
+
+//------------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+Texture2D genTexture(const imp::cu::ImageGpu<Pixel, pixel_type>& img)
+{
+  cudaResourceDesc tex_res;
+  std::memset(&tex_res, 0, sizeof(tex_res));
+  tex_res.resType = cudaResourceTypePitch2D;
+  tex_res.res.pitch2D.width = img.width();
+  tex_res.res.pitch2D.height = img.height();
+  tex_res.res.pitch2D.pitchInBytes = img.pitch();
+  tex_res.res.pitch2D.devPtr = const_cast<void*>((const void*)img.cuData());
+  tex_res.res.pitch2D.desc = img.channelFormatDesc();
+
+  cudaTextureDesc tex_desc;
+  std::memset(&tex_desc, 0, sizeof(tex_desc));
+  tex_desc.normalizedCoords = 0;
+  tex_desc.filterMode = cudaFilterModeLinear;
+  tex_desc.addressMode[0] = cudaAddressModeClamp;
+  tex_desc.addressMode[1] = cudaAddressModeClamp;
+  tex_desc.readMode = cudaReadModeElementType;
+
+  cudaTextureObject_t tex_obj;
+  cudaError_t err = cudaCreateTextureObject(&tex_obj, &tex_res, &tex_desc, 0);
+  if  (err != ::cudaSuccess)
+  {
+    throw imp::cu::Exception("Failed to create texture object", err,
+                             __FILE__, __FUNCTION__, __LINE__);
+  }
+  return Texture2D(tex_obj);
+}
 
 
 } // namespace cu

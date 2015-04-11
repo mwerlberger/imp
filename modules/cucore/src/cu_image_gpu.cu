@@ -16,37 +16,37 @@
 namespace imp {
 namespace cu {
 
-//-----------------------------------------------------------------------------
-template<typename Pixel, imp::PixelType pixel_type>
-ImageGpu<Pixel, pixel_type>::ImageGpu(std::uint32_t width, std::uint32_t height)
-  : Base(width, height)
-{
-  this->initMemory();
-}
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>::ImageGpu(const imp::Size2u& size)
   : Base(size)
 {
-  this->initMemory();
+  data_.reset(Memory::alignedAlloc(this->size(), &pitch_));
+  channel_format_desc_ = toCudaChannelFormatDesc(pixel_type);
 }
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-ImageGpu<Pixel, pixel_type>::ImageGpu(const ImageGpu& from)
-  : Base(from)
+ImageGpu<Pixel, pixel_type>::ImageGpu(std::uint32_t width, std::uint32_t height)
+  : ImageGpu(imp::Size2u(width,height))
 {
-  this->initMemory();
+}
+
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+ImageGpu<Pixel, pixel_type>::ImageGpu(const ImageGpu& from)
+  : ImageGpu(from.size())
+{
   this->copyFrom(from);
 }
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>::ImageGpu(const Image<Pixel, pixel_type>& from)
-  : Base(from)
+  : ImageGpu(from.size())
 {
-  this->initMemory();
   this->copyFrom(from);
 }
 
@@ -101,14 +101,6 @@ ImageGpu<Pixel, pixel_type>::~ImageGpu()
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void ImageGpu<Pixel, pixel_type>::initMemory()
-{
-  data_.reset(Memory::alignedAlloc(this->size(), &pitch_));
-  channel_format_desc_ = toCudaChannelFormatDesc(pixel_type);
-}
-
-//-----------------------------------------------------------------------------
-template<typename Pixel, imp::PixelType pixel_type>
 void ImageGpu<Pixel, pixel_type>::setRoi(const imp::Roi2u& roi)
 {
   this->roi_ = roi;
@@ -131,7 +123,7 @@ void ImageGpu<Pixel, pixel_type>::copyTo(imp::Image<Pixel, pixel_type>& dst) con
                                         this->height(), memcpy_kind);
   if (cu_err != cudaSuccess)
   {
-    throw imp::cu::Exception("copyFrom failed", cu_err, __FILE__, __FUNCTION__, __LINE__);
+    throw imp::cu::Exception("copyTo failed", cu_err, __FILE__, __FUNCTION__, __LINE__);
   }
 
 }
@@ -188,12 +180,14 @@ const Pixel* ImageGpu<Pixel, pixel_type>::data(
   return data_.get();
 }
 
+//-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 auto ImageGpu<Pixel, pixel_type>::cuData() -> decltype(imp::cu::toCudaVectorType(this->data()))
 {
   return imp::cu::toCudaVectorType(this->data());
 }
 
+//-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 auto ImageGpu<Pixel, pixel_type>::cuData() const -> decltype(imp::cu::toConstCudaVectorType(this->data()))
 {
@@ -211,7 +205,7 @@ void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
   else
   {
     // fragmentation
-    cu::Fragmentation<16> frag(this->size());
+    cu::Fragmentation<16,16> frag(this->size());
 
     // todo add roi to kernel!
     imp::cu::k_setValue
@@ -222,26 +216,26 @@ void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-std::unique_ptr<Texture2D> ImageGpu<Pixel, pixel_type>::genTexture(bool normalized_coords,
-                                                                   cudaTextureFilterMode filter_mode,
-                                                                   cudaTextureAddressMode address_mode,
-                                                                   cudaTextureReadMode read_mode) const
+std::unique_ptr<Texture2D> ImageGpu<Pixel, pixel_type>::genTexture(
+    bool normalized_coords,
+    cudaTextureFilterMode filter_mode,
+    cudaTextureAddressMode address_mode,
+    cudaTextureReadMode read_mode) const
 {
   // don't blame me for doing a const_cast as binding textures needs a void* but
   // we want genTexture to be a const function as we don't modify anything here!
-  const void* cuBuffer = reinterpret_cast<const void*>(this->cuData());
-  return std::unique_ptr<Texture2D>(new Texture2D(const_cast<void*>(cuBuffer), this->pitch(),
-                                                  channel_format_desc_, this->size(),
-                                                  normalized_coords, filter_mode,
-                                                  address_mode, read_mode));
+  return std::unique_ptr<Texture2D>(
+        new Texture2D(this->cuData(), this->pitch(), channel_format_desc_, this->size(),
+                      normalized_coords, filter_mode, address_mode, read_mode));
 }
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
+//template<typename T>
 ImageGpu<Pixel, pixel_type>& ImageGpu<Pixel, pixel_type>::operator*=(const Pixel& rhs)
 {
   // fragmentation
-  cu::Fragmentation<16> frag(this->size());
+  cu::Fragmentation<16,16> frag(this->size());
 
   // todo add roi to kernel!
   imp::cu::k_pixelWiseMul

@@ -25,6 +25,7 @@ set(HEADERS
   include/imp/core/image_raw.hpp
   include/imp/core/cv_connector_pixel_types.hpp
   include/imp/core/image_cv.hpp
+  include/imp/core/image_defs.hpp
   )
 
 set(SOURCES
@@ -34,20 +35,18 @@ set(SOURCES
   src/image_cv.cpp
   )
 
-
-cs_add_library(${PROJECT_NAME}
-   ${SOURCES} ${HEADERS}
-   )
+cs_add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 target_link_libraries(${PROJECT_NAME})
 
 ###
-### GTESTS
+### GTEST
 ###
 
 catkin_add_gtest(${PROJECT_NAME}-test
   test/test_main.cpp
   test/size_test.cpp
   test/roi_test.cpp
+  test/vec_test.cpp
 )
 target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME} pthread)
 

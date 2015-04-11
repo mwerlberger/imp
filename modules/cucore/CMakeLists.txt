@@ -9,6 +9,8 @@ catkin_simple()
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -Wall -Werror -g")
 
+add_definitions(-DIMP_THROW_ON_CUDA_ERROR)
+
 set(HEADERS
   include/imp/cucore/cu_utils.hpp
   include/imp/cucore/cu_exception.hpp
@@ -21,6 +23,8 @@ set(HEADERS
   include/imp/cucore/cu_math.cuh
   include/imp/cucore/cu_k_setvalue.cuh
   include/imp/cucore/cu_k_derivative.cuh
+  include/imp/cucore/cu_pinhole_camera.cuh
+  include/imp/cucore/cu_se3.cuh
   include/imp/cucore/cu_matrix.cuh
   )
 
@@ -31,7 +35,7 @@ set(SOURCES
 set(CU_SRC
   src/cu_linearmemory.cu
   src/cu_image_gpu.cu
-  src/math/cu_min_max_impl.cu
+#  src/math/cu_min_max_impl.cu
   src/cu_math.cu
   )
 

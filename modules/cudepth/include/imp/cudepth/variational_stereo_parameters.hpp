@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <imp/core/types.hpp>
 #include <imp/cudepth/stereo_solver_enum.hpp>
+#include <imp/cucore/cu_image_gpu.cuh>
 
 namespace imp {
 namespace cu {
@@ -14,6 +15,7 @@ struct VariationalStereoParameters
   int verbose=10; //!< verbosity level (the higher, the more the Stereo algorithm talks to us)
   StereoPDSolver solver=StereoPDSolver::PrecondHuberL1; //!< selected primal-dual solver / model
   float lambda = 30.0f; //!< tradeoff between regularization and matching term
+  ImageGpu32fC1::Ptr lambda_pointwise = nullptr; //!< pointwise variant of lambda
   float eps_u = 0.05f; //!< tradeoff between L1 and L2 part of the Huber regularization
 
   float edge_sigma = 1.f;

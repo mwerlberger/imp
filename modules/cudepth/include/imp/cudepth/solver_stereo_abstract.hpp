@@ -1,5 +1,5 @@
-#ifndef IMP_CU_STEREO_CTF_WARPING_LEVEL_HPP
-#define IMP_CU_STEREO_CTF_WARPING_LEVEL_HPP
+#ifndef IMP_CU_SOLVER_STEREO_ABSTRACT_HPP
+#define IMP_CU_SOLVER_STEREO_ABSTRACT_HPP
 
 #include <cstdint>
 #include <memory>
@@ -18,20 +18,29 @@ class VariationalStereoParameters;
 /**
  * @brief The StereoCtFWarpingLevel class
  */
-class StereoCtFWarpingLevel
+class SolverStereoAbstract
 {
 public:
   using Parameters = VariationalStereoParameters;
+
   using Image = imp::cu::ImageGpu32fC1;
   using ImagePtr = std::shared_ptr<Image>;
 
+  using DisparityImage = imp::cu::ImageGpu32fC1;
+  using DisparityImagePtr = std::shared_ptr<Image>;
+
+  using ConstImagePtrRef = const std::shared_ptr<Image>&;
+
+  using VectorImage = imp::cu::ImageGpu32fC2;
+  using VectorImagePtr = std::shared_ptr<VectorImage>;
+  using ConstVectorImagePtr = const std::shared_ptr<VectorImage>&;
 
 
 public:
-  StereoCtFWarpingLevel() = delete;
-  virtual ~StereoCtFWarpingLevel() = default;
+  SolverStereoAbstract() = delete;
+  virtual ~SolverStereoAbstract() = default;
 
-  StereoCtFWarpingLevel(std::shared_ptr<Parameters> params,
+  SolverStereoAbstract(std::shared_ptr<Parameters> params,
                         imp::Size2u size, std::uint16_t level)
     : params_(params)
     , size_(size)
@@ -39,7 +48,7 @@ public:
   { ; }
 
   virtual void init() = 0;
-  virtual void init(const StereoCtFWarpingLevel& rhs) = 0;
+  virtual void init(const SolverStereoAbstract& rhs) = 0;
   virtual void solve(std::vector<ImagePtr> images) = 0;
   virtual ImagePtr getDisparities() = 0;
 
@@ -56,4 +65,4 @@ protected:
 } // namespace cu
 } // namespace imp
 
-#endif // IMP_CU_STEREO_CTF_WARPING_LEVEL_HPP
+#endif // IMP_CU_SOLVER_STEREO_ABSTRACT_HPP
