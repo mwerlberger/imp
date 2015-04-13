@@ -26,7 +26,7 @@ __global__ void k_preconditioner(Pixel* xi, size_type stride,
   {
     Pixel ix;
     ix_tex.fetch(ix, x, y);
-    xi[y*stride+x] = 4 + sqr(lambda) * sqr(ix);
+    xi[y*stride+x] = 4 + fabs(lambda*ix);
   }
 }
 

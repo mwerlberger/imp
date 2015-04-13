@@ -27,7 +27,28 @@ __global__ void k_preconditionerWeighted(Pixel* xi, size_type stride,
     ix_tex.fetch(ix, x, y);
     g_tex.fetch(g, x, y);
     xi[y*stride+x] = 4*g + fabs(lambda * ix);
-//    xi[y*stride+x] = 4*g + sqr(lambda) * sqr(ix);
+    //    xi[y*stride+x] = 4*g + sqr(lambda) * sqr(ix);
+  }
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel>
+__global__ void k_preconditionerWeighted(Pixel* xi, size_type stride,
+                                         std::uint32_t width, std::uint32_t height,
+                                         // std::uint32_t roi_x, std::uint32_t roi_y,
+                                         Texture2D lambda_tex, Texture2D ix_tex,
+                                         Texture2D g_tex)
+{
+  const int x = blockIdx.x*blockDim.x + threadIdx.x;
+  const int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+  if (x<width && y<height)
+  {
+    Pixel ix, g;
+    ix_tex.fetch(ix, x, y);
+    g_tex.fetch(g, x, y);
+    xi[y*stride+x] = 4*g + fabs(lambda_tex.fetch<float>(x,y)*ix);
+    //    xi[y*stride+x] = 4*g + sqr(lambda) * sqr(ix);
   }
 }
 
@@ -57,12 +78,10 @@ __global__ void k_primalUpdateWeighted(PPixel* d_u, PPixel* d_u_prev, const size
     float xi = max(1e-6f, xi_tex.fetch<float>(x, y));
 
     float div = dpAdWeighted(pu_tex, g_tex, x, y, width, height);
-//    float div = dpAd(pu_tex, x, y, width, height);
 
     float u = u_prev - tau/xi * (-div + lambda*ix*q);
 
-    u = k_linearized_update(u, u0_tex, lin_step, x, y);
-    d_u[y*stride+x] = u;
+    d_u[y*stride+x] = u = k_linearized_update(u, u0_tex, lin_step, x, y);
     d_u_prev[y*stride+x] = 2.f*u - u_prev;
   }
 }
@@ -94,7 +113,7 @@ __global__ void k_primalUpdateWeighted(PPixel* d_u, PPixel* d_u_prev, const size
     float xi = max(1e-6f, xi_tex.fetch<float>(x, y));
 
     float div = dpAdWeighted(pu_tex, g_tex, x, y, width, height);
-//    float div = dpAd(pu_tex, x, y, width, height);
+    //    float div = dpAd(pu_tex, x, y, width, height);
 
     float lambda = lambda_tex.fetch<float>(x,y);
     float u = u_prev - tau/xi * (-div + lambda*ix*q);
@@ -102,6 +121,45 @@ __global__ void k_primalUpdateWeighted(PPixel* d_u, PPixel* d_u_prev, const size
     u = k_linearized_update(u, u0_tex, lin_step, x, y);
     d_u[y*stride+x] = u;
     d_u_prev[y*stride+x] = 2.f*u - u_prev;
+  }
+}
+
+//-----------------------------------------------------------------------------
+template<typename PPixel, typename DPixel>
+__global__ void k_dualUpdateWeighted(DPixel* d_pu, const size_type stride_pu,
+                                     PPixel* d_q, const size_type stride_q,
+                                     std::uint32_t width, std::uint32_t height,
+                                     const float eps_u,
+                                     const float sigma, const float eta,
+                                     Texture2D lambda_tex,
+                                     Texture2D u_prev_tex, Texture2D u0_tex,
+                                     Texture2D pu_tex, Texture2D q_tex,
+                                     Texture2D ix_tex, Texture2D it_tex,
+                                     Texture2D g_tex)
+{
+  const int x = blockIdx.x*blockDim.x + threadIdx.x;
+  const int y = blockIdx.y*blockDim.y + threadIdx.y;
+  if (x<width && y<height)
+  {
+    const float sigma_by_eta = sigma/eta;
+
+    // update pu
+    float2 du = dpWeighted(u_prev_tex, g_tex, x, y);
+    float2 pu = pu_tex.fetch<float2>(x,y);
+    pu  = (pu + sigma_by_eta*du) / (1.f + sigma_by_eta*eps_u);
+    pu = pu / max(1.0f, length(pu));
+    d_pu[y*stride_pu+x] = {pu.x, pu.y};
+
+    // update q
+    float u_prev = u_prev_tex.fetch<float>(x, y);
+    float u0 = u0_tex.fetch<float>(x, y);
+    float q = q_tex.fetch<float>(x, y);
+    float ix = ix_tex.fetch<float>(x, y);
+    float it = it_tex.fetch<float>(x, y);
+    float lambda = lambda_tex.fetch<float>(x,y);
+    const float sigma_q = sigma / max(1e-6f, lambda * fabs(ix));
+    q = q + lambda*sigma_q * (it + ix*(u_prev-u0));
+    d_q[y*stride_q+x] = max(-1.f, min(1.f, q));
   }
 }
 

@@ -210,7 +210,7 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
         <<<
           frag.dimGrid, frag.dimBlock
         >>> (xi_->data(), xi_->stride(), xi_->width(), xi_->height(),
-             params_->lambda, *ix_tex_, *g_tex_);
+             *lambda_tex_, *ix_tex_, *g_tex_);
 #else
     k_preconditioner
         <<<
@@ -221,6 +221,25 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
 
     for (std::uint32_t iter = 0; iter < params_->ctf.iters; ++iter)
     {
+#if USE_EDGES
+      // dual update kernel
+      k_dualUpdateWeighted
+          <<<
+            frag.dimGrid, frag.dimBlock
+          >>> (pu_->data(), pu_->stride(), q_->data(), q_->stride(),
+               size_.width(), size_.height(),
+               params_->eps_u, sigma, eta, *lambda_tex_,
+               *u_prev_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *it_tex_, *g_tex_);
+
+      // and primal update kernel
+      k_primalUpdateWeighted
+          <<<
+            frag.dimGrid, frag.dimBlock
+          >>> (u_->data(), u_prev_->data(), u_->stride(),
+               size_.width(), size_.height(),
+               tau, lin_step, *lambda_tex_,
+               *u_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *xi_tex_, *g_tex_);
+#else
       // dual update kernel
       k_dualUpdate
           <<<
@@ -231,16 +250,6 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
                *u_prev_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *it_tex_);
 
       // and primal update kernel
-#if USE_EDGES
-      // and primal update kernel
-      k_primalUpdateWeighted
-          <<<
-            frag.dimGrid, frag.dimBlock
-          >>> (u_->data(), u_prev_->data(), u_->stride(),
-               size_.width(), size_.height(),
-               tau, lin_step, *lambda_tex_,
-               *u_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *xi_tex_, *g_tex_);
-#else
       k_primalUpdate
           <<<
             frag.dimGrid, frag.dimBlock
