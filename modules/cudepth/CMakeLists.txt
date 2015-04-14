@@ -1,6 +1,8 @@
 project(imp_cudepth)
 cmake_minimum_required(VERSION 2.8.0)
 
+cmake_policy(SET CMP0054 OLD)
+
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/imp_ext_finders.cmake)
 find_cuda()
 
