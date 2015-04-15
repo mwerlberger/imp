@@ -14,9 +14,12 @@
   <buildtool_depend>catkin_simple</buildtool_depend>
 
   <build_depend>cv_bridge</build_depend>
-    
+
+  <build_depend>imp_cmake</build_depend>
   <build_depend>imp_core</build_depend>
+  <run_depend>imp_core</run_depend>
   <build_depend>imp_cucore</build_depend>
+  <run_depend>imp_cucore</run_depend>
 
   <test_depend>gtest</test_depend>
 </package>

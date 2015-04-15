@@ -208,6 +208,9 @@ void TvL1Denoising<Pixel, pixel_type>::denoise(const ImageBasePtr& dst,
     u_->copyTo(*u);
   }
   break;
+  default:
+    throw imp::cu::Exception("Unsupported PixelType.",
+                             __FILE__, __FUNCTION__, __LINE__);
   }
   IMP_CUDA_CHECK();
 }

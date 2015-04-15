@@ -6,11 +6,8 @@ cmake_policy(SET CMP0054 OLD)
 find_package(catkin_simple REQUIRED)
 catkin_simple()
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-add_definitions(-Wall)
-add_definitions(-Werror)
-add_definitions(-g)
-add_definitions(-fPIC)
+include(imp_macros)
+imp_setup()
 
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++0x -D__STRICT_ANSI__")
 
