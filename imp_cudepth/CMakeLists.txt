@@ -3,13 +3,13 @@ cmake_minimum_required(VERSION 2.8.0)
 
 cmake_policy(SET CMP0054 OLD)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/imp_ext_finders.cmake)
-find_cuda()
-
 find_package(catkin_simple REQUIRED)
 catkin_simple()
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -Wall -g")
+include(imp_macros)
+include(imp_finders)
+imp_setup()
+imp_find_cuda()
 
 set(HEADERS
   include/imp/cudepth/variational_stereo.hpp

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>imp_cucore</name>
+  <name>imp_cudepth</name>
   <description>
-    IMP CUDA core module
+    IMP CUDA depth estimation / range image module
   </description>
   <version>0.0.1</version>
   <license>tbd</license>
@@ -12,9 +12,13 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
+  <build_depend>glog_catkin</build_depend>
+  <build_depend>imp_cmake</build_depend>
   <build_depend>imp_core</build_depend>
+  <build_depend>imp_cucore</build_depend>
+  <build_depend>imp_3rdparty_cuda_toolkit</build_depend>
+  <build_depend>imp_cuimgproc</build_depend>
+  <build_depend>imp_bridge_opencv</build_depend>
 
-  <run_depend>imp_core</run_depend>
-    
   <test_depend>gtest</test_depend>
 </package>

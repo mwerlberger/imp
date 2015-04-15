@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
 <package>
-  <name>imp_core</name>
+  <name>imp_bridge_opencv</name>
   <description>
-    IMP core module
+    IMP bridge to OpenCV adds the ability to interconnect with the OpenCV
+    library.
   </description>
   <version>0.0.1</version>
   <license>tbd</license>
@@ -14,7 +15,11 @@
 
   <build_depend>cv_bridge</build_depend>
 
-  <run_depend>cv_bridge</run_depend>
+  <build_depend>imp_cmake</build_depend>
+  <build_depend>imp_core</build_depend>
+  <run_depend>imp_core</run_depend>
+  <build_depend>imp_cucore</build_depend>
+  <run_depend>imp_cucore</run_depend>
 
   <test_depend>gtest</test_depend>
 </package>

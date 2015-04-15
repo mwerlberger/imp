@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>imp_bridge_ros</name>
+  <name>imp_core</name>
   <description>
-    IMP bridge to Ros adds the ability to interconnect with the Ros framework
+    IMP core module
   </description>
   <version>0.0.1</version>
   <license>tbd</license>
@@ -12,10 +12,9 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
-  <build_depend>image_transport</build_depend>
-    
-  <build_depend>imp_core</build_depend>
-  <build_depend>imp_cucore</build_depend>
+  <build_depend>imp_cmake</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <run_depend>cv_bridge</run_depend>
 
   <test_depend>gtest</test_depend>
 </package>
