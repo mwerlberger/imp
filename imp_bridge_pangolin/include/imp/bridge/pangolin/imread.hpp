@@ -9,7 +9,7 @@ namespace imp
 
 //------------------------------------------------------------------------------
 //template<typename Pixel, imp::PixelType pixel_type>
-void pangolinBridgeLoad(std::shared_ptr<imp::ImageRaw8uC1>& out,
+void pangolinBridgeLoad(imp::ImageRaw8uC1::Ptr& out,
                         const std::string& filename, imp::PixelOrder pixel_order)
 {
   // try to load an image with pangolin first
@@ -17,7 +17,8 @@ void pangolinBridgeLoad(std::shared_ptr<imp::ImageRaw8uC1>& out,
         filename, pangolin::ImageFileType::ImageFileTypePng);
 
   //! @todo (MWE) FIX input output channel formatting, etc.
-  out = std::make_shared<imp::ImageRaw8uC1>((unsigned char*)im.ptr, im.w, im.h, im.pitch, false);
+  out.reset(new imp::ImageRaw8uC1(reinterpret_cast<imp::Pixel8uC1*>(im.ptr),
+                                  im.w, im.h, im.pitch));
 //  switch (im.fmt.channels)
 //  {
 //  case 1:
