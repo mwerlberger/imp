@@ -2,7 +2,7 @@ project(imp_tools_cmd)
 cmake_minimum_required(VERSION 2.8.0)
 
 find_package(catkin_simple REQUIRED)
-catkin_simple()
+catkin_simple(ALL_DEPS_REQUIRED)
 
 include(imp_finders)
 imp_setup()
@@ -31,6 +31,9 @@ target_link_libraries(cu_rof_denoising_test)
 
 cs_add_executable(cu_tvl1_denoising_test cu_tvl1_denoising_test.cpp)
 target_link_libraries(cu_tvl1_denoising_test)
+
+cs_add_executable(pangolin_load_test pangolin_load_test.cpp)
+target_link_libraries(pangolin_load_test)
 
 
 

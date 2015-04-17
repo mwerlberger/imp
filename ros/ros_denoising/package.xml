@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>imp_ros_denoising</name>
   <description>
     ROS nodes for denoising functionalities
@@ -12,19 +12,19 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
-  <build_depend>roscpp</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>image_transport</build_depend>
-  <build_depend>cv_bridge</build_depend>
-  <build_depend>rospy</build_depend>
-  <build_depend>dynamic_reconfigure</build_depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>image_transport</depend>
+  <depend>cv_bridge</depend>
+  <depend>rospy</depend>
+  <depend>dynamic_reconfigure</depend>
 
-  <build_depend>cv_bridge</build_depend>
+  <depend>cv_bridge</depend>
 
-  <build_depend>imp_core</build_depend>
-  <build_depend>imp_cucore</build_depend>
-  <build_depend>imp_cuimgproc</build_depend>
-  <build_depend>imp_bridge_opencv</build_depend>
+  <depend>imp_core</depend>
+  <depend>imp_cucore</depend>
+  <depend>imp_cuimgproc</depend>
+  <depend>imp_bridge_opencv</depend>
 
   <test_depend>gtest</test_depend>
 </package>

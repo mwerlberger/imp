@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>imp_bridge_opencv</name>
   <description>
     IMP bridge to OpenCV adds the ability to interconnect with the OpenCV
@@ -13,13 +13,11 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
-  <build_depend>cv_bridge</build_depend>
+  <depend>cv_bridge</depend>
 
-  <build_depend>imp_cmake</build_depend>
-  <build_depend>imp_core</build_depend>
-  <run_depend>imp_core</run_depend>
-  <build_depend>imp_cucore</build_depend>
-  <run_depend>imp_cucore</run_depend>
+  <depend>imp_cmake</depend>
+  <depend>imp_core</depend>
+  <depend>imp_cucore</depend>
 
   <test_depend>gtest</test_depend>
 </package>

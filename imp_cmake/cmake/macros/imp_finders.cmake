@@ -8,7 +8,6 @@ macro(imp_find_cuda)
 ##
 find_package(CUDA ${ARGN})
 add_definitions(-DIMP_WITH_CUDA)
-add_definitions(-DHAVE_CUDA)
 list(APPEND CUDA_NVCC_FLAGS --compiler-options -fno-strict-aliasing -lineinfo
    -use_fast_math -Xptxas -dlcm=cg -std=c++11)
 
