@@ -2,8 +2,8 @@
 
 #include <imp/core/exception.hpp>
 #include <imp/core/pixel_enums.hpp>
-#include <imp/core/image.hpp>
-#include <imp/core/image_raw.hpp>
+#include <imp/image/image.hpp>
+#include <imp/image/image_raw.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cuimgproc/cu_image_transform.cuh>
 

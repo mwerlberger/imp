@@ -1,9 +1,9 @@
-#include <imp/core/image_cv.hpp>
+#include <imp/bridge/opencv/image_cv.hpp>
 
 #include <iostream>
 
-#include <imp/core/cv_connector_pixel_types.hpp>
 #include <imp/core/exception.hpp>
+#include <imp/bridge/opencv/cv_connector_pixel_types.hpp>
 
 
 namespace imp {

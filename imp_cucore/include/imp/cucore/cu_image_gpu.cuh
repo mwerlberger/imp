@@ -8,7 +8,7 @@
 #include <imp/core/pixel_enums.hpp>
 #include <imp/cucore/cu_exception.hpp>
 #include <imp/cucore/cu_memory_storage.cuh>
-#include <imp/core/image.hpp>
+#include <imp/image/image.hpp>
 //#include <imp/cucore/cu_gpu_data.cuh>
 
 #include <imp/cucore/cu_pixel_conversion.hpp>

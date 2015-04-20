@@ -6,8 +6,8 @@
 
 #include <opencv2/core/core.hpp>
 
-#include <imp/core/image_defs.hpp>
-#include <imp/core/image.hpp>
+#include <imp/image/image_defs.hpp>
+#include <imp/image/image.hpp>
 //#include <imp/core/memory_storage.hpp>
 #include <imp/core/pixel_enums.hpp>
 

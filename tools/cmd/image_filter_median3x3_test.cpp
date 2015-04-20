@@ -7,8 +7,8 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include <imp/core/roi.hpp>
-#include <imp/core/image_raw.hpp>
-#include <imp/core/image_cv.hpp>
+#include <imp/image/image_raw.hpp>
+#include <imp/bridge/opencv/image_cv.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>
 #include <imp/cuimgproc/cu_image_filter.cuh>
 #include <imp/bridge/opencv/cu_cv_bridge.hpp>

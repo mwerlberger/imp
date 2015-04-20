@@ -2,7 +2,7 @@
 #define IMP_CU_MIN_MAX_IMPL_CU
 
 #include <imp/core/linearmemory.hpp>
-#include <imp/core/image.hpp>
+#include <imp/image/image.hpp>
 #include <imp/cucore/cu_math.cuh>
 #include <imp/cucore/cu_exception.hpp>
 #include <imp/cucore/cu_image_gpu.cuh>

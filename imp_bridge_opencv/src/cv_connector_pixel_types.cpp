@@ -1,4 +1,4 @@
-#include <imp/core/cv_connector_pixel_types.hpp>
+#include <imp/bridge/opencv/cv_connector_pixel_types.hpp>
 
 #include <opencv2/core/core.hpp>
 

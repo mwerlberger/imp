@@ -19,20 +19,11 @@ set(HEADERS
   include/imp/core/pixel_enums.hpp
   include/imp/core/linearmemory_base.hpp
   include/imp/core/linearmemory.hpp
-  include/imp/core/image_base.hpp
-  include/imp/core/image.hpp
   include/imp/core/memory_storage.hpp
-  include/imp/core/image_raw.hpp
-  include/imp/core/cv_connector_pixel_types.hpp
-  include/imp/core/image_cv.hpp
-  include/imp/core/image_defs.hpp
   )
 
 set(SOURCES
   src/linearmemory.cpp
-  src/image_raw.cpp
-  src/cv_connector_pixel_types.cpp
-  src/image_cv.cpp
   )
 
 cs_add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS})
