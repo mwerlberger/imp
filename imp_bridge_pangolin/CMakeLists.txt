@@ -13,6 +13,7 @@ imp_setup()
 
 set(HEADERS
   include/imp/bridge/pangolin/imread.hpp
+  include/imp/bridge/pangolin/pangolin_display.hpp
   )
 
 set(SOURCES
