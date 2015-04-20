@@ -6,7 +6,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include <imp/core/roi.hpp>
-#include <imp/core/image_raw.hpp>
+#include <imp/image/image_raw.hpp>
 
 #include "default_msg.h"
 

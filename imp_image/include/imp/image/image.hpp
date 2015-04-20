@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include <imp/core/image_base.hpp>
+#include <imp/image/image_base.hpp>
 #include <imp/core/exception.hpp>
 #include <imp/core/pixel.hpp>
 
