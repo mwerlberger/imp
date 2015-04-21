@@ -5,8 +5,8 @@
 #include <glog/logging.h>
 
 #include <imp/cu_correspondence/solver_stereo_huber_l1.cuh>
-#include <imp/cu_correspondence/stereo_ctf_warping_level_precond_huber_l1.cuh>
-#include <imp/cu_correspondence/stereo_ctf_warping_level_precond_huber_l1_weighted.cuh>
+#include <imp/cu_correspondence/solver_stereo_precond_huber_l1.cuh>
+#include <imp/cu_correspondence/solver_stereo_precond_huber_l1_weighted.cuh>
 #include <imp/cu_correspondence/solver_epipolar_stereo_precond_huber_l1.cuh>
 
 #include <imp/cu_core/cu_utils.hpp>
@@ -47,7 +47,7 @@ void StereoCtFWarping::init()
       levels_.emplace_back(new SolverStereoHuberL1(params_, sz, i));
     break;
     case StereoPDSolver::PrecondHuberL1:
-      levels_.emplace_back(new StereoCtFWarpingLevelPrecondHuberL1(params_, sz, i));
+      levels_.emplace_back(new SolverStereoPrecondHuberL1(params_, sz, i));
     break;
     case StereoPDSolver::PrecondHuberL1Weighted:
       levels_.emplace_back(new StereoCtFWarpingLevelPrecondHuberL1Weighted(params_, sz, i));

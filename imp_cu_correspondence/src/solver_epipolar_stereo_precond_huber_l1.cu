@@ -14,11 +14,11 @@
 #include <imp/cu_core/cu_k_setvalue.cuh>
 #include <imp/cu_imgproc/edge_detectors.cuh>
 
-#include "cu_k_warped_gradients.cuh"
-#include "cu_k_stereo_ctf_warping_level_precond_huber_l1.cuh"
-#include "cu_k_stereo_ctf_warping_level_precond_huber_l1_weighted.cuh"
+#include "warped_gradients_kernel.cuh"
+#include "solver_precond_huber_l1_kernel.cuh"
+#include "solver_stereo_precond_huber_l1_weighted_kernel.cuh"
 
-//#include "k_epipolar_stereo_precond_huber_l1.cu"
+//#include "solver_epipolar_stereo_precond_huber_l1_kernel.cu"
 
 #define USE_EDGES 1
 

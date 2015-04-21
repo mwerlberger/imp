@@ -12,7 +12,7 @@
 #include <imp/cu_core/cu_texture.cuh>
 #include <imp/cu_core/cu_math.cuh>
 
-#include "cu_k_warped_gradients.cuh"
+#include "warped_gradients_kernel.cuh"
 #include "solver_stereo_huber_l1_kernel.cuh"
 
 namespace imp {

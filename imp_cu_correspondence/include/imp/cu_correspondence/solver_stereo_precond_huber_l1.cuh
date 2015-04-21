@@ -18,7 +18,7 @@ class Texture2D;
 /**
  * @brief The StereoCtFWarpingLevelPrecondHuberL1 class
  */
-class StereoCtFWarpingLevelPrecondHuberL1 : public SolverStereoAbstract
+class SolverStereoPrecondHuberL1 : public SolverStereoAbstract
 {
 public:
   using Parameters = VariationalStereoParameters;
@@ -28,10 +28,10 @@ public:
 
 
 public:
-  StereoCtFWarpingLevelPrecondHuberL1() = delete;
-  virtual ~StereoCtFWarpingLevelPrecondHuberL1();
+  SolverStereoPrecondHuberL1() = delete;
+  virtual ~SolverStereoPrecondHuberL1();
 
-  StereoCtFWarpingLevelPrecondHuberL1(const std::shared_ptr<Parameters>& params,
+  SolverStereoPrecondHuberL1(const std::shared_ptr<Parameters>& params,
                                       imp::Size2u size, size_type level);
 
   virtual void init() override;
