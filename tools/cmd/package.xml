@@ -21,7 +21,6 @@
   <depend>imp_cucore</depend>
   <depend>imp_cuimgproc</depend>
   <depend>imp_bridge_opencv</depend>
-  <depend>imp_3rdparty_pangolin</depend>
   <depend>imp_bridge_pangolin</depend>
 
   <test_depend>gtest</test_depend>

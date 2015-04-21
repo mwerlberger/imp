@@ -2,14 +2,9 @@
 #define IMP_IMAGE_CV_HPP
 
 #include <memory>
-//#include <algorithm>
-
 #include <opencv2/core/core.hpp>
-
-#include <imp/image/image_defs.hpp>
-#include <imp/image/image.hpp>
-//#include <imp/core/memory_storage.hpp>
 #include <imp/core/pixel_enums.hpp>
+#include <imp/image/image.hpp>
 
 namespace imp {
 
@@ -112,8 +107,8 @@ typedef ImageCv<imp::Pixel32fC4, imp::PixelType::i32fC4> ImageCv32fC4;
 
 // shared pointers
 
-//template <typename Pixel, imp::PixelType pixel_type>
-//using ImageCvPtr = typename ImageCv<Pixel,pixel_type>::Ptr;
+template <typename Pixel, imp::PixelType pixel_type>
+using ImageCvPtr = typename std::shared_ptr<ImageCv<Pixel,pixel_type>>;
 
 //template <typename Pixel, imp::PixelType pixel_type>
 //using ConstImageCvPtrRef = typename ImageCv<Pixel,pixel_type>::ConstPtrRef;

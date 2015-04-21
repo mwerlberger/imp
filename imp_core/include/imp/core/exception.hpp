@@ -5,7 +5,7 @@
 
 namespace imp {
 
-/** Assertion with additional error information
+/** Exception with additional error information
  */
 class Exception : public std::exception
 {

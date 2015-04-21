@@ -10,13 +10,6 @@ namespace imp {
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
-LinearMemory<Pixel>::LinearMemory()
-  : LinearMemoryBase()
-{
-}
-
-//-----------------------------------------------------------------------------
-template<typename Pixel>
 LinearMemory<Pixel>::LinearMemory(const size_t& length)
   : LinearMemoryBase(length)
   , data_(Memory::alignedAlloc(this->length()))

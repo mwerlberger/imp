@@ -16,16 +16,15 @@ template<typename Pixel>
 class LinearMemory : public LinearMemoryBase
 {
 public:
-  typedef LinearMemory<Pixel> LinearMem;
-  typedef imp::MemoryStorage<Pixel> Memory;
-  typedef imp::MemoryDeallocator<Pixel> Deallocator;
+  using Memory = imp::MemoryStorage<Pixel>;
+  using Deallocator = imp::MemoryDeallocator<Pixel>;
 
-  typedef Pixel pixel_t;
-  typedef pixel_t* pixel_container_t;
+  using pixel_t = Pixel;
+  using pixel_container_t = pixel_t*;
 
-  LinearMemory();
+public:
+  LinearMemory() = delete;
   virtual ~LinearMemory() = default;
-
   LinearMemory(const size_t& length);
   LinearMemory(const LinearMemory<Pixel>& from);
   LinearMemory(pixel_container_t host_data, const size_t& length,
@@ -56,7 +55,7 @@ public:
   void copyTo(LinearMemory<Pixel>& dst);
 
   //! @todo (MWE) operator= for copyTo/copyFrom?
-  LinearMem& operator=(pixel_t rhs);
+  LinearMemory<Pixel>& operator=(pixel_t rhs);
 
   /** Returns the total amount of bytes saved in the data buffer. */
   virtual size_t bytes() const override { return this->length()*sizeof(pixel_t); }
