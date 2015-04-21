@@ -14,7 +14,6 @@ namespace cu {
 // forward decl
 class VariationalStereoParameters;
 
-
 /**
  * @brief The StereoCtFWarpingLevel class
  */

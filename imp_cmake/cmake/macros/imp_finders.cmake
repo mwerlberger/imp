@@ -10,6 +10,7 @@ find_package(CUDA ${ARGN})
 add_definitions(-DIMP_WITH_CUDA)
 list(APPEND CUDA_NVCC_FLAGS --compiler-options -fno-strict-aliasing -lineinfo
    -use_fast_math -Xptxas -dlcm=cg -std=c++11)
+set(CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE OFF)
 
 # nvcc and ccache are not very good friends, hence we set the host compiler
 # for cuda manually if ccache is enabled.

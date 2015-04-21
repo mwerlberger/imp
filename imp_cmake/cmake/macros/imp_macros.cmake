@@ -23,7 +23,7 @@ endmacro()
 
 ##! @todo (MWE) extend with default setup stuff that we want to re-use in every package
 macro(imp_setup)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -fPIC -Wall")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -fPIC -Wall -Werror")
    ## TODO add  -Werror again
    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")

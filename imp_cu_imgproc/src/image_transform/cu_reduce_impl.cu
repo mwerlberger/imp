@@ -98,6 +98,8 @@ void reduce(ImageGpu<Pixel, pixel_type>& dst,
     //        <<< dimGridOut, dimBlock, 0, stream >>> (dst.data(), dst.stride(), dst.width(), dst.height(),
     //                                      sf_x , sf_y);
     //    break;
+  default:
+    IMP_CU_THROW_EXCEPTION("unsupported interpolation type");
   }
 
   IMP_CUDA_CHECK();
