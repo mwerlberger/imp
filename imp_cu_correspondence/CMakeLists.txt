@@ -18,9 +18,10 @@ set(HEADERS
   include/imp/cu_correspondence/stereo_solver_enum.hpp
   include/imp/cu_correspondence/stereo_ctf_warping.hpp
   include/imp/cu_correspondence/solver_stereo_abstract.hpp
-  include/imp/cu_correspondence/stereo_ctf_warping_level_huber_l1.cuh
-  include/imp/cu_correspondence/stereo_ctf_warping_level_precond_huber_l1.cuh
-  include/imp/cu_correspondence/stereo_ctf_warping_level_precond_huber_l1_weighted.cuh
+  include/imp/cu_correspondence/solver_stereo_huber_l1.cuh
+  include/imp/cu_correspondence/solver_stereo_precond_huber_l1.cuh
+  include/imp/cu_correspondence/solver_stereo_precond_huber_l1_weighted.cuh
+#  include/imp/cu_correspondence/solver_stereo_phuber_l1_weighted.cuh
   # TODO # include/imp/cu_correspondence/solver_epipolar_stereo_abstract.hpp
   include/imp/cu_correspondence/solver_epipolar_stereo_precond_huber_l1.cuh
   )
@@ -32,16 +33,16 @@ set(SOURCES
   )
 
 set(CU_SRCS
-  src/cu_k_warped_gradients.cuh
+  src/warped_gradients_kernel.cuh
 
-  src/cu_k_stereo_ctf_warping_level_huber_l1.cuh
-  src/stereo_ctf_warping_level_huber_l1.cu
+  src/solver_stereo_huber_l1_kernel.cuh
+  src/solver_stereo_huber_l1.cu
 
-  src/cu_k_stereo_ctf_warping_level_precond_huber_l1.cuh
-  src/stereo_ctf_warping_level_precond_huber_l1.cu
+  src/solver_precond_huber_l1_kernel.cuh
+  src/solver_stereo_precond_huber_l1.cu
 
-  src/cu_k_stereo_ctf_warping_level_precond_huber_l1_weighted.cuh
-  src/stereo_ctf_warping_level_precond_huber_l1_weighted.cu
+  src/solver_stereo_precond_huber_l1_weighted_kernel.cuh
+  src/solver_stereo_precond_huber_l1_weighted.cu
 
   src/k_solver_epipolar_stereo_precond_huber_l1.cuh
   src/solver_epipolar_stereo_precond_huber_l1.cu

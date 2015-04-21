@@ -1,5 +1,5 @@
-#ifndef IMP_CU_STEREO_CTF_WARPING_LEVEL_HUBER_CUH
-#define IMP_CU_STEREO_CTF_WARPING_LEVEL_HUBER_CUH
+#ifndef IMP_CU_STEREO_CTF_WARPING_LEVEL_PRECOND_HUBER_L1_CUH
+#define IMP_CU_STEREO_CTF_WARPING_LEVEL_PRECOND_HUBER_L1_CUH
 
 #include <cstdint>
 #include <memory>
@@ -18,7 +18,7 @@ class Texture2D;
 /**
  * @brief The StereoCtFWarpingLevelPrecondHuberL1 class
  */
-class StereoCtFWarpingLevelHuberL1 : public SolverStereoAbstract
+class SolverStereoPrecondHuberL1 : public SolverStereoAbstract
 {
 public:
   using Parameters = VariationalStereoParameters;
@@ -28,11 +28,11 @@ public:
 
 
 public:
-  StereoCtFWarpingLevelHuberL1() = delete;
-  virtual ~StereoCtFWarpingLevelHuberL1();
+  SolverStereoPrecondHuberL1() = delete;
+  virtual ~SolverStereoPrecondHuberL1();
 
-  StereoCtFWarpingLevelHuberL1(const std::shared_ptr<Parameters>& params,
-                               imp::Size2u size, size_type level);
+  SolverStereoPrecondHuberL1(const std::shared_ptr<Parameters>& params,
+                                      imp::Size2u size, size_type level);
 
   virtual void init() override;
   virtual void init(const SolverStereoAbstract& rhs) override;
@@ -46,8 +46,10 @@ protected:
   std::unique_ptr<Image> u_prev_; //!< disparities results from previous iteration
   std::unique_ptr<Image> u0_; //!< disparities results from previous warp
   std::unique_ptr<Dual> pu_; //!< dual variable for primal variable
+  std::unique_ptr<Image> q_; //!< dual variable for data term
   std::unique_ptr<Image> ix_; //!< spatial gradients on moving (warped) image
   std::unique_ptr<Image> it_; //!< temporal gradients between warped and fixed image
+  std::unique_ptr<Image> xi_; //!< preconditioner
 
   // textures
   std::unique_ptr<Texture2D> i1_tex_;
@@ -56,12 +58,14 @@ protected:
   std::unique_ptr<Texture2D> u_prev_tex_;
   std::unique_ptr<Texture2D> u0_tex_;
   std::unique_ptr<Texture2D> pu_tex_;
+  std::unique_ptr<Texture2D> q_tex_;
   std::unique_ptr<Texture2D> ix_tex_;
   std::unique_ptr<Texture2D> it_tex_;
+  std::unique_ptr<Texture2D> xi_tex_;
 
 };
 
 } // namespace cu
 } // namespace imp
 
-#endif // IMP_CU_STEREO_CTF_WARPING_LEVEL_HUBER_CUH
+#endif // IMP_CU_STEREO_CTF_WARPING_LEVEL_PRECOND_HUBER_L1_CUH

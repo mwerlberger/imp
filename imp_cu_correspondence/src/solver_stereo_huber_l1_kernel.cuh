@@ -1,5 +1,4 @@
-#ifndef IMP_CU_K_STEREO_CTF_WARPING_LEVEL_HUBER_CUH
-#define IMP_CU_K_STEREO_CTF_WARPING_LEVEL_HUBER_CUH
+#pragma once
 
 #include <cuda_runtime_api.h>
 #include <imp/core/types.hpp>
@@ -107,8 +106,4 @@ __global__ void k_dualUpdate(DPixel* d_pu, const size_type stride_pu,
 
 } // namespace cu
 } // namespace imp
-
-
-
-#endif // IMP_CU_K_STEREO_CTF_WARPING_LEVEL_HUBER_CUH
 
