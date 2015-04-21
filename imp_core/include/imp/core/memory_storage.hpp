@@ -22,8 +22,8 @@ public:
   typedef std::uint32_t size_type;
 
   //----------------------------------------------------------------------------
-  MemoryStorage() = default;
-  virtual ~MemoryStorage() = default;
+  MemoryStorage() = delete;
+  virtual ~MemoryStorage() = delete;
 
   //----------------------------------------------------------------------------
   /**
