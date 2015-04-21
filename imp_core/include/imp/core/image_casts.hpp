@@ -1,7 +1,7 @@
 #ifndef IMAGE_CASTS_HPP
 #define IMAGE_CASTS_HPP
 
-#include <imp/image/image.hpp>
+#include <imp/core/image.hpp>
 
 namespace imp {
 

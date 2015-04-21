@@ -4,7 +4,7 @@
 #include <memory>
 #include <algorithm>
 
-#include <imp/image/image.hpp>
+#include <imp/core/image.hpp>
 #include <imp/core/memory_storage.hpp>
 
 namespace imp {

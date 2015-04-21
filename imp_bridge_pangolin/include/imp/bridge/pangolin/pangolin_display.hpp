@@ -2,7 +2,7 @@
 #define PANGOLINDISPLAY_HPP
 
 #include <imp/core/size.hpp>
-#include <imp/image/image.hpp>
+#include <imp/core/image.hpp>
 #include <pangolin/display.h>
 
 
