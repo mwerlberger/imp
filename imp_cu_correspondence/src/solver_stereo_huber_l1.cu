@@ -1,4 +1,4 @@
-#include <imp/cu_correspondence/stereo_ctf_warping_level_huber_l1.cuh>
+#include <imp/cu_correspondence/solver_stereo_huber_l1.cuh>
 
 #include <cmath>
 
@@ -13,20 +13,20 @@
 #include <imp/cu_core/cu_math.cuh>
 
 #include "cu_k_warped_gradients.cuh"
-#include "cu_k_stereo_ctf_warping_level_huber_l1.cuh"
+#include "solver_stereo_huber_l1_kernel.cuh"
 
 namespace imp {
 namespace cu {
 
 
 //------------------------------------------------------------------------------
-StereoCtFWarpingLevelHuberL1::~StereoCtFWarpingLevelHuberL1()
+SolverStereoHuberL1::~SolverStereoHuberL1()
 {
   // thanks to smart pointers
 }
 
 //------------------------------------------------------------------------------
-StereoCtFWarpingLevelHuberL1::StereoCtFWarpingLevelHuberL1(
+SolverStereoHuberL1::SolverStereoHuberL1(
     const std::shared_ptr<Parameters>& params, imp::Size2u size, size_type level)
   : SolverStereoAbstract(params, size, level)
 {
@@ -47,7 +47,7 @@ StereoCtFWarpingLevelHuberL1::StereoCtFWarpingLevelHuberL1(
 }
 
 //------------------------------------------------------------------------------
-void StereoCtFWarpingLevelHuberL1::init()
+void SolverStereoHuberL1::init()
 {
   u_->setValue(0.0f);
   pu_->setValue(0.0f);
@@ -55,10 +55,10 @@ void StereoCtFWarpingLevelHuberL1::init()
 }
 
 //------------------------------------------------------------------------------
-void StereoCtFWarpingLevelHuberL1::init(const SolverStereoAbstract& rhs)
+void SolverStereoHuberL1::init(const SolverStereoAbstract& rhs)
 {
-  const StereoCtFWarpingLevelHuberL1* from =
-      dynamic_cast<const StereoCtFWarpingLevelHuberL1*>(&rhs);
+  const SolverStereoHuberL1* from =
+      dynamic_cast<const SolverStereoHuberL1*>(&rhs);
 
   float inv_sf = 1./params_->ctf.scale_factor; // >1 for adapting prolongated disparities
 
@@ -77,7 +77,7 @@ void StereoCtFWarpingLevelHuberL1::init(const SolverStereoAbstract& rhs)
 }
 
 //------------------------------------------------------------------------------
-void StereoCtFWarpingLevelHuberL1::solve(std::vector<ImagePtr> images)
+void SolverStereoHuberL1::solve(std::vector<ImagePtr> images)
 {
   if (params_->verbose > 0)
     std::cout << "StereoCtFWarpingLevelPrecondHuberL1: solving level " << level_ << " with " << images.size() << " images" << std::endl;

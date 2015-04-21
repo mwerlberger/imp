@@ -37,7 +37,7 @@ int main(int /*argc*/, char** /*argv*/)
           new imp::cu::VariationalStereo());
 
     stereo->parameters()->verbose = 0;
-    stereo->parameters()->solver = imp::cu::StereoPDSolver::PrecondHuberL1Weighted;
+    stereo->parameters()->solver = imp::cu::StereoPDSolver::HuberL1;
     stereo->parameters()->ctf.scale_factor = 0.8f;
     stereo->parameters()->ctf.iters = 50;
     stereo->parameters()->ctf.warps  = 10;

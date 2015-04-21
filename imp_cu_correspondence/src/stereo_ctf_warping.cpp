@@ -4,7 +4,7 @@
 
 #include <glog/logging.h>
 
-#include <imp/cu_correspondence/stereo_ctf_warping_level_huber_l1.cuh>
+#include <imp/cu_correspondence/solver_stereo_huber_l1.cuh>
 #include <imp/cu_correspondence/stereo_ctf_warping_level_precond_huber_l1.cuh>
 #include <imp/cu_correspondence/stereo_ctf_warping_level_precond_huber_l1_weighted.cuh>
 #include <imp/cu_correspondence/solver_epipolar_stereo_precond_huber_l1.cuh>
@@ -44,7 +44,7 @@ void StereoCtFWarping::init()
     switch (params_->solver)
     {
     case StereoPDSolver::HuberL1:
-      levels_.emplace_back(new StereoCtFWarpingLevelHuberL1(params_, sz, i));
+      levels_.emplace_back(new SolverStereoHuberL1(params_, sz, i));
     break;
     case StereoPDSolver::PrecondHuberL1:
       levels_.emplace_back(new StereoCtFWarpingLevelPrecondHuberL1(params_, sz, i));

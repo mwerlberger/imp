@@ -1,5 +1,4 @@
-#ifndef IMP_CU_STEREO_CTF_WARPING_LEVEL_HUBER_CUH
-#define IMP_CU_STEREO_CTF_WARPING_LEVEL_HUBER_CUH
+#pragma once
 
 #include <cstdint>
 #include <memory>
@@ -16,9 +15,11 @@ class VariationalStereoParameters;
 class Texture2D;
 
 /**
- * @brief The StereoCtFWarpingLevelPrecondHuberL1 class
+ * @brief The SolverStereoHuberL1 class computes the disparities between two views
+ *        by using a Huber-L1 Regularization-Dataterm combination
+ *        optimized with a primal-dual optimization.
  */
-class StereoCtFWarpingLevelHuberL1 : public SolverStereoAbstract
+class SolverStereoHuberL1 : public SolverStereoAbstract
 {
 public:
   using Parameters = VariationalStereoParameters;
@@ -28,11 +29,11 @@ public:
 
 
 public:
-  StereoCtFWarpingLevelHuberL1() = delete;
-  virtual ~StereoCtFWarpingLevelHuberL1();
+  SolverStereoHuberL1() = delete;
+  virtual ~SolverStereoHuberL1();
 
-  StereoCtFWarpingLevelHuberL1(const std::shared_ptr<Parameters>& params,
-                               imp::Size2u size, size_type level);
+  SolverStereoHuberL1(const std::shared_ptr<Parameters>& params,
+                      imp::Size2u size, size_type level);
 
   virtual void init() override;
   virtual void init(const SolverStereoAbstract& rhs) override;
@@ -63,5 +64,3 @@ protected:
 
 } // namespace cu
 } // namespace imp
-
-#endif // IMP_CU_STEREO_CTF_WARPING_LEVEL_HUBER_CUH

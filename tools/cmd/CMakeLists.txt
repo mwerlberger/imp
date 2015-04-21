@@ -1,6 +1,8 @@
 project(imp_tools_cmd)
 cmake_minimum_required(VERSION 2.8.0)
 
+cmake_policy(SET CMP0054 OLD)
+
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
