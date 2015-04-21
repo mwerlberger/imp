@@ -15,7 +15,6 @@
   <depend>glog_catkin</depend>
   <depend>imp_cmake</depend>
   <depend>imp_core</depend>
-  <depend>imp_image</depend>
   <depend>imp_cu_core</depend>
   <depend>imp_3rdparty_cuda_toolkit</depend>
   <depend>imp_cu_imgproc</depend>

@@ -15,7 +15,7 @@
 #include <pangolin/pangolin.h>
 
 #include <imp/core/roi.hpp>
-#include <imp/image/image_raw.hpp>
+#include <imp/core/image_raw.hpp>
 #include <imp/bridge/opencv/image_cv.hpp>
 #include <imp/cu_core/cu_image_gpu.cuh>
 #include <imp/bridge/pangolin/imread.hpp>

@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <cuda_runtime_api.h>
-#include <imp/image/image_base.hpp>
+#include <imp/core/image_base.hpp>
 #include <imp/cu_core/cu_image_gpu.cuh>
 #include <imp/cu_core/cu_utils.hpp>
 

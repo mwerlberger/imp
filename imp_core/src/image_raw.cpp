@@ -1,4 +1,4 @@
-#include <imp/image/image_raw.hpp>
+#include <imp/core/image_raw.hpp>
 
 #include <iostream>
 
