@@ -8,7 +8,7 @@
 #include <imp/core/roi.hpp>
 #include <imp/image/image_raw.hpp>
 #include <imp/bridge/opencv/image_cv.hpp>
-#include <imp/cucore/cu_image_gpu.cuh>
+#include <imp/cu_core/cu_image_gpu.cuh>
 
 #include "default_msg.h"
 

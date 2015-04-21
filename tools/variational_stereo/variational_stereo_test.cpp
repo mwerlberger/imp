@@ -10,11 +10,11 @@
 #include <imp/core/roi.hpp>
 #include <imp/image/image_raw.hpp>
 #include <imp/bridge/opencv/image_cv.hpp>
-#include <imp/cucore/cu_image_gpu.cuh>
-#include <imp/cucore/cu_math.cuh>
+#include <imp/cu_core/cu_image_gpu.cuh>
+#include <imp/cu_core/cu_math.cuh>
 #include <imp/bridge/opencv/cu_cv_bridge.hpp>
 
-#include <imp/cudepth/variational_stereo.hpp>
+#include <imp/cu_correspondence/variational_stereo.hpp>
 
 int main(int /*argc*/, char** /*argv*/)
 {

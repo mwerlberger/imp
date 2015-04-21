@@ -9,8 +9,8 @@
 #include <imp/core/roi.hpp>
 #include <imp/image/image_raw.hpp>
 #include <imp/bridge/opencv/image_cv.hpp>
-#include <imp/cucore/cu_image_gpu.cuh>
-#include <imp/cuimgproc/cu_rof_denoising.cuh>
+#include <imp/cu_core/cu_image_gpu.cuh>
+#include <imp/cu_imgproc/cu_rof_denoising.cuh>
 #include <imp/bridge/opencv/cu_cv_bridge.hpp>
 
 int main(int /*argc*/, char** /*argv*/)
