@@ -9,8 +9,8 @@
 #include <imp/core/roi.hpp>
 #include <imp/image/image_raw.hpp>
 #include <imp/bridge/opencv/image_cv.hpp>
-#include <imp/cucore/cu_image_gpu.cuh>
-#include <imp/cuimgproc/edge_detectors.cuh>
+#include <imp/cu_core/cu_image_gpu.cuh>
+#include <imp/cu_imgproc/edge_detectors.cuh>
 #include <imp/bridge/opencv/cu_cv_bridge.hpp>
 
 

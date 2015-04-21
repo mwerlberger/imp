@@ -4,7 +4,7 @@
 #include <memory>
 
 #include <imp/bridge/opencv/cv_bridge.hpp>
-#include <imp/cucore/cu_image_gpu.cuh>
+#include <imp/cu_core/cu_image_gpu.cuh>
 
 
 namespace imp {

@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <iostream>
 #include <imp/core/linearmemory.hpp>
-#include <imp/cucore/cu_linearmemory.cuh>
+#include <imp/cu_core/cu_linearmemory.cuh>
 
 #include <cuda_runtime.h>
 
