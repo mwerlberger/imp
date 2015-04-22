@@ -42,6 +42,12 @@ VariationalStereo::ImagePtr VariationalStereo::getDisparities(size_type level)
   return ctf_->getDisparities(level);
 }
 
+//------------------------------------------------------------------------------
+VariationalStereo::ImagePtr VariationalStereo::getOcclusion(size_type level)
+{
+  return ctf_->getOcclusion(level);
+}
+
 
 } // namespace cu
 } // namespace imp

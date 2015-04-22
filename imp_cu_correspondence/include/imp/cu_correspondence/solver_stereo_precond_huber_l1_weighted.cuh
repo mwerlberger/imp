@@ -40,18 +40,20 @@ public:
   virtual void solve(std::vector<ImagePtr> images) override;
 
   virtual inline ImagePtr getDisparities() override {return u_;}
+  virtual inline ImagePtr getOcclusion() override {return occ_;}
 
 
 protected:
   ImagePtr u_; //!< disparities (result)
   std::unique_ptr<Image> u_prev_; //!< disparities results from previous iteration
-  std::unique_ptr<Image> u0_; //!< disparities results from previous warp
+  std::shared_ptr<Image> u0_; //!< disparities results from previous warp
   std::unique_ptr<Dual> pu_; //!< dual variable for primal variable
   std::unique_ptr<Image> q_; //!< dual variable for data term
   std::unique_ptr<Image> ix_; //!< spatial gradients on moving (warped) image
   std::unique_ptr<Image> it_; //!< temporal gradients between warped and fixed image
   std::unique_ptr<Image> xi_; //!< preconditioner
   std::unique_ptr<Image> g_; //!< (edge) image for weighting the regularizer
+  imp::cu::ImageGpu32fC1::Ptr occ_; //!< estimation of occluded pixels
 
   // textures
   std::unique_ptr<Texture2D> lambda_tex_; //!< For pointwise lambda
@@ -66,6 +68,7 @@ protected:
   std::unique_ptr<Texture2D> it_tex_;
   std::unique_ptr<Texture2D> xi_tex_;
   std::unique_ptr<Texture2D> g_tex_;
+  std::unique_ptr<Texture2D> occ_tex_;
 
 };
 

@@ -24,6 +24,7 @@ set(HEADERS
 #  include/imp/cu_correspondence/solver_stereo_phuber_l1_weighted.cuh
   # TODO # include/imp/cu_correspondence/solver_epipolar_stereo_abstract.hpp
   include/imp/cu_correspondence/solver_epipolar_stereo_precond_huber_l1.cuh
+#  include/imp/cu_correspondence/occlusion.cuh
   )
 
 set(SOURCES
@@ -44,14 +45,22 @@ set(CU_SRCS
   src/solver_stereo_precond_huber_l1_weighted_kernel.cuh
   src/solver_stereo_precond_huber_l1_weighted.cu
 
-  src/k_solver_epipolar_stereo_precond_huber_l1.cuh
+  src/solver_epipolar_stereo_precond_huber_l1_kernel.cuh
   src/solver_epipolar_stereo_precond_huber_l1.cu
+
+#  src/occlusion.cu
+  src/occlusion_kernel.cuh
   )
 
 cuda_compile(CU_OBJ ${CU_SRCS})
 
+#foreach(cu_file ${CU_SRCS})
+#  message(STATUS "Process file: ${cu_file}")
+#  set_source_files_properties(cu_file PROPERTIES HEADER_FILE_ONLY TRUE)
+#endforeach()
+
 cs_add_library(${PROJECT_NAME}
-   ${CU_OBJ} ${SOURCES} ${HEADERS}
+   ${CU_OBJ} ${CU_SRCS} ${SOURCES} ${HEADERS}
    )
 target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
 

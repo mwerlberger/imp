@@ -173,6 +173,19 @@ StereoCtFWarping::ImagePtr StereoCtFWarping::getDisparities(size_type level)
   return levels_.at(level)->getDisparities();
 }
 
+//------------------------------------------------------------------------------
+StereoCtFWarping::ImagePtr StereoCtFWarping::getOcclusion(size_type level)
+{
+  if (!this->ready())
+  {
+    throw Exception("not initialized correctly; bailing out.",
+                    __FILE__, __FUNCTION__, __LINE__);
+  }
+  level = max(params_->ctf.finest_level,
+              min(params_->ctf.coarsest_level, level));
+  return levels_.at(level)->getOcclusion();
+}
+
 } // namespace cu
 } // namespace imp
 

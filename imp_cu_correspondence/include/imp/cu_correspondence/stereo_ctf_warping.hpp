@@ -55,6 +55,7 @@ public:
   void addImage(ConstImagePtrRef image);
   void solve();
   ImagePtr getDisparities(size_type level=0);
+  ImagePtr getOcclusion(size_type level=0);
 
   // if we have a guess about the correspondence points and the epipolar geometry
   // given we can set these as a prior

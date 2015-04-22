@@ -37,7 +37,7 @@ int main(int /*argc*/, char** /*argv*/)
           new imp::cu::VariationalStereo());
 
     stereo->parameters()->verbose = 0;
-    stereo->parameters()->solver = imp::cu::StereoPDSolver::HuberL1;
+    stereo->parameters()->solver = imp::cu::StereoPDSolver::PrecondHuberL1Weighted;
     stereo->parameters()->ctf.scale_factor = 0.8f;
     stereo->parameters()->ctf.iters = 50;
     stereo->parameters()->ctf.warps  = 10;
@@ -49,7 +49,7 @@ int main(int /*argc*/, char** /*argv*/)
     stereo->solve();
 
     std::shared_ptr<imp::cu::ImageGpu32fC1> d_disp = stereo->getDisparities();
-
+    std::shared_ptr<imp::cu::ImageGpu32fC1> d_occ = stereo->getOcclusion();
 
     {
       imp::Pixel32fC1 min_val,max_val;
@@ -67,6 +67,11 @@ int main(int /*argc*/, char** /*argv*/)
     }
 
     imp::cu::cvBridgeShow("disparities", *d_disp, true);
+
+    if (d_occ)
+    {
+      imp::cu::cvBridgeShow("occlusions", *d_occ, true);
+    }
     cv::waitKey();
   }
   catch (std::exception& e)

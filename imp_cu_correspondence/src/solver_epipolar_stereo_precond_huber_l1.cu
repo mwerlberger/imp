@@ -17,8 +17,7 @@
 #include "warped_gradients_kernel.cuh"
 #include "solver_precond_huber_l1_kernel.cuh"
 #include "solver_stereo_precond_huber_l1_weighted_kernel.cuh"
-
-//#include "solver_epipolar_stereo_precond_huber_l1_kernel.cu"
+//#include "solver_epipolar_stereo_precond_huber_l1_kernel.cuh"
 
 #define USE_EDGES 1
 

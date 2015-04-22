@@ -41,6 +41,7 @@ public:
   virtual void solve();
 
   virtual ImagePtr getDisparities(size_type level=0);
+  virtual ImagePtr getOcclusion(size_type level=0);
 
   // getters / setters
   virtual inline ParametersPtr parameters() {return params_;}
