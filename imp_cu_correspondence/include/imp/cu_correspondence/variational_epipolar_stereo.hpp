@@ -33,6 +33,9 @@ public:
   using VectorImagePtr = std::shared_ptr<VectorImage>;
   using ConstVectorImagePtr = const std::shared_ptr<VectorImage>&;
 
+  using Cameras = std::vector<cu::PinholeCamera>;
+
+
   using Parameters = VariationalStereoParameters;
   using ParametersPtr = std::shared_ptr<Parameters>;
 
@@ -42,9 +45,10 @@ public:
 
 //  virtual void setTransformation
   virtual void setFundamentalMatrix(const cu::Matrix3f& F);
-  virtual void setIntrinsics(const std::vector<cu::PinholeCamera>& cams);
+  virtual void setIntrinsics(const Cameras& cams);
   virtual void setExtrinsics(const cu::SE3<float>& T_mov_fix);
-  virtual void setDepthProposal(ImagePtr depth_proposal, ImagePtr depth_proposal_sigma2=nullptr);
+  virtual void setDepthProposal(ConstImagePtrRef depth_proposal,
+                                ConstImagePtrRef depth_proposal_sigma2=nullptr);
 
 
 

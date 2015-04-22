@@ -25,7 +25,7 @@ VariationalStereo::~VariationalStereo()
 
 
 //------------------------------------------------------------------------------
-void VariationalStereo::addImage(ImagePtr image)
+void VariationalStereo::addImage(ConstImagePtrRef image)
 {
   ctf_->addImage(image);
 }

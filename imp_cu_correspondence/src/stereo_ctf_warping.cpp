@@ -50,7 +50,7 @@ void StereoCtFWarping::init()
       levels_.emplace_back(new SolverStereoPrecondHuberL1(params_, sz, i));
     break;
     case StereoPDSolver::PrecondHuberL1Weighted:
-      levels_.emplace_back(new StereoCtFWarpingLevelPrecondHuberL1Weighted(params_, sz, i));
+      levels_.emplace_back(new SolverStereoPrecondHuberL1Weighted(params_, sz, i));
     break;
     case StereoPDSolver::EpipolarPrecondHuberL1:
     {
@@ -93,7 +93,7 @@ bool StereoCtFWarping::ready()
 }
 
 //------------------------------------------------------------------------------
-void StereoCtFWarping::addImage(const ImagePtr& image)
+void StereoCtFWarping::addImage(ConstImagePtrRef image)
 {
   // generate image pyramid
   ImagePyramidPtr pyr(new ImagePyramid(image, params_->ctf.scale_factor, 4));

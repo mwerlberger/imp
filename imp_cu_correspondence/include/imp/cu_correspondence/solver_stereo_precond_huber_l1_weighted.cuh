@@ -19,7 +19,7 @@ class Texture2D;
  * @brief The StereoCtFWarpingLevelPrecondHuberL1 class
  * @todo better polymorphism! (derive from StereoCtfWarpingLevelPrecondHuberL1
  */
-class StereoCtFWarpingLevelPrecondHuberL1Weighted : public SolverStereoAbstract
+class SolverStereoPrecondHuberL1Weighted : public SolverStereoAbstract
 {
 public:
   using Parameters = VariationalStereoParameters;
@@ -29,10 +29,10 @@ public:
 
 
 public:
-  StereoCtFWarpingLevelPrecondHuberL1Weighted() = delete;
-  virtual ~StereoCtFWarpingLevelPrecondHuberL1Weighted();
+  SolverStereoPrecondHuberL1Weighted() = delete;
+  virtual ~SolverStereoPrecondHuberL1Weighted();
 
-  StereoCtFWarpingLevelPrecondHuberL1Weighted(const std::shared_ptr<Parameters>& params,
+  SolverStereoPrecondHuberL1Weighted(const std::shared_ptr<Parameters>& params,
                                               imp::Size2u size, size_type level);
 
   virtual void init() override;

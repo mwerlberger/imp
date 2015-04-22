@@ -52,17 +52,19 @@ public:
 
   StereoCtFWarping(std::shared_ptr<Parameters> params);
 
-  void addImage(const ImagePtr& image);
+  void addImage(ConstImagePtrRef image);
   void solve();
   ImagePtr getDisparities(size_type level=0);
 
   // if we have a guess about the correspondence points and the epipolar geometry
   // given we can set these as a prior
   inline virtual void setFundamentalMatrix(const cu::Matrix3f& F) {F_ = F;}
-  virtual void setIntrinsics(const std::vector<cu::PinholeCamera>& cams) {cams_ = cams;}
+  virtual void setIntrinsics(const Cameras& cams) {cams_ = cams;}
   virtual void setExtrinsics(const cu::SE3<float>& T_mov_fix) {T_mov_fix_=T_mov_fix;}
 
-  inline virtual void setDepthProposal(ImagePtr depth_proposal, ImagePtr depth_proposal_sigma2=nullptr)
+  inline virtual void setDepthProposal(
+      ConstImagePtrRef depth_proposal,
+      ConstImagePtrRef depth_proposal_sigma2=nullptr)
   {
     depth_proposal_ = depth_proposal;
     depth_proposal_sigma2_ = depth_proposal_sigma2;

@@ -24,7 +24,7 @@ void VariationalEpipolarStereo::setFundamentalMatrix(const cu::Matrix3f& F)
 
 
 //------------------------------------------------------------------------------
-void VariationalEpipolarStereo::setIntrinsics(const std::vector<cu::PinholeCamera>& cams)
+void VariationalEpipolarStereo::setIntrinsics(const Cameras& cams)
 {
   ctf_->setIntrinsics(cams);
 }
@@ -36,7 +36,9 @@ void VariationalEpipolarStereo::setExtrinsics(const cu::SE3<float>& T_mov_fix)
 }
 
 //------------------------------------------------------------------------------
-void VariationalEpipolarStereo::setDepthProposal(ImagePtr depth_proposal, ImagePtr depth_proposal_sigma2)
+void VariationalEpipolarStereo::setDepthProposal(
+    ConstImagePtrRef depth_proposal,
+    ConstImagePtrRef depth_proposal_sigma2)
 {
   ctf_->setDepthProposal(depth_proposal, depth_proposal_sigma2);
 }

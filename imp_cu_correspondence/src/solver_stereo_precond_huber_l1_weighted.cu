@@ -19,13 +19,13 @@ namespace imp {
 namespace cu {
 
 //------------------------------------------------------------------------------
-StereoCtFWarpingLevelPrecondHuberL1Weighted::~StereoCtFWarpingLevelPrecondHuberL1Weighted()
+SolverStereoPrecondHuberL1Weighted::~SolverStereoPrecondHuberL1Weighted()
 {
   // thanks to smart pointers
 }
 
 //------------------------------------------------------------------------------
-StereoCtFWarpingLevelPrecondHuberL1Weighted::StereoCtFWarpingLevelPrecondHuberL1Weighted(
+SolverStereoPrecondHuberL1Weighted::SolverStereoPrecondHuberL1Weighted(
     const std::shared_ptr<Parameters>& params, imp::Size2u size, size_type level)
   : SolverStereoAbstract(params, size, level)
 {
@@ -53,7 +53,7 @@ StereoCtFWarpingLevelPrecondHuberL1Weighted::StereoCtFWarpingLevelPrecondHuberL1
 }
 
 //------------------------------------------------------------------------------
-void StereoCtFWarpingLevelPrecondHuberL1Weighted::init()
+void SolverStereoPrecondHuberL1Weighted::init()
 {
   u_->setValue(0.0f);
   pu_->setValue(0.0f);
@@ -62,10 +62,10 @@ void StereoCtFWarpingLevelPrecondHuberL1Weighted::init()
 }
 
 //------------------------------------------------------------------------------
-void StereoCtFWarpingLevelPrecondHuberL1Weighted::init(const SolverStereoAbstract& rhs)
+void SolverStereoPrecondHuberL1Weighted::init(const SolverStereoAbstract& rhs)
 {
-  const StereoCtFWarpingLevelPrecondHuberL1Weighted* from =
-      dynamic_cast<const StereoCtFWarpingLevelPrecondHuberL1Weighted*>(&rhs);
+  const SolverStereoPrecondHuberL1Weighted* from =
+      dynamic_cast<const SolverStereoPrecondHuberL1Weighted*>(&rhs);
 
   float inv_sf = 1./params_->ctf.scale_factor; // >1 for adapting prolongated disparities
 
@@ -85,7 +85,7 @@ void StereoCtFWarpingLevelPrecondHuberL1Weighted::init(const SolverStereoAbstrac
 }
 
 //------------------------------------------------------------------------------
-void StereoCtFWarpingLevelPrecondHuberL1Weighted::solve(std::vector<ImagePtr> images)
+void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImagePtr> images)
 {
   if (params_->verbose > 0)
     std::cout << "StereoCtFWarpingLevelPrecondHuberL1: solving level " << level_ << " with " << images.size() << " images" << std::endl;

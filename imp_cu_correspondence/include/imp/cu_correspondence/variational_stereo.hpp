@@ -37,7 +37,7 @@ public:
   VariationalStereo(ParametersPtr params=nullptr);
   virtual ~VariationalStereo(); //= default;
 
-  virtual void addImage(ImagePtr image);
+  virtual void addImage(ConstImagePtrRef image);
   virtual void solve();
 
   virtual ImagePtr getDisparities(size_type level=0);
@@ -49,9 +49,6 @@ protected:
   ParametersPtr params_;  //!< configuration parameters
   std::unique_ptr<StereoCtFWarping> ctf_;  //!< performing a coarse-to-fine warping scheme
 };
-
-
-
 
 } // namespace cu
 } // namespace imp
