@@ -10,12 +10,12 @@
 #include <imp/cu_imgproc/cu_image_filter.cuh>
 #include <imp/cu_imgproc/cu_image_transform.cuh>
 #include <imp/cu_imgproc/edge_detectors.cuh>
-//#include <imp/cu_correspondence/occlusion.cuh>
+#include <imp/cu_correspondence/occlusion.cuh>
 
 #include "warped_gradients_kernel.cuh"
 #include "solver_precond_huber_l1_kernel.cuh"
 #include "solver_stereo_precond_huber_l1_weighted_kernel.cuh"
-#include "occlusion_kernel.cuh"
+//#include "occlusion_kernel.cuh"
 
 namespace imp {
 namespace cu {
@@ -123,18 +123,36 @@ void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImagePtr> images)
 
     u_->copyTo(*u0_);
 
-//    occlusionCandidatesUniqunessMapping(occ_, occ_);
+    occ_->setValue(0);
+#if 1
+    occlusionCandidatesUniqunessMapping(occ_, u0_);
+
+    i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
+    i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
+    u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
+    u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
+    u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
+    pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
+    q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
+    ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
+    it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
+    xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
+    g_tex_  = g_->genTexture(false, cudaFilterModeLinear);
+
+    occ_tex_ = u0_->genTexture();
+
+#else
     k_occlusionCandidatesUniqunessMapping
         <<<
           frag.dimGrid, frag.dimBlock
         >>> (occ_->cuData(), occ_->stride(), occ_->width(), occ_->height(),
              *u0_tex_);
-    // clamp the occlusions to get a nice mask with 0 and 1 entries
     k_clampOcclusion
         <<<
           frag.dimGrid, frag.dimBlock
         >>> (occ_->cuData(), occ_->stride(), occ_->width(), occ_->height(),
              *occ_tex_);
+#endif
 
     k_warpedGradients
         <<<

@@ -18,13 +18,7 @@ set(HEADERS
   include/imp/cu_correspondence/stereo_solver_enum.hpp
   include/imp/cu_correspondence/stereo_ctf_warping.hpp
   include/imp/cu_correspondence/solver_stereo_abstract.hpp
-  include/imp/cu_correspondence/solver_stereo_huber_l1.cuh
-  include/imp/cu_correspondence/solver_stereo_precond_huber_l1.cuh
-  include/imp/cu_correspondence/solver_stereo_precond_huber_l1_weighted.cuh
-#  include/imp/cu_correspondence/solver_stereo_phuber_l1_weighted.cuh
   # TODO # include/imp/cu_correspondence/solver_epipolar_stereo_abstract.hpp
-  include/imp/cu_correspondence/solver_epipolar_stereo_precond_huber_l1.cuh
-#  include/imp/cu_correspondence/occlusion.cuh
   )
 
 set(SOURCES
@@ -32,6 +26,15 @@ set(SOURCES
   src/variational_epipolar_stereo.cpp
   src/stereo_ctf_warping.cpp
   )
+
+set(CU_HDRS
+  include/imp/cu_correspondence/solver_stereo_huber_l1.cuh
+  include/imp/cu_correspondence/solver_stereo_precond_huber_l1.cuh
+  include/imp/cu_correspondence/solver_stereo_precond_huber_l1_weighted.cuh
+  include/imp/cu_correspondence/solver_epipolar_stereo_precond_huber_l1.cuh
+  include/imp/cu_correspondence/occlusion.cuh
+)
+
 
 set(CU_SRCS
   src/warped_gradients_kernel.cuh
@@ -48,11 +51,11 @@ set(CU_SRCS
   src/solver_epipolar_stereo_precond_huber_l1_kernel.cuh
   src/solver_epipolar_stereo_precond_huber_l1.cu
 
-#  src/occlusion.cu
-  src/occlusion_kernel.cuh
+  src/occlusion.cu
+  #src/occlusion_kernel.cuh
   )
 
-cuda_compile(CU_OBJ ${CU_SRCS})
+cuda_compile(CU_OBJ ${CU_SRCS} ${CU_HDRS})
 
 #foreach(cu_file ${CU_SRCS})
 #  message(STATUS "Process file: ${cu_file}")
@@ -60,7 +63,7 @@ cuda_compile(CU_OBJ ${CU_SRCS})
 #endforeach()
 
 cs_add_library(${PROJECT_NAME}
-   ${CU_OBJ} ${CU_SRCS} ${SOURCES} ${HEADERS}
+   ${CU_OBJ} ${SOURCES} ${HEADERS} ${CU_HDRS}
    )
 target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
 

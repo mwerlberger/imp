@@ -38,7 +38,7 @@ __global__ void k_clampOcclusion(
   const int y = blockIdx.y*blockDim.y + threadIdx.y /*+ roi_y*/;
   if (x<width && y<height)
   {
-    occ[y*stride+x] = clamp(occ_tex.fetch<float>(x,y)-1.f, 0.f, 1.f);
+    occ[y*stride+x] = 1.f - clamp(occ_tex.fetch<float>(x,y)-1.f, 0.f, 1.f);
   }
 }
 
@@ -63,8 +63,6 @@ void occlusionCandidatesUniqunessMapping(
         frag.dimGrid, frag.dimBlock
       >>> (occ->cuData(), occ->stride(), occ->width(), occ->height(), *occ_tex);
 }
-
-
 
 } // namespace cu
 } // namespace imp
