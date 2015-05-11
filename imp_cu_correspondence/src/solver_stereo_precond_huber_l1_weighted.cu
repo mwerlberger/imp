@@ -139,8 +139,6 @@ void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImagePtr> images)
     xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
     g_tex_  = g_->genTexture(false, cudaFilterModeLinear);
 
-    occ_tex_ = u0_->genTexture();
-
 #else
     k_occlusionCandidatesUniqunessMapping
         <<<

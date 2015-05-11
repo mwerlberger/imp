@@ -5,6 +5,7 @@
 #include <imp/core/image.hpp>
 #include <pangolin/display.h>
 
+#include <imp/cu_core/cu_image_gpu.cuh>
 
 namespace imp
 {
@@ -68,12 +69,35 @@ inline void imshow(const imp::Image8uC1& im, const std::string& title="-")
       tex8.Upload(im.data(), GL_LUMINANCE, GL_UNSIGNED_BYTE);
       tex8.RenderToViewportFlipY();
     }
-
-
     pangolin::FinishFrame();
   }
 }
 
+//------------------------------------------------------------------------------
+inline void imshow(const imp::cu::Image8uC1& im, const std::string& title="-")
+{
+  pangolin::View& container = imp::setupPangolinView(im.size(), title);
+  imp::setupPangolinViewLayout(container, 1, {(float)im.width()/im.height()});
+
+  container[0].SetDrawFunction
+
+
+  pangolin::GlTexture tex8(im.width(), im.height(), GL_LUMINANCE8);
+
+  while(!pangolin::ShouldQuit())
+  {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glColor3f(1,1,1);
+
+    if (container[0].IsShown())
+    {
+      container[0].Activate();
+      tex8.Upload(im.data(), GL_LUMINANCE, GL_UNSIGNED_BYTE);
+      tex8.RenderToViewportFlipY();
+    }
+    pangolin::FinishFrame();
+  }
+}
 
 
 ////==============================================================================
