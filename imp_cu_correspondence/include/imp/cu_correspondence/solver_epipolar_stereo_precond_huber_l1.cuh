@@ -27,40 +27,40 @@ public:
   SolverEpipolarStereoPrecondHuberL1() = delete;
   virtual ~SolverEpipolarStereoPrecondHuberL1();
 
-  SolverEpipolarStereoPrecondHuberL1(const std::shared_ptr<Parameters>& params,
+  SolverEpipolarStereoPrecondHuberL1(const Parameters::Ptr& params,
                                      imp::Size2u size, size_type level,
                                      const std::vector<cu::PinholeCamera>& cams,
                                      const cu::Matrix3f& F,
                                      const cu::SE3<float>& T_mov_fix,
-                                     const DisparityImage& depth_proposal,
+                                     const ImageGpu32fC1& depth_proposal,
                                      const imp::cu::ImageGpu32fC1& depth_proposal_sigma2);
 
   virtual void init();
   virtual void init(const SolverStereoAbstract& rhs);
   virtual inline void setFundamentalMatrix(const cu::Matrix3f& F) {F_ = F;}
 
-  virtual void solve(std::vector<ImagePtr> images);
+  virtual void solve(std::vector<ImageGpu32fC1::Ptr> images);
 
-  virtual inline ImagePtr getDisparities() {return u_;}
+  virtual inline ImageGpu32fC1::Ptr getDisparities() {return u_;}
 
 protected:
-  DisparityImagePtr u_; //!< disparities (result)
-  std::unique_ptr<Image> u_prev_; //!< disparities results from previous iteration
-  std::unique_ptr<Image> u0_; //!< disparities results from previous warp
-  std::unique_ptr<VectorImage> pu_; //!< dual variable for primal variable
-  std::unique_ptr<Image> q_; //!< dual variable for data term
-  std::unique_ptr<Image> iw_; //!< warped moving image
-  std::unique_ptr<Image> ix_; //!< spatial gradients on moving (warped) image
-  std::unique_ptr<Image> it_; //!< temporal gradients between warped and fixed image
-  std::unique_ptr<Image> xi_; //!< preconditioner
-  std::unique_ptr<Image> g_; //!< for edge weighting
+  ImageGpu32fC1::Ptr u_; //!< disparities (result)
+  std::unique_ptr<ImageGpu32fC1> u_prev_; //!< disparities results from previous iteration
+  std::unique_ptr<ImageGpu32fC1> u0_; //!< disparities results from previous warp
+  std::unique_ptr<ImageGpu32fC2> pu_; //!< dual variable for primal variable
+  std::unique_ptr<ImageGpu32fC1> q_; //!< dual variable for data term
+  std::unique_ptr<ImageGpu32fC1> iw_; //!< warped moving image
+  std::unique_ptr<ImageGpu32fC1> ix_; //!< spatial gradients on moving (warped) image
+  std::unique_ptr<ImageGpu32fC1> it_; //!< temporal gradients between warped and fixed image
+  std::unique_ptr<ImageGpu32fC1> xi_; //!< preconditioner
+  std::unique_ptr<ImageGpu32fC1> g_; //!< for edge weighting
 
 
   cu::Matrix3f F_;
   std::vector<cu::PinholeCamera> cams_;
   cu::SE3<float> T_mov_fix_;
-  std::unique_ptr<DisparityImage> depth_proposal_;
-  std::unique_ptr<DisparityImage> depth_proposal_sigma2_;
+  std::unique_ptr<ImageGpu32fC1> depth_proposal_;
+  std::unique_ptr<ImageGpu32fC1> depth_proposal_sigma2_;
 
   // textures
   std::unique_ptr<Texture2D> lambda_tex_;

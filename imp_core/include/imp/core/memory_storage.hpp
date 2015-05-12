@@ -1,5 +1,5 @@
-#ifndef IMP_IMAGE_ALLOCATOR_HPP
-#define IMP_IMAGE_ALLOCATOR_HPP
+#ifndef IMP_MEMORY_STORAGE_HPP
+#define IMP_MEMORY_STORAGE_HPP
 
 #include <stdlib.h>
 #include <assert.h>
@@ -9,6 +9,7 @@
 
 #include <imp/core/exception.hpp>
 #include <imp/core/size.hpp>
+#include <imp/core/types.hpp>
 
 namespace imp {
 
@@ -17,15 +18,9 @@ template <typename Pixel, int memaddr_align=32, bool align_rows=true>
 struct MemoryStorage
 {
 public:
-  typedef Pixel pixel_t;
-  typedef pixel_t* pixel_container_t;
-  typedef std::uint32_t size_type;
-
-  //----------------------------------------------------------------------------
   MemoryStorage() = delete;
   virtual ~MemoryStorage() = delete;
 
-  //----------------------------------------------------------------------------
   /**
    * @brief alignedAlloc allocates an aligned block of memory
    * @param num_elements Number of (minimum) allocated elements
@@ -37,7 +32,7 @@ public:
    *       memory and shifting the start address accordingly. If you know a
    *       better approach using e.g. std::align(), let me know.
    */
-  static pixel_container_t alignedAlloc(const size_t num_elements,
+  static Pixel* alignedAlloc(const size_t num_elements,
                                         bool init_with_zeros=false)
   {
     if (num_elements == 0)
@@ -50,11 +45,11 @@ public:
     assert((memaddr_align != 0) && memaddr_align <= 128 &&
            ((memaddr_align & (~memaddr_align + 1)) == memaddr_align));
 
-    const size_type memory_size = sizeof(pixel_t) * num_elements;
-    //std::cout << "memory_size=" << memory_size << "; sizeof(pixel_t)=" << sizeof(pixel_t) << std::endl;
+    const size_type memory_size = sizeof(Pixel) * num_elements;
+    //std::cout << "memory_size=" << memory_size << "; sizeof(Pixel)=" << sizeof(Pixel) << std::endl;
 
-    pixel_container_t p_data_aligned =
-        (pixel_container_t)aligned_alloc(memaddr_align, memory_size);
+    Pixel* p_data_aligned =
+        (Pixel*)aligned_alloc(memaddr_align, memory_size);
 
     if (p_data_aligned == nullptr)
     {
@@ -63,13 +58,12 @@ public:
 
     if (init_with_zeros)
     {
-      std::fill(p_data_aligned, p_data_aligned+num_elements, pixel_t(0));
+      std::fill(p_data_aligned, p_data_aligned+num_elements, Pixel(0));
     }
 
-    return (pixel_container_t)p_data_aligned;
+    return (Pixel*)p_data_aligned;
   }
 
-  //----------------------------------------------------------------------------
   /**
    * @brief alignedAlloc allocates an aligned block that guarantees to host the image of size \a width \a x \a height
    * @param width Image width
@@ -80,7 +74,7 @@ public:
    *       accordingly.
    *
    */
-  static pixel_container_t alignedAlloc(const std::uint32_t width, const std::uint32_t height,
+  static Pixel* alignedAlloc(const std::uint32_t width, const std::uint32_t height,
                                         size_type* pitch, bool init_with_zeros=false)
   {
     if (width == 0 || height == 0)
@@ -94,16 +88,15 @@ public:
            ((memaddr_align & (~memaddr_align + 1)) == memaddr_align));
 
     // check if the width allows a correct alignment of every row, otherwise add padding
-    const size_type width_bytes = width * sizeof(pixel_t);
+    const size_type width_bytes = width * sizeof(Pixel);
     // bytes % memaddr_align = 0 for bytes=n*memaddr_align is the reason for
     // the decrement in the following compution:
     const size_type bytes_to_add = (memaddr_align-1) - ((width_bytes-1) % memaddr_align);
-    const std::uint32_t pitched_width = width + bytes_to_add/sizeof(pixel_t);
+    const std::uint32_t pitched_width = width + bytes_to_add/sizeof(Pixel);
     *pitch = width_bytes + bytes_to_add;
     return alignedAlloc(pitched_width*height, init_with_zeros);
   }
 
-  //----------------------------------------------------------------------------
   /**
    * @brief alignedAlloc allocates an aligned block of memory that guarantees to host the image of size \a size
    * @param size Image size
@@ -111,23 +104,25 @@ public:
    * @param init_with_zeros Flag if the memory elements should be zeroed out (default=false).
    * @return
    */
-  static pixel_container_t alignedAlloc(imp::Size2u size, size_type* pitch,
+  static Pixel* alignedAlloc(imp::Size2u size, size_type* pitch,
                                        bool init_with_zeros=false)
   {
     return alignedAlloc(size[0], size[1], pitch, init_with_zeros);
   }
 
-  //----------------------------------------------------------------------------
-  static void free(pixel_container_t buffer)
+
+  /**
+   * @brief free releases the pixel \a buffer
+   * @param buffer
+   */
+  static void free(Pixel* buffer)
   {
     free(buffer);
   }
+}; // struct MemoryStorage
 
-};
-
-//----------------------------------------------------------------------------
 /**
- * @brief The Deallocator struct offers the ability to have custom deallocation methods.
+ * @brief The MemoryDeallocator struct offers the ability to have custom deallocation methods.
  *
  * The Deallocator struct can be used as e.g. having custom deallocations with
  * shared pointers. Furthermore it enables the usage of external memory buffers
@@ -136,30 +131,27 @@ public:
  * we are still using it.
  *
  */
-template<typename PixelStorageType>
+template<typename Pixel>
 struct MemoryDeallocator
 {
-  typedef PixelStorageType pixel_storage_t;
-  typedef pixel_storage_t* pixel_container_t;
-
   // Default custom deleter assuming we use arrays (new PixelType[length])
   MemoryDeallocator()
-    : f([](pixel_container_t p) { free(p); })
+    : f([](Pixel* p) { free(p); })
   { }
 
   // allow us to define a custom deallocator
-  explicit MemoryDeallocator(std::function<void(pixel_container_t)> const &_f)
+  explicit MemoryDeallocator(std::function<void(Pixel*)> const &_f)
     : f(_f)
   { }
 
-  void operator()(pixel_container_t p) const
+  void operator()(Pixel* p) const
   {
     f(p);
   }
 
 private:
-  std::function< void(pixel_container_t )> f;
-};
+  std::function< void(Pixel* )> f;
+}; // MemoryDeallocator
 
 } // imp
 

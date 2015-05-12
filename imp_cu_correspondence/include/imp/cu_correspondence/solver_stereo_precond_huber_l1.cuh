@@ -12,7 +12,6 @@ namespace imp {
 namespace cu {
 
 // forward decl
-class VariationalStereoParameters;
 class Texture2D;
 
 /**
@@ -21,35 +20,28 @@ class Texture2D;
 class SolverStereoPrecondHuberL1 : public SolverStereoAbstract
 {
 public:
-  using Parameters = VariationalStereoParameters;
-  using Image = imp::cu::ImageGpu32fC1;
-  using Dual = imp::cu::ImageGpu32fC2;
-  using ImagePtr = std::shared_ptr<Image>;
-
-
-public:
   SolverStereoPrecondHuberL1() = delete;
   virtual ~SolverStereoPrecondHuberL1();
 
-  SolverStereoPrecondHuberL1(const std::shared_ptr<Parameters>& params,
+  SolverStereoPrecondHuberL1(const Parameters::Ptr& params,
                                       imp::Size2u size, size_type level);
 
   virtual void init() override;
   virtual void init(const SolverStereoAbstract& rhs) override;
-  virtual void solve(std::vector<ImagePtr> images) override;
+  virtual void solve(std::vector<ImageGpu32fC1::Ptr> images) override;
 
-  virtual inline ImagePtr getDisparities() override {return u_;}
+  virtual inline ImageGpu32fC1::Ptr getDisparities() override {return u_;}
 
 
 protected:
-  ImagePtr u_; //!< disparities (result)
-  std::unique_ptr<Image> u_prev_; //!< disparities results from previous iteration
-  std::unique_ptr<Image> u0_; //!< disparities results from previous warp
-  std::unique_ptr<Dual> pu_; //!< dual variable for primal variable
-  std::unique_ptr<Image> q_; //!< dual variable for data term
-  std::unique_ptr<Image> ix_; //!< spatial gradients on moving (warped) image
-  std::unique_ptr<Image> it_; //!< temporal gradients between warped and fixed image
-  std::unique_ptr<Image> xi_; //!< preconditioner
+  ImageGpu32fC1::Ptr u_; //!< disparities (result)
+  std::unique_ptr<ImageGpu32fC1> u_prev_; //!< disparities results from previous iteration
+  std::unique_ptr<ImageGpu32fC1> u0_; //!< disparities results from previous warp
+  std::unique_ptr<ImageGpu32fC2> pu_; //!< dual variable for primal variable
+  std::unique_ptr<ImageGpu32fC1> q_; //!< dual variable for data term
+  std::unique_ptr<ImageGpu32fC1> ix_; //!< spatial gradients on moving (warped) image
+  std::unique_ptr<ImageGpu32fC1> it_; //!< temporal gradients between warped and fixed image
+  std::unique_ptr<ImageGpu32fC1> xi_; //!< preconditioner
 
   // textures
   std::unique_ptr<Texture2D> i1_tex_;

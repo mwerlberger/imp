@@ -6,15 +6,13 @@ namespace imp {
 namespace cu {
 
 //------------------------------------------------------------------------------
-VariationalEpipolarStereo::VariationalEpipolarStereo(ParametersPtr params)
+VariationalEpipolarStereo::VariationalEpipolarStereo(Parameters::Ptr params)
   : VariationalStereo(params)
-{
-}
+{ ; }
 
 //------------------------------------------------------------------------------
 VariationalEpipolarStereo::~VariationalEpipolarStereo()
-{
-}
+{ ; }
 
 //------------------------------------------------------------------------------
 void VariationalEpipolarStereo::setFundamentalMatrix(const cu::Matrix3f& F)
@@ -37,8 +35,8 @@ void VariationalEpipolarStereo::setExtrinsics(const cu::SE3<float>& T_mov_fix)
 
 //------------------------------------------------------------------------------
 void VariationalEpipolarStereo::setDepthProposal(
-    ConstImagePtrRef depth_proposal,
-    ConstImagePtrRef depth_proposal_sigma2)
+    const ImageGpu32fC1::Ptr& depth_proposal,
+    const ImageGpu32fC1::Ptr& depth_proposal_sigma2)
 {
   ctf_->setDepthProposal(depth_proposal, depth_proposal_sigma2);
 }

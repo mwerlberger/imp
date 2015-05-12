@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+#include <imp/core/macros.hpp>
 #include <imp/core/image_base.hpp>
 #include <imp/core/exception.hpp>
 #include <imp/core/pixel.hpp>
@@ -12,8 +13,8 @@ namespace imp {
 template<typename Pixel, imp::PixelType pixel_type>
 class Image : public ImageBase
 {
-  typedef Pixel pixel_t;
-  typedef pixel_t* pixel_container_t;
+public:
+  using Ptr = typename std::shared_ptr<Image<Pixel,pixel_type>>;
 
 protected:
   Image(imp::PixelOrder pixel_order = imp::PixelOrder::undefined)
@@ -42,23 +43,23 @@ public:
    * @param[in] oy Vertical offset of the pointer array.
    * @return Pointer to the pixel array.
    */
-  virtual pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) = 0;
+  virtual Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) = 0;
   virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const = 0;
 
   /** Get Pixel value at position x,y. */
-  pixel_t pixel(std::uint32_t x, std::uint32_t y) const
+  Pixel pixel(std::uint32_t x, std::uint32_t y) const
   {
     return *data(x, y);
   }
 
   /** Get Pixel value at position x,y. */
-  pixel_t& pixel(std::uint32_t x, std::uint32_t y)
+  Pixel& pixel(std::uint32_t x, std::uint32_t y)
   {
     return *data(x, y);
   }
 
   /** Get Pixel value at position x,y. */
-  pixel_t operator()(std::uint32_t x, std::uint32_t y) const
+  Pixel operator()(std::uint32_t x, std::uint32_t y) const
   {
     return *data(x, y);
   }
@@ -66,7 +67,7 @@ public:
   /** Get Pointer to beginning of row \a row (y index).
    * This enables the usage of [y][x] operator.
    */
-  pixel_container_t operator[] (std::uint32_t row)
+  Pixel* operator[] (std::uint32_t row)
   {
     return data(0,row);
   }
@@ -80,7 +81,7 @@ public:
    * @brief setValue Sets image data to the specified \a value.
    * @param value Value to be set to the whole image data.
    */
-  virtual void setValue(const pixel_t& value)
+  virtual void setValue(const Pixel& value)
   {
     if (this->bytes() == this->pitch()*this->height())
     {
@@ -166,19 +167,19 @@ public:
   /** Returns the length of a row (not including the padding!) in bytes. */
   virtual size_type rowBytes() const
   {
-    return this->width() * sizeof(pixel_t);
+    return this->width() * sizeof(Pixel);
   }
 
   /** Returns the distnace in pixels between starts of consecutive rows. */
   virtual size_type stride() const override
   {
-    return this->pitch()/sizeof(pixel_t);
+    return this->pitch()/sizeof(Pixel);
   }
 
   /** Returns the bit depth of the data pointer. */
   virtual std::uint8_t bitDepth() const override
   {
-    return 8*sizeof(pixel_t);
+    return 8*sizeof(Pixel);
   }
 };
 
@@ -204,7 +205,12 @@ typedef Image<imp::Pixel32fC2, imp::PixelType::i32fC2> Image32fC2;
 typedef Image<imp::Pixel32fC3, imp::PixelType::i32fC3> Image32fC3;
 typedef Image<imp::Pixel32fC4, imp::PixelType::i32fC4> Image32fC4;
 
-} // namespace imp
+// convenience typedefs
+template<typename Pixel, imp::PixelType pixel_type>
+using ImagePtr = typename std::shared_ptr<Image<Pixel,pixel_type>>;
 
+
+
+} // namespace imp
 
 #endif // IMP_IMAGE_HPP

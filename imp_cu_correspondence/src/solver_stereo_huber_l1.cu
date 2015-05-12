@@ -27,15 +27,17 @@ SolverStereoHuberL1::~SolverStereoHuberL1()
 
 //------------------------------------------------------------------------------
 SolverStereoHuberL1::SolverStereoHuberL1(
-    const std::shared_ptr<Parameters>& params, imp::Size2u size, size_type level)
+    const Parameters::Ptr& params,
+    imp::Size2u size,
+    size_type level)
   : SolverStereoAbstract(params, size, level)
 {
-  u_.reset(new Image(size));
-  u_prev_.reset(new Image(size));
-  u0_.reset(new Image(size));
-  pu_.reset(new Dual(size));
-  ix_.reset(new Image(size));
-  it_.reset(new Image(size));
+  u_.reset(new ImageGpu32fC1(size));
+  u_prev_.reset(new ImageGpu32fC1(size));
+  u0_.reset(new ImageGpu32fC1(size));
+  pu_.reset(new ImageGpu32fC2(size));
+  ix_.reset(new ImageGpu32fC1(size));
+  it_.reset(new ImageGpu32fC1(size));
 
   // and its textures
   u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
@@ -77,7 +79,7 @@ void SolverStereoHuberL1::init(const SolverStereoAbstract& rhs)
 }
 
 //------------------------------------------------------------------------------
-void SolverStereoHuberL1::solve(std::vector<ImagePtr> images)
+void SolverStereoHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> images)
 {
   if (params_->verbose > 0)
     std::cout << "StereoCtFWarpingLevelPrecondHuberL1: solving level " << level_ << " with " << images.size() << " images" << std::endl;

@@ -44,7 +44,7 @@ ImageRaw<Pixel, pixel_type>::ImageRaw(const Image<Pixel, pixel_type>& from)
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 ImageRaw<Pixel, pixel_type>
-::ImageRaw(pixel_container_t data, std::uint32_t width, std::uint32_t height,
+::ImageRaw(Pixel* data, std::uint32_t width, std::uint32_t height,
            size_type pitch, bool use_ext_data_pointer)
   : Base(width, height)
 {
@@ -56,14 +56,14 @@ ImageRaw<Pixel, pixel_type>
   if(use_ext_data_pointer)
   {
     // This uses the external data pointer as internal data pointer.
-    auto dealloc_nop = [](pixel_container_t) { ; };
-    data_ = std::unique_ptr<pixel_t, Deallocator>(data, Deallocator(dealloc_nop));
+    auto dealloc_nop = [](Pixel*) { ; };
+    data_ = std::unique_ptr<Pixel, Deallocator>(data, Deallocator(dealloc_nop));
     pitch_ = pitch;
   }
   else
   {
     data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
-    size_type stride = pitch / sizeof(pixel_t);
+    size_type stride = pitch / sizeof(Pixel);
 
     if (this->bytes() == pitch*height)
     {
@@ -84,7 +84,7 @@ ImageRaw<Pixel, pixel_type>
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-ImageRaw<Pixel, pixel_type>::ImageRaw(pixel_container_t data,
+ImageRaw<Pixel, pixel_type>::ImageRaw(Pixel* data,
                                       std::uint32_t width, std::uint32_t height,
                                       size_type pitch,
                                       const std::shared_ptr<void const>& tracked)
@@ -95,8 +95,8 @@ ImageRaw<Pixel, pixel_type>::ImageRaw(pixel_container_t data,
     throw imp::Exception("input data not valid", __FILE__, __FUNCTION__, __LINE__);
   }
 
-  auto dealloc_nop = [](pixel_container_t) { ; };
-  data_ = std::unique_ptr<pixel_t, Deallocator>(data, Deallocator(dealloc_nop));
+  auto dealloc_nop = [](Pixel*) { ; };
+  data_ = std::unique_ptr<Pixel, Deallocator>(data, Deallocator(dealloc_nop));
   pitch_ = pitch;
   tracked_ = tracked;
 }
@@ -124,7 +124,7 @@ const Pixel* ImageRaw<Pixel, pixel_type>::data(
     throw imp::Exception("Request starting offset is outside of the image.", __FILE__, __FUNCTION__, __LINE__);
   }
 
-  return reinterpret_cast<const pixel_container_t>(&data_.get()[oy*this->stride() + ox]);
+  return reinterpret_cast<const Pixel*>(&data_.get()[oy*this->stride() + ox]);
 }
 
 //=============================================================================

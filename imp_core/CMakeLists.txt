@@ -11,6 +11,7 @@ imp_setup()
 
 
 set(HEADERS
+  include/imp/core/macros.hpp
   include/imp/core/types.hpp
   include/imp/core/exception.hpp
   include/imp/core/size.hpp

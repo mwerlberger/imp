@@ -19,15 +19,12 @@ public:
   using Memory = imp::MemoryStorage<Pixel>;
   using Deallocator = imp::MemoryDeallocator<Pixel>;
 
-  using pixel_t = Pixel;
-  using pixel_container_t = pixel_t*;
-
 public:
   LinearMemory() = delete;
   virtual ~LinearMemory() = default;
   LinearMemory(const size_t& length);
   LinearMemory(const LinearMemory<Pixel>& from);
-  LinearMemory(pixel_container_t host_data, const size_t& length,
+  LinearMemory(Pixel* host_data, const size_t& length,
                bool use_ext_data_pointer = false);
 
   /**
@@ -55,24 +52,24 @@ public:
   void copyTo(LinearMemory<Pixel>& dst);
 
   //! @todo (MWE) operator= for copyTo/copyFrom?
-  LinearMemory<Pixel>& operator=(pixel_t rhs);
+  LinearMemory<Pixel>& operator=(Pixel rhs);
 
   /** Returns the total amount of bytes saved in the data buffer. */
-  virtual size_t bytes() const override { return this->length()*sizeof(pixel_t); }
+  virtual size_t bytes() const override { return this->length()*sizeof(Pixel); }
 
   /** Returns the bit depth of the data pointer. */
-  virtual std::uint8_t bitDepth() const override { return 8*sizeof(pixel_t); }
+  virtual std::uint8_t bitDepth() const override { return 8*sizeof(Pixel); }
 
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
   virtual bool isGpuMemory() const  override { return false; }
 
   /** Pixel access with (idx). */
-   pixel_t& operator()(size_t idx) {return *this->data(idx);}
+   Pixel& operator()(size_t idx) {return *this->data(idx);}
    /** Pixel access with [idx]. */
-   pixel_t& operator[](size_t idx) {return *this->data(idx);}
+   Pixel& operator[](size_t idx) {return *this->data(idx);}
 
 private:
-  std::unique_ptr<pixel_t, Deallocator> data_;
+  std::unique_ptr<Pixel, Deallocator> data_;
 
 };
 

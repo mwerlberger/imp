@@ -10,10 +10,12 @@
 #include <imp/cu_imgproc/cu_image_filter.cuh>
 #include <imp/cu_imgproc/cu_image_transform.cuh>
 #include <imp/cu_imgproc/edge_detectors.cuh>
+#include <imp/cu_correspondence/occlusion.cuh>
 
 #include "warped_gradients_kernel.cuh"
 #include "solver_precond_huber_l1_kernel.cuh"
 #include "solver_stereo_precond_huber_l1_weighted_kernel.cuh"
+//#include "occlusion_kernel.cuh"
 
 namespace imp {
 namespace cu {
@@ -29,27 +31,19 @@ SolverStereoPrecondHuberL1Weighted::SolverStereoPrecondHuberL1Weighted(
     const std::shared_ptr<Parameters>& params, imp::Size2u size, size_type level)
   : SolverStereoAbstract(params, size, level)
 {
-  u_.reset(new Image(size));
-  u_prev_.reset(new Image(size));
-  u0_.reset(new Image(size));
-  pu_.reset(new Dual(size));
-  q_.reset(new Image(size));
-  ix_.reset(new Image(size));
-  it_.reset(new Image(size));
-  xi_.reset(new Image(size));
-  g_.reset(new Image(size));
+  u_.reset(new ImageGpu32fC1(size));
+  u_prev_.reset(new ImageGpu32fC1(size));
+  u0_.reset(new ImageGpu32fC1(size));
+  pu_.reset(new ImageGpu32fC2(size));
+  q_.reset(new ImageGpu32fC1(size));
+  ix_.reset(new ImageGpu32fC1(size));
+  it_.reset(new ImageGpu32fC1(size));
+  xi_.reset(new ImageGpu32fC1(size));
+  g_.reset(new ImageGpu32fC1(size));
   g_->setValue(1.0f);
+  occ_.reset(new ImageGpu32fC1(size));
 
-  // and its textures
-  u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
-  u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
-  u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
-  pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
-  q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
-  ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
-  it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
-  xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
-  g_tex_  = g_->genTexture(false, cudaFilterModeLinear);
+
 }
 
 //------------------------------------------------------------------------------
@@ -85,7 +79,7 @@ void SolverStereoPrecondHuberL1Weighted::init(const SolverStereoAbstract& rhs)
 }
 
 //------------------------------------------------------------------------------
-void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImagePtr> images)
+void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImageGpu32fC1::Ptr> images)
 {
   if (params_->verbose > 0)
     std::cout << "StereoCtFWarpingLevelPrecondHuberL1: solving level " << level_ << " with " << images.size() << " images" << std::endl;
@@ -93,9 +87,19 @@ void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImagePtr> images)
   // sanity check:
   // TODO
 
-  // init
   i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
   i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
+  u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
+  u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
+  u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
+  pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
+  q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
+  ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
+  it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
+  xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
+  g_tex_  = g_->genTexture(false, cudaFilterModeLinear);
+  occ_tex_ = occ_->genTexture();
+
   Fragmentation<16,16> frag(size_);
   u_->copyTo(*u_prev_);
 
@@ -119,14 +123,41 @@ void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImagePtr> images)
 
     u_->copyTo(*u0_);
 
-    // compute warped spatial and temporal gradients
+    occ_->setValue(0);
+#if 1
+    occlusionCandidatesUniqunessMapping(occ_, u0_);
+
+    i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
+    i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
+    u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
+    u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
+    u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
+    pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
+    q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
+    ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
+    it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
+    xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
+    g_tex_  = g_->genTexture(false, cudaFilterModeLinear);
+
+#else
+    k_occlusionCandidatesUniqunessMapping
+        <<<
+          frag.dimGrid, frag.dimBlock
+        >>> (occ_->cuData(), occ_->stride(), occ_->width(), occ_->height(),
+             *u0_tex_);
+    k_clampOcclusion
+        <<<
+          frag.dimGrid, frag.dimBlock
+        >>> (occ_->cuData(), occ_->stride(), occ_->width(), occ_->height(),
+             *occ_tex_);
+#endif
+
     k_warpedGradients
         <<<
           frag.dimGrid, frag.dimBlock
         >>> (ix_->data(), it_->data(), ix_->stride(), ix_->width(), ix_->height(),
              *i1_tex_, *i2_tex_, *u0_tex_);
 
-    // compute preconditioner
     k_preconditionerWeighted
         <<<
           frag.dimGrid, frag.dimBlock
@@ -136,7 +167,6 @@ void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImagePtr> images)
 
     for (std::uint32_t iter = 0; iter < params_->ctf.iters; ++iter)
     {
-      // dual update kernel
       k_dualUpdate
           <<<
             frag.dimGrid, frag.dimBlock
@@ -145,7 +175,6 @@ void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImagePtr> images)
                params_->lambda, params_->eps_u, sigma, eta,
                *u_prev_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *it_tex_);
 
-      // and primal update kernel
       k_primalUpdateWeighted
           <<<
             frag.dimGrid, frag.dimBlock

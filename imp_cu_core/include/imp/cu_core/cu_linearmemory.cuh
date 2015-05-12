@@ -25,20 +25,17 @@ template<typename Pixel>
 class LinearMemory : public LinearMemoryBase
 {
 public:
-  typedef LinearMemory<Pixel> LinearMem;
-  typedef imp::cu::MemoryStorage<Pixel> CuMemory;
-  typedef imp::cu::MemoryDeallocator<Pixel> Deallocator;
+  using Memory = imp::cu::MemoryStorage<Pixel>;
+  using Deallocator = imp::cu::MemoryDeallocator<Pixel>;
 
-  typedef Pixel pixel_t;
-  typedef pixel_t* pixel_container_t;
-
+public:
   __host__ LinearMemory();
   virtual ~LinearMemory() = default;
 
   __host__ LinearMemory(const size_t& length);
   __host__ LinearMemory(const imp::cu::LinearMemory<Pixel>& from);
   __host__ LinearMemory(const imp::LinearMemory<Pixel>& from);
-  __host__ LinearMemory(pixel_container_t host_data, const size_t& length,
+  __host__ LinearMemory(Pixel* host_data, const size_t& length,
                         bool use_ext_data_pointer = false);
 
   /**
@@ -74,19 +71,19 @@ public:
   void copyFrom(imp::LinearMemory<Pixel>& dst);
 
 //  //! @todo (MWE) operator= for copyTo/copyFrom?
-//  LinearMem& operator=(pixel_t rhs);
+//  LinearMem& operator=(Pixel rhs);
 
   /** Returns the total amount of bytes saved in the data buffer. */
-  virtual size_t bytes() const override { return this->length()*sizeof(pixel_t); }
+  virtual size_t bytes() const override { return this->length()*sizeof(Pixel); }
 
   /** Returns the bit depth of the data pointer. */
-  virtual std::uint8_t bitDepth() const override { return 8*sizeof(pixel_t); }
+  virtual std::uint8_t bitDepth() const override { return 8*sizeof(Pixel); }
 
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
   virtual bool isGpuMemory() const  override { return true; }
 
 private:
-  std::unique_ptr<pixel_t, Deallocator> data_;
+  std::unique_ptr<Pixel, Deallocator> data_;
 };
 
 // convenience typedefs

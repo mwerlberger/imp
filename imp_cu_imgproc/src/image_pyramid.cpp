@@ -81,14 +81,16 @@ void ImagePyramid<Pixel,pixel_type>::updateImage(ImagePtr img_level0,
     // init level memory with either ImageGpu or ImageRaw
     if(img_level0->isGpuMemory())
     {
-      ImageGpuPtr img = std::make_shared<imp::cu::ImageGpu<Pixel,pixel_type>>(sz);
-      ImageGpuPtr prev = std::dynamic_pointer_cast<ImageGpu>(levels_.back());
+      using ImageGpu = typename imp::cu::ImageGpu<Pixel,pixel_type>;
+      typename ImageGpu::Ptr img = std::make_shared<ImageGpu>(sz);
+      typename ImageGpu::Ptr prev = std::dynamic_pointer_cast<ImageGpu>(levels_.back());
       imp::cu::reduce(*img, *prev, interp, true);
       levels_.push_back(img);
     }
     else
     {
-      ImageRawPtr img = std::make_shared<imp::ImageRaw<Pixel,pixel_type>>(sz);
+      using ImageRaw = imp::ImageRaw<Pixel,pixel_type>;
+      typename ImageRaw::Ptr img = std::make_shared<ImageRaw>(sz);
       //! @todo (MWE) cpu reduction
       throw imp::Exception("CPU reduction not yet implemented.", __FILE__, __FUNCTION__, __LINE__);
       levels_.push_back(img);
