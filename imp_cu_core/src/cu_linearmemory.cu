@@ -20,7 +20,7 @@ LinearMemory<Pixel>::LinearMemory()
 template<typename Pixel>
 LinearMemory<Pixel>::LinearMemory(const size_t& length)
   : LinearMemoryBase(length)
-  , data_(CuMemory::alloc(this->length()))
+  , data_(Memory::alloc(this->length()))
 {
 }
 
@@ -34,7 +34,7 @@ LinearMemory<Pixel>::LinearMemory(const imp::cu::LinearMemory<Pixel>& from)
     throw imp::cu::Exception("'from' data not valid", __FILE__, __FUNCTION__, __LINE__);
   }
 
-  data_.reset(CuMemory::alloc(this->length()));
+  data_.reset(Memory::alloc(this->length()));
   const cudaError cu_err =
       cudaMemcpy(data_.get(), from.data(), this->bytes(), cudaMemcpyDeviceToDevice);
 
@@ -54,7 +54,7 @@ LinearMemory<Pixel>::LinearMemory(const imp::LinearMemory<Pixel>& from)
     throw imp::cu::Exception("'from' data not valid", __FILE__, __FUNCTION__, __LINE__);
   }
 
-  data_.reset(CuMemory::alloc(this->length()));
+  data_.reset(Memory::alloc(this->length()));
   const cudaError cu_err =
       cudaMemcpy(data_.get(), from.data(), this->bytes(), cudaMemcpyHostToDevice);
 
@@ -66,7 +66,7 @@ LinearMemory<Pixel>::LinearMemory(const imp::LinearMemory<Pixel>& from)
 
 ////-----------------------------------------------------------------------------
 //template<typename Pixel>
-//LinearMemory<Pixel>::LinearMemory(pixel_container_t host_data,
+//LinearMemory<Pixel>::LinearMemory(Pixel* host_data,
 //                                  const size_t& length,
 //                                  bool use_ext_data_pointer)
 //  : LinearMemoryBase(length)
@@ -80,8 +80,8 @@ LinearMemory<Pixel>::LinearMemory(const imp::LinearMemory<Pixel>& from)
 //  {
 //    // This uses the external data pointer and stores it as a 'reference':
 //    // memory won't be managed by us!
-//    auto dealloc_nop = [](pixel_container_t) { ; };
-//    data_ = std::unique_ptr<pixel_t, Deallocator>(
+//    auto dealloc_nop = [](Pixel*) { ; };
+//    data_ = std::unique_ptr<Pixel, Deallocator>(
 //          host_data, Deallocator(dealloc_nop));
 //  }
 //  else

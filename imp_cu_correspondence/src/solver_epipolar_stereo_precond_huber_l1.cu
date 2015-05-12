@@ -17,8 +17,7 @@
 #include "warped_gradients_kernel.cuh"
 #include "solver_precond_huber_l1_kernel.cuh"
 #include "solver_stereo_precond_huber_l1_weighted_kernel.cuh"
-
-//#include "solver_epipolar_stereo_precond_huber_l1_kernel.cu"
+//#include "solver_epipolar_stereo_precond_huber_l1_kernel.cuh"
 
 #define USE_EDGES 1
 
@@ -41,19 +40,19 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
     const imp::cu::ImageGpu32fC1& depth_proposal_sigma2)
   : SolverStereoAbstract(params, size, level)
 {
-  u_.reset(new DisparityImage(size));
-  u_prev_.reset(new Image(size));
-  u0_.reset(new Image(size));
-  pu_.reset(new VectorImage(size));
-  q_.reset(new Image(size));
-  iw_.reset(new Image(size));
-  ix_.reset(new Image(size));
-  it_.reset(new Image(size));
-  xi_.reset(new Image(size));
-  g_.reset(new Image(size));
+  u_.reset(new ImageGpu32fC1(size));
+  u_prev_.reset(new ImageGpu32fC1(size));
+  u0_.reset(new ImageGpu32fC1(size));
+  pu_.reset(new ImageGpu32fC2(size));
+  q_.reset(new ImageGpu32fC1(size));
+  iw_.reset(new ImageGpu32fC1(size));
+  ix_.reset(new ImageGpu32fC1(size));
+  it_.reset(new ImageGpu32fC1(size));
+  xi_.reset(new ImageGpu32fC1(size));
+  g_.reset(new ImageGpu32fC1(size));
 
-  depth_proposal_.reset(new DisparityImage(size));
-  depth_proposal_sigma2_.reset(new DisparityImage(size));
+  depth_proposal_.reset(new ImageGpu32fC1(size));
+  depth_proposal_sigma2_.reset(new ImageGpu32fC1(size));
 
   float scale_factor = std::pow(params->ctf.scale_factor, level);
 
@@ -128,7 +127,7 @@ void SolverEpipolarStereoPrecondHuberL1::init(const SolverStereoAbstract& rhs)
 }
 
 //------------------------------------------------------------------------------
-void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImagePtr> images)
+void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> images)
 {
   if (params_->verbose > 0)
     std::cout << "SolverEpipolarStereoPrecondHuberL1: solving level " << level_ << " with " << images.size() << " images" << std::endl;

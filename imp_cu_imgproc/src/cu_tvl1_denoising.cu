@@ -135,8 +135,8 @@ void TvL1Denoising<Pixel, pixel_type>::init(const Size2u& size)
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void TvL1Denoising<Pixel, pixel_type>::denoise(const ImageBasePtr& dst,
-                                               const ImageBasePtr& src)
+void TvL1Denoising<Pixel, pixel_type>::denoise(const ImageBase::Ptr& dst,
+                                               const ImageBase::Ptr& src)
 {
   if (params_.verbose)
   {
@@ -149,7 +149,7 @@ void TvL1Denoising<Pixel, pixel_type>::denoise(const ImageBasePtr& dst,
                              __FILE__, __FUNCTION__, __LINE__);
   }
 
-  f_ = std::dynamic_pointer_cast<Image>(src);
+  f_ = std::dynamic_pointer_cast<ImageGpu>(src);
   //! @todo (MWE) we could use dst for u_ if pixel_type is consistent
 
   if (size_ != f_->size())

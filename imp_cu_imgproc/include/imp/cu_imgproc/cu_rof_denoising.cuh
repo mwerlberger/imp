@@ -17,8 +17,7 @@ class RofDenoising  : public imp::cu::VariationalDenoising
 {
 public:
   using Base = VariationalDenoising;
-  using Image = imp::cu::ImageGpu<Pixel, pixel_type>;
-  using ImagePtr = std::shared_ptr<Image>;
+  using ImageGpu = imp::cu::ImageGpu<Pixel, pixel_type>;
   using Ptr = std::shared_ptr<RofDenoising<Pixel,pixel_type>>;
 
 public:
@@ -34,7 +33,7 @@ protected:
   virtual void print(std::ostream &os) const override;
 
 private:
-  ImagePtr f_;
+  typename ImageGpu::Ptr f_;
 
 };
 

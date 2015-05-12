@@ -30,16 +30,9 @@ class StereoCtFWarping
 public:
   using Parameters = VariationalStereoParameters;
 
-  using Image = imp::cu::ImageGpu32fC1;
-  using ImagePtr = std::shared_ptr<Image>;
-  using ConstImagePtrRef = const std::shared_ptr<Image>&;
-
-  using VectorImage = imp::cu::ImageGpu32fC2;
-  using VectorImagePtr = std::shared_ptr<VectorImage>;
-  using ConstVectorImagePtr = const std::shared_ptr<VectorImage>&;
-
-  using ImagePyramid = imp::ImagePyramid32fC1;
-  using ImagePyramidPtr = std::shared_ptr<ImagePyramid>;
+  using ImageGpu32fC1 = imp::cu::ImageGpu32fC1;
+  using ImageGpu32fC2 = imp::cu::ImageGpu32fC2;
+  using ImagePyramid32fC1 = imp::ImagePyramid32fC1;
 
   using Cameras = std::vector<cu::PinholeCamera>;
   using CamerasPyramid = std::vector<Cameras>;
@@ -50,11 +43,12 @@ public:
 //  StereoCtFWarping(const StereoCtFWarping&);
 //  StereoCtFWarping(StereoCtFWarping&&);
 
-  StereoCtFWarping(std::shared_ptr<Parameters> params);
+  StereoCtFWarping(Parameters::Ptr params);
 
-  void addImage(ConstImagePtrRef image);
+  void addImage(const ImageGpu32fC1::Ptr& image);
   void solve();
-  ImagePtr getDisparities(size_type level=0);
+  ImageGpu32fC1::Ptr getDisparities(size_type level=0);
+  ImageGpu32fC1::Ptr getOcclusion(size_type level=0);
 
   // if we have a guess about the correspondence points and the epipolar geometry
   // given we can set these as a prior
@@ -63,8 +57,8 @@ public:
   virtual void setExtrinsics(const cu::SE3<float>& T_mov_fix) {T_mov_fix_=T_mov_fix;}
 
   inline virtual void setDepthProposal(
-      ConstImagePtrRef depth_proposal,
-      ConstImagePtrRef depth_proposal_sigma2=nullptr)
+      const ImageGpu32fC1::Ptr& depth_proposal,
+      const ImageGpu32fC1::Ptr& depth_proposal_sigma2=nullptr)
   {
     depth_proposal_ = depth_proposal;
     depth_proposal_sigma2_ = depth_proposal_sigma2;
@@ -83,17 +77,17 @@ protected:
   void init();
 
 private:
-  std::shared_ptr<Parameters> params_; //!< configuration parameters
-  std::vector<ImagePtr> images_; //!< all unprocessed input images
-  std::vector<ImagePyramidPtr> image_pyramids_; //!< image pyramids corresponding to the unprocesed input images
+  Parameters::Ptr params_; //!< configuration parameters
+  std::vector<ImageGpu32fC1::Ptr> images_; //!< all unprocessed input images
+  std::vector<ImagePyramid32fC1::Ptr> image_pyramids_; //!< image pyramids corresponding to the unprocesed input images
   std::vector<std::unique_ptr<SolverStereoAbstract>> levels_;
 
   cu::Matrix3f F_;
   std::vector<cu::PinholeCamera> cams_;
   cu::SE3<float> T_mov_fix_;
 
-  ImagePtr depth_proposal_;
-  ImagePtr depth_proposal_sigma2_;
+  ImageGpu32fC1::Ptr depth_proposal_;
+  ImageGpu32fC1::Ptr depth_proposal_sigma2_;
 };
 
 } // namespace cu

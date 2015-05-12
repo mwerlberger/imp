@@ -31,7 +31,7 @@ LinearMemory<Pixel>::LinearMemory(const LinearMemory<Pixel>& from)
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
-LinearMemory<Pixel>::LinearMemory(pixel_container_t host_data,
+LinearMemory<Pixel>::LinearMemory(Pixel* host_data,
                                   const size_t& length,
                                   bool use_ext_data_pointer)
   : LinearMemoryBase(length)
@@ -45,8 +45,8 @@ LinearMemory<Pixel>::LinearMemory(pixel_container_t host_data,
   {
     // This uses the external data pointer and stores it as a 'reference':
     // memory won't be managed by us!
-    auto dealloc_nop = [](pixel_container_t) { ; };
-    data_ = std::unique_ptr<pixel_t, Deallocator>(
+    auto dealloc_nop = [](Pixel*) { ; };
+    data_ = std::unique_ptr<Pixel, Deallocator>(
           host_data, Deallocator(dealloc_nop));
   }
   else

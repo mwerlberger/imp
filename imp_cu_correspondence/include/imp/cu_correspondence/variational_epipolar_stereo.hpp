@@ -19,44 +19,25 @@ namespace cu {
  * @brief The Stereo class takes an image pair with known epipolar geometry
  *        (fundamental matrix) and estimates the disparity map
  */
-//template<typename Pixel, imp::PixelType pixel_type>
 class VariationalEpipolarStereo : public VariationalStereo
 {
 public:
-  //! @todo (MWE) first do the implementation with specific type (32fC1) and later generalize
-//  using Image = imp::cu::ImageGpu<Pixel, pixel_type>;
-  using Image = imp::cu::ImageGpu32fC1;
-  using ImagePtr = std::shared_ptr<Image>;
-  using ConstImagePtrRef = const std::shared_ptr<Image>&;
-
   using VectorImage = imp::cu::ImageGpu32fC2;
-  using VectorImagePtr = std::shared_ptr<VectorImage>;
-  using ConstVectorImagePtr = const std::shared_ptr<VectorImage>&;
-
   using Cameras = std::vector<cu::PinholeCamera>;
 
-
-  using Parameters = VariationalStereoParameters;
-  using ParametersPtr = std::shared_ptr<Parameters>;
-
 public:
-  VariationalEpipolarStereo(ParametersPtr params=nullptr);
+  VariationalEpipolarStereo(Parameters::Ptr params=nullptr);
   virtual ~VariationalEpipolarStereo(); //= default;
 
-//  virtual void setTransformation
   virtual void setFundamentalMatrix(const cu::Matrix3f& F);
   virtual void setIntrinsics(const Cameras& cams);
   virtual void setExtrinsics(const cu::SE3<float>& T_mov_fix);
-  virtual void setDepthProposal(ConstImagePtrRef depth_proposal,
-                                ConstImagePtrRef depth_proposal_sigma2=nullptr);
-
-
+  virtual void setDepthProposal(
+      const ImageGpu32fC1::Ptr& depth_proposal,
+      const ImageGpu32fC1::Ptr& depth_proposal_sigma2=nullptr);
 
 private:
 };
-
-
-
 
 } // namespace cu
 } // namespace imp

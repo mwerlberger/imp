@@ -41,13 +41,12 @@ template<typename Pixel, imp::PixelType pixel_type>
 class ImageGpu : public imp::Image<Pixel, pixel_type>
 {
 public:
-  typedef imp::Image<Pixel, pixel_type> Base;
-  typedef imp::cu::MemoryStorage<Pixel, pixel_type> Memory;
-  typedef imp::cu::MemoryDeallocator<Pixel> Deallocator;
-  typedef Pixel pixel_t;
-  typedef pixel_t* pixel_container_t;
   using Ptr = typename std::shared_ptr<ImageGpu<Pixel,pixel_type>>;
   using UPtr = typename std::unique_ptr<ImageGpu<Pixel,pixel_type>>;
+
+  using Base = Image<Pixel, pixel_type>;
+  using Memory = imp::cu::MemoryStorage<Pixel>;
+  using Deallocator = imp::cu::MemoryDeallocator<Pixel>;
 
 public:
   ImageGpu() = delete;
@@ -86,7 +85,7 @@ public:
    * @param pitch Length of a row in bytes (including padding).
    * @param use_ext_data_pointer Flagg if the image should be copied (true) or if the data is just safed as 'reference' (false)
    */
-//  ImageGpu(pixel_container_t data, std::uint32_t width, std::uint32_t height,
+//  ImageGpu(Pixel* data, std::uint32_t width, std::uint32_t height,
 //           size_type pitch, bool use_ext_data_pointer = false);
 
   /** sets a region of interest */
@@ -125,7 +124,7 @@ public:
    * @param value Value to be set to the whole image data.
    * @note @todo (MWE) TBD: region-of-interest is considered
    */
-  virtual void setValue(const pixel_t& value) override;
+  virtual void setValue(const Pixel& value) override;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
   virtual size_type pitch() const override { return pitch_; }
@@ -134,7 +133,7 @@ public:
   virtual bool isGpuMemory() const override { return true; }
 
   /** Returns a data structure to operate within a cuda kernel (does not copy any memory!). */
-//  std::unique_ptr<GpuData2D<pixel_t>> gpuData() { return gpu_data_; }
+//  std::unique_ptr<GpuData2D<Pixel>> gpuData() { return gpu_data_; }
 
   /** Returns the channel descriptor for Cuda's texture memory. */
   inline cudaChannelFormatDesc channelFormatDesc() const { return channel_format_desc_; }
@@ -155,13 +154,13 @@ public:
 
 
 protected:
-  std::unique_ptr<pixel_t, Deallocator> data_; //!< the actual image data
+  std::unique_ptr<Pixel, Deallocator> data_; //!< the actual image data
   size_type pitch_ = 0; //!< Row alignment in bytes.
 
 private:
   cudaChannelFormatDesc channel_format_desc_;
 
-  //std::unique_ptr<GpuData2D<pixel_t>> gpu_data_; //!< data collection that can be directly used within a kernel.
+  //std::unique_ptr<GpuData2D<Pixel>> gpu_data_; //!< data collection that can be directly used within a kernel.
 //  GpuData2D<Pixel>* gpu_data_;
 };
 

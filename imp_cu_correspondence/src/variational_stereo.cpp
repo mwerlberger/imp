@@ -6,29 +6,32 @@ namespace imp {
 namespace cu {
 
 //------------------------------------------------------------------------------
-VariationalStereo::VariationalStereo(ParametersPtr params)
+VariationalStereo::VariationalStereo(Parameters::Ptr params)
 {
   if (params)
+  {
     params_ = params;
+  }
   else
-    params_.reset(new Parameters());
+  {
+    params_ = std::make_shared<Parameters>();
+  }
 
   ctf_.reset(new StereoCtFWarping(params_));
-
 }
+
 
 //------------------------------------------------------------------------------
 VariationalStereo::~VariationalStereo()
-{
-
-}
+{ ; }
 
 
 //------------------------------------------------------------------------------
-void VariationalStereo::addImage(ConstImagePtrRef image)
+void VariationalStereo::addImage(const ImageGpu32fC1::Ptr& image)
 {
   ctf_->addImage(image);
 }
+
 
 //------------------------------------------------------------------------------
 void VariationalStereo::solve()
@@ -36,10 +39,18 @@ void VariationalStereo::solve()
   ctf_->solve();
 }
 
+
 //------------------------------------------------------------------------------
-VariationalStereo::ImagePtr VariationalStereo::getDisparities(size_type level)
+VariationalStereo::ImageGpu32fC1::Ptr VariationalStereo::getDisparities(size_type level)
 {
   return ctf_->getDisparities(level);
+}
+
+
+//------------------------------------------------------------------------------
+VariationalStereo::ImageGpu32fC1::Ptr VariationalStereo::getOcclusion(size_type level)
+{
+  return ctf_->getOcclusion(level);
 }
 
 

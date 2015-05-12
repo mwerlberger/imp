@@ -16,7 +16,7 @@ namespace cu {
 template<typename Pixel>
 __global__ void k_warpedGradients(Pixel* ix, Pixel* it, size_type stride,
                                   std::uint32_t width, std::uint32_t height,
-                                  //                                  std::uint32_t roi_x, std::uint32_t roi_y,
+                                  //std::uint32_t roi_x, std::uint32_t roi_y,
                                   Texture2D i1_tex, Texture2D i2_tex, Texture2D u0_tex)
 {
   const int x = blockIdx.x*blockDim.x + threadIdx.x /*+ roi_x*/;

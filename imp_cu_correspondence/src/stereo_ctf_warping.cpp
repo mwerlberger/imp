@@ -15,7 +15,7 @@ namespace imp {
 namespace cu {
 
 //------------------------------------------------------------------------------
-StereoCtFWarping::StereoCtFWarping(std::shared_ptr<Parameters> params)
+StereoCtFWarping::StereoCtFWarping(Parameters::Ptr params)
   : params_(params)
 {
 }
@@ -56,12 +56,12 @@ void StereoCtFWarping::init()
     {
       if (!depth_proposal_)
       {
-        depth_proposal_.reset(new Image(image_pyramids_.front()->size(0)));
+        depth_proposal_.reset(new ImageGpu32fC1(image_pyramids_.front()->size(0)));
         depth_proposal_->setValue(0.f);
       }
       if (!depth_proposal_sigma2_)
       {
-        depth_proposal_sigma2_.reset(new Image(image_pyramids_.front()->size(0)));
+        depth_proposal_sigma2_.reset(new ImageGpu32fC1(image_pyramids_.front()->size(0)));
         depth_proposal_sigma2_->setValue(0.f);
       }
 
@@ -93,10 +93,10 @@ bool StereoCtFWarping::ready()
 }
 
 //------------------------------------------------------------------------------
-void StereoCtFWarping::addImage(ConstImagePtrRef image)
+void StereoCtFWarping::addImage(const ImageGpu32fC1::Ptr& image)
 {
   // generate image pyramid
-  ImagePyramidPtr pyr(new ImagePyramid(image, params_->ctf.scale_factor, 4));
+  ImagePyramid32fC1::Ptr pyr(new ImagePyramid32fC1(image, params_->ctf.scale_factor, 4));
 
   // update number of levels
   if (params_->ctf.levels > pyr->numLevels())
@@ -129,7 +129,7 @@ void StereoCtFWarping::solve()
   }
 
   // the image vector that is used as input for the level solvers
-  std::vector<ImagePtr> lev_images;
+  std::vector<ImageGpu32fC1::Ptr> lev_images;
 
 
   // the first level is initialized differently so we solve this one first
@@ -139,7 +139,7 @@ void StereoCtFWarping::solve()
   lev_images.clear();
   for (auto pyr : image_pyramids_)
   {
-    lev_images.push_back(std::dynamic_pointer_cast<Image>(pyr->at(lev)));
+    lev_images.push_back(std::dynamic_pointer_cast<ImageGpu32fC1>(pyr->at(lev)));
   }
   levels_.at(lev)->solve(lev_images);
 
@@ -154,14 +154,14 @@ void StereoCtFWarping::solve()
     lev_images.clear();
     for (auto pyr : image_pyramids_)
     {
-      lev_images.push_back(std::dynamic_pointer_cast<Image>(pyr->at(lev-1)));
+      lev_images.push_back(std::dynamic_pointer_cast<ImageGpu32fC1>(pyr->at(lev-1)));
     }
     levels_.at(lev-1)->solve(lev_images);
   }
 }
 
 //------------------------------------------------------------------------------
-StereoCtFWarping::ImagePtr StereoCtFWarping::getDisparities(size_type level)
+StereoCtFWarping::ImageGpu32fC1::Ptr StereoCtFWarping::getDisparities(size_type level)
 {
   if (!this->ready())
   {
@@ -171,6 +171,19 @@ StereoCtFWarping::ImagePtr StereoCtFWarping::getDisparities(size_type level)
   level = max(params_->ctf.finest_level,
               min(params_->ctf.coarsest_level, level));
   return levels_.at(level)->getDisparities();
+}
+
+//------------------------------------------------------------------------------
+StereoCtFWarping::ImageGpu32fC1::Ptr StereoCtFWarping::getOcclusion(size_type level)
+{
+  if (!this->ready())
+  {
+    throw Exception("not initialized correctly; bailing out.",
+                    __FILE__, __FUNCTION__, __LINE__);
+  }
+  level = max(params_->ctf.finest_level,
+              min(params_->ctf.coarsest_level, level));
+  return levels_.at(level)->getOcclusion();
 }
 
 } // namespace cu

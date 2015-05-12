@@ -17,7 +17,7 @@ set(HEADERS
   include/imp/cu_core/cu_pixel_conversion.hpp
   include/imp/cu_core/cu_memory_storage.cuh
   include/imp/cu_core/cu_linearmemory.cuh
-  include/imp/cu_core/cu_gpu_data.cuh
+  #include/imp/cu_core/cu_gpu_data.cuh # unused at the moment
   include/imp/cu_core/cu_image_gpu.cuh
   include/imp/cu_core/cu_texture.cuh
   include/imp/cu_core/cu_math.cuh
@@ -42,7 +42,7 @@ set(CU_SRC
 cuda_compile(CU_OBJ ${CU_SRC})
 
 cs_add_library(${PROJECT_NAME}
-   ${CU_OBJ} ${SOURCES} ${HEADERS}
+   ${CU_OBJ} ${CU_SRC} ${SOURCES} ${HEADERS}
    )
 target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
 
