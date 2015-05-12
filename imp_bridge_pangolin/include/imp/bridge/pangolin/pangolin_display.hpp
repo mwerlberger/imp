@@ -11,12 +11,25 @@ namespace imp
 {
 
 //------------------------------------------------------------------------------
+inline pangolin::View& setupPangolinCudaView(
+    const imp::Size2u& sz,
+    const std::string& title = "-")
+{
+  pangolin::View& container = pangolin::setupPangolinView(sz, title);
+      .SetBounds(0, 1.0f, 0, 1.0f);
+
+  // TODO
+
+  return container;
+}
+
+//------------------------------------------------------------------------------
 inline pangolin::View& setupPangolinView(
     const imp::Size2u& sz,
     const std::string& title = "-")
 {
   // Create OpenGL window in single line
-  pangolin::CreateWindowAndBind("Lena", sz.width(), sz.height());
+  pangolin::CreateWindowAndBind(title, sz.width(), sz.height());
 
   if (glewInit() != GLEW_OK )
   {
@@ -73,31 +86,16 @@ inline void imshow(const imp::Image8uC1& im, const std::string& title="-")
   }
 }
 
-//------------------------------------------------------------------------------
-inline void imshow(const imp::cu::Image8uC1& im, const std::string& title="-")
-{
-  pangolin::View& container = imp::setupPangolinView(im.size(), title);
-  imp::setupPangolinViewLayout(container, 1, {(float)im.width()/im.height()});
+////------------------------------------------------------------------------------
+//inline void imshow(const imp::cu::ImageGpu8uC1& im, const std::string& title="-")
+//{
+//  pangolin::View& container = imp::setupPangolinView(im.size(), title);
+//  imp::setupPangolinViewLayout(container, 1, {(float)im.width()/im.height()});
 
-  container[0].SetDrawFunction
+//  container[0].SetDrawFunction
 
 
-  pangolin::GlTexture tex8(im.width(), im.height(), GL_LUMINANCE8);
-
-  while(!pangolin::ShouldQuit())
-  {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glColor3f(1,1,1);
-
-    if (container[0].IsShown())
-    {
-      container[0].Activate();
-      tex8.Upload(im.data(), GL_LUMINANCE, GL_UNSIGNED_BYTE);
-      tex8.RenderToViewportFlipY();
-    }
-    pangolin::FinishFrame();
-  }
-}
+//}
 
 
 ////==============================================================================
