@@ -12,7 +12,6 @@ namespace imp {
 namespace cu {
 
 // forward decl
-class VariationalStereoParameters;
 class Texture2D;
 
 /**
@@ -22,37 +21,31 @@ class Texture2D;
 class SolverStereoPrecondHuberL1Weighted : public SolverStereoAbstract
 {
 public:
-  using Parameters = VariationalStereoParameters;
-  using Image = imp::cu::ImageGpu32fC1;
-  using Dual = imp::cu::ImageGpu32fC2;
-  using ImagePtr = std::shared_ptr<Image>;
-
-
-public:
   SolverStereoPrecondHuberL1Weighted() = delete;
   virtual ~SolverStereoPrecondHuberL1Weighted();
 
-  SolverStereoPrecondHuberL1Weighted(const std::shared_ptr<Parameters>& params,
-                                              imp::Size2u size, size_type level);
+  SolverStereoPrecondHuberL1Weighted(
+      const Parameters::Ptr& params,
+      imp::Size2u size, size_type level);
 
   virtual void init() override;
   virtual void init(const SolverStereoAbstract& rhs) override;
-  virtual void solve(std::vector<ImagePtr> images) override;
+  virtual void solve(std::vector<ImageGpu32fC1::Ptr> images) override;
 
-  virtual inline ImagePtr getDisparities() override {return u_;}
-  virtual inline ImagePtr getOcclusion() override {return occ_;}
+  virtual inline ImageGpu32fC1::Ptr getDisparities() override {return u_;}
+  virtual inline ImageGpu32fC1::Ptr getOcclusion() override {return occ_;}
 
 
 protected:
-  ImagePtr u_; //!< disparities (result)
-  std::unique_ptr<Image> u_prev_; //!< disparities results from previous iteration
-  std::shared_ptr<Image> u0_; //!< disparities results from previous warp
-  std::unique_ptr<Dual> pu_; //!< dual variable for primal variable
-  std::unique_ptr<Image> q_; //!< dual variable for data term
-  std::unique_ptr<Image> ix_; //!< spatial gradients on moving (warped) image
-  std::unique_ptr<Image> it_; //!< temporal gradients between warped and fixed image
-  std::unique_ptr<Image> xi_; //!< preconditioner
-  std::unique_ptr<Image> g_; //!< (edge) image for weighting the regularizer
+  ImageGpu32fC1::Ptr u_; //!< disparities (result)
+  std::unique_ptr<ImageGpu32fC1> u_prev_; //!< disparities results from previous iteration
+  std::shared_ptr<ImageGpu32fC1> u0_; //!< disparities results from previous warp
+  std::unique_ptr<ImageGpu32fC2> pu_; //!< dual variable for primal variable
+  std::unique_ptr<ImageGpu32fC1> q_; //!< dual variable for data term
+  std::unique_ptr<ImageGpu32fC1> ix_; //!< spatial gradients on moving (warped) image
+  std::unique_ptr<ImageGpu32fC1> it_; //!< temporal gradients between warped and fixed image
+  std::unique_ptr<ImageGpu32fC1> xi_; //!< preconditioner
+  std::unique_ptr<ImageGpu32fC1> g_; //!< (edge) image for weighting the regularizer
   imp::cu::ImageGpu32fC1::Ptr occ_; //!< estimation of occluded pixels
 
   // textures

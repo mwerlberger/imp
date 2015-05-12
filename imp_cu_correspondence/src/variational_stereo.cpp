@@ -27,7 +27,7 @@ VariationalStereo::~VariationalStereo()
 
 
 //------------------------------------------------------------------------------
-void VariationalStereo::addImage(const Image::Ptr& image)
+void VariationalStereo::addImage(const ImageGpu32fC1::Ptr& image)
 {
   ctf_->addImage(image);
 }
@@ -41,14 +41,14 @@ void VariationalStereo::solve()
 
 
 //------------------------------------------------------------------------------
-VariationalStereo::Image::Ptr VariationalStereo::getDisparities(size_type level)
+VariationalStereo::ImageGpu32fC1::Ptr VariationalStereo::getDisparities(size_type level)
 {
   return ctf_->getDisparities(level);
 }
 
 
 //------------------------------------------------------------------------------
-VariationalStereo::Image::Ptr VariationalStereo::getOcclusion(size_type level)
+VariationalStereo::ImageGpu32fC1::Ptr VariationalStereo::getOcclusion(size_type level)
 {
   return ctf_->getOcclusion(level);
 }

@@ -134,7 +134,7 @@ void RofDenoising<Pixel, pixel_type>::denoise(const std::shared_ptr<ImageBase>& 
                              __FILE__, __FUNCTION__, __LINE__);
   }
 
-  f_ = std::dynamic_pointer_cast<Image>(src);
+  f_ = std::dynamic_pointer_cast<ImageGpu>(src);
   //! @todo (MWE) we could use dst for u_ if pixel_type is consistent
 
   if (size_ != f_->size())

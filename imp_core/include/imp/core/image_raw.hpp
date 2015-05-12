@@ -28,14 +28,11 @@ template<typename Pixel, imp::PixelType pixel_type>
 class ImageRaw : public imp::Image<Pixel, pixel_type>
 {
 public:
-  typedef Image<Pixel, pixel_type> Base;
-  typedef ImageRaw<Pixel, pixel_type> ImRaw;
-  typedef imp::MemoryStorage<Pixel> Memory;
-  typedef imp::MemoryDeallocator<Pixel> Deallocator;
-  typedef Pixel pixel_t;
-  typedef pixel_t* pixel_container_t;
   using Ptr = typename std::shared_ptr<ImageRaw<Pixel,pixel_type>>;
-  using ConstPtr = typename std::shared_ptr<ImageRaw<Pixel,pixel_type> const>;
+
+  using Base = Image<Pixel, pixel_type>;
+  using Memory = imp::MemoryStorage<Pixel>;
+  using Deallocator = imp::MemoryDeallocator<Pixel>;
 
 public:
   ImageRaw() = default;
@@ -69,7 +66,7 @@ public:
    * @param pitch Length of a row in bytes (including padding).
    * @param use_ext_data_pointer Flagg if the image should be copied (true) or if the data is just safed as 'reference' (false)
    */
-  ImageRaw(pixel_container_t data, std::uint32_t width, std::uint32_t height,
+  ImageRaw(Pixel* data, std::uint32_t width, std::uint32_t height,
            size_type pitch, bool use_ext_data_pointer = false);
 
   /**
@@ -81,7 +78,7 @@ public:
    * @param tracked Tracked object that shares the given image data
    * @note we assume that the tracked object takes care about memory deallocations
    */
-  ImageRaw(pixel_container_t data, std::uint32_t width, std::uint32_t height,
+  ImageRaw(Pixel* data, std::uint32_t width, std::uint32_t height,
            size_type pitch, const std::shared_ptr<void const>& tracked);
 
 
@@ -101,7 +98,7 @@ public:
   virtual bool isGpuMemory() const override { return false; }
 
 protected:
-  std::unique_ptr<pixel_t, Deallocator> data_; //!< the actual image data
+  std::unique_ptr<Pixel, Deallocator> data_; //!< the actual image data
   size_type pitch_ = 0; //!< Row alignment in bytes.
   std::shared_ptr<void const> tracked_ = nullptr; //!< tracked object to share memory
 };

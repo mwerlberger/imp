@@ -10,18 +10,18 @@
 namespace imp
 {
 
-//------------------------------------------------------------------------------
-inline pangolin::View& setupPangolinCudaView(
-    const imp::Size2u& sz,
-    const std::string& title = "-")
-{
-  pangolin::View& container = pangolin::setupPangolinView(sz, title);
-      .SetBounds(0, 1.0f, 0, 1.0f);
+////------------------------------------------------------------------------------
+//inline pangolin::View& setupPangolinCudaView(
+//    const imp::Size2u& sz,
+//    const std::string& title = "-")
+//{
+//  pangolin::View& container = pangolin::setupPangolinView(sz, title);
+//  .SetBounds(0, 1.0f, 0, 1.0f);
 
-  // TODO
+//  // TODO
 
-  return container;
-}
+//  return container;
+//}
 
 //------------------------------------------------------------------------------
 inline pangolin::View& setupPangolinView(

@@ -4,14 +4,14 @@
 namespace imp
 {
 
-PangolinDisplay::PangolinDisplay()
-{
+//PangolinDisplay::PangolinDisplay()
+//{
 
-}
+//}
 
-PangolinDisplay::~PangolinDisplay()
-{
+//PangolinDisplay::~PangolinDisplay()
+//{
 
-}
+//}
 
 } // namespace imp

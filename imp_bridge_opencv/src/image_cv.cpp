@@ -88,7 +88,7 @@ ImageCv<Pixel, pixel_type>
 ////-----------------------------------------------------------------------------
 //template<typename Pixel, imp::PixelType pixel_type>
 //ImageCv<Pixel, pixel_type>
-//::ImageCv(pixel_container_t data, std::uint32_t width, std::uint32_t height,
+//::ImageCv(Pixel* data, std::uint32_t width, std::uint32_t height,
 //           size_type pitch, bool use_ext_data_pointer)
 //  : Base(width, height)
 //{
@@ -100,7 +100,7 @@ ImageCv<Pixel, pixel_type>
 //  if(use_ext_data_pointer)
 //  {
 //    // This uses the external data pointer as internal data pointer.
-//    auto dealloc_nop = [](pixel_container_t p) { ; };
+//    auto dealloc_nop = [](Pixel* p) { ; };
 //    data_ = std::unique_ptr<pixel_storage_t, Deallocator>(
 //          data, Deallocator(dealloc_nop));
 //    pitch_ = pitch;
@@ -150,7 +150,7 @@ Pixel* ImageCv<Pixel, pixel_type>::data(
   {
     throw imp::Exception("Request starting offset is outside of the image.", __FILE__, __FUNCTION__, __LINE__);
   }
-  pixel_container_t buffer = (pixel_container_t)mat_.data;
+  Pixel* buffer = (Pixel*)mat_.data;
   return &buffer[oy*this->stride() + ox];
 }
 
@@ -164,13 +164,13 @@ const Pixel* ImageCv<Pixel, pixel_type>::data(
     throw imp::Exception("Request starting offset is outside of the image.", __FILE__, __FUNCTION__, __LINE__);
   }
 
-  pixel_container_t buffer = (pixel_container_t)mat_.data;
-  return reinterpret_cast<const pixel_container_t>(&buffer[oy*this->stride() + ox]);
+  Pixel* buffer = (Pixel*)mat_.data;
+  return reinterpret_cast<const Pixel*>(&buffer[oy*this->stride() + ox]);
 }
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void ImageCv<Pixel,pixel_type>::setValue(const pixel_t& value)
+void ImageCv<Pixel,pixel_type>::setValue(const Pixel& value)
 {
   mat_ = cv::Scalar::all(value);
 }

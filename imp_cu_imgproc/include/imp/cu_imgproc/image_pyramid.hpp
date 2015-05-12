@@ -8,15 +8,9 @@
 #include <imp/core/pixel_enums.hpp>
 #include <imp/core/pixel.hpp>
 #include <imp/core/size.hpp>
+#include <imp/core/image.hpp>
 
 namespace imp {
-
-// forward declarations
-template<typename Pixel, imp::PixelType pixel_type> class Image;
-template<typename Pixel, imp::PixelType pixel_type> class ImageRaw;
-namespace cu{
-template<typename Pixel, imp::PixelType pixel_type> class ImageGpu;
-}
 
 /**
  * @brief The ImagePyramid class holds an image scale pyramid
@@ -27,14 +21,12 @@ template<typename Pixel, imp::PixelType pixel_type>
 class ImagePyramid
 {
 public:
+  using Ptr = std::shared_ptr<ImagePyramid>;
+
   // typedefs for convenience
-  using Image = imp::Image<Pixel, pixel_type>;
-  using ImagePtr = std::shared_ptr<Image>;
+  using Image = typename imp::Image<Pixel, pixel_type>;
+  using ImagePtr = typename imp::ImagePtr<Pixel, pixel_type>;
   using ImageLevels = std::vector<ImagePtr>;
-  using ImageRaw = imp::ImageRaw<Pixel, pixel_type>;
-  using ImageRawPtr = std::shared_ptr<ImageRaw>;
-  using ImageGpu = imp::cu::ImageGpu<Pixel,pixel_type>;
-  using ImageGpuPtr = std::shared_ptr<ImageGpu>;
 
 public:
   ImagePyramid() = delete;

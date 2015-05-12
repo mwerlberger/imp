@@ -24,9 +24,6 @@ class ImageCv : public imp::Image<Pixel, pixel_type>
 public:
   using Base = Image<Pixel, pixel_type>;
 
-  using pixel_t = Pixel;
-  using pixel_container_t = pixel_t*;
-
   using Ptr = typename std::shared_ptr<ImageCv<Pixel,pixel_type>>;
   using ConstPtrRef = const Ptr&;
   using ConstPtr = typename std::shared_ptr<ImageCv<Pixel,pixel_type> const>;
@@ -40,7 +37,7 @@ public:
   ImageCv(const ImageCv<Pixel, pixel_type>& from);
   ImageCv(const Base& from);
   ImageCv(cv::Mat mat, imp::PixelOrder pixel_order_=imp::PixelOrder::undefined);
-//  ImageCv(pixel_container_t data, std::uint32_t width, std::uint32_t height,
+//  ImageCv(Pixel* data, std::uint32_t width, std::uint32_t height,
 //          size_type pitch, bool use_ext_data_pointer = false);
 
   /** Returns the internal OpenCV image/mat
@@ -54,14 +51,14 @@ public:
    * @param[in] oy Vertical offset of the pointer array.
    * @return Pointer to the pixel array.
    */
-  virtual pixel_container_t data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
+  virtual Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) override;
   virtual const Pixel* data(std::uint32_t ox = 0, std::uint32_t oy = 0) const override;
 
   /**
    * @brief setValue Sets image data to the specified \a value.
    * @param value Value to be set to the whole image data.
    */
-  virtual void setValue(const pixel_t& value) override;
+  virtual void setValue(const Pixel& value) override;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
   virtual size_type pitch() const override { return mat_.step; }

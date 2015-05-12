@@ -16,10 +16,9 @@ template<typename Pixel, imp::PixelType pixel_type>
 class TvL1Denoising  : public imp::cu::VariationalDenoising
 {
 public:
-  using Base = VariationalDenoising;
-  using Image = imp::cu::ImageGpu<Pixel, pixel_type>;
-  using ImagePtr = imp::cu::ImageGpuPtr<Pixel, pixel_type>;
   using Ptr = std::shared_ptr<TvL1Denoising<Pixel,pixel_type>>;
+  using Base = VariationalDenoising;
+  using ImageGpu = imp::cu::ImageGpu<Pixel, pixel_type>;
 
 public:
   TvL1Denoising() = default;
@@ -27,14 +26,14 @@ public:
   using Base::Base;
 
   virtual __host__ void init(const Size2u& size) override;
-  virtual __host__ void denoise(const ImageBasePtr& dst,
-                                const ImageBasePtr& src) override;
+  virtual __host__ void denoise(const ImageBase::Ptr& dst,
+                                const ImageBase::Ptr& src) override;
 
 protected:
   virtual void print(std::ostream &os) const override;
 
 private:
-  ImagePtr f_;
+  typename ImageGpu::Ptr f_;
 
 };
 

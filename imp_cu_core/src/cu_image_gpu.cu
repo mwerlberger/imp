@@ -53,7 +53,7 @@ ImageGpu<Pixel, pixel_type>::ImageGpu(const Image<Pixel, pixel_type>& from)
 ////-----------------------------------------------------------------------------
 //template<typename Pixel, imp::PixelType pixel_type>
 //ImageGpu<Pixel, pixel_type>
-//::ImageGpu(pixel_container_t data, std::uint32_t width, std::uint32_t height,
+//::ImageGpu(Pixel* data, std::uint32_t width, std::uint32_t height,
 //           size_type pitch, bool use_ext_data_pointer)
 //  : Base(width, height)
 //{
@@ -65,15 +65,15 @@ ImageGpu<Pixel, pixel_type>::ImageGpu(const Image<Pixel, pixel_type>& from)
 //  if(use_ext_data_pointer)
 //  {
 //    // This uses the external data pointer as internal data pointer.
-//    auto dealloc_nop = [](pixel_container_t) { ; };
-//    data_ = std::unique_ptr<pixel_t, Deallocator>(
+//    auto dealloc_nop = [](Pixel*) { ; };
+//    data_ = std::unique_ptr<Pixel, Deallocator>(
 //          data, Deallocator(dealloc_nop));
 //    pitch_ = pitch;
 //  }
 //  else
 //  {
 //    data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
-//    size_type stride = pitch / sizeof(pixel_t);
+//    size_type stride = pitch / sizeof(Pixel);
 
 //    if (this->bytes() == pitch*height)
 //    {
@@ -176,7 +176,7 @@ const Pixel* ImageGpu<Pixel, pixel_type>::data(
     throw imp::cu::Exception("Device memory pointer offset is not possible from host function");
   }
 
-  //  return reinterpreft_cast<const pixel_container_t>(data_.get());
+  //  return reinterpreft_cast<const Pixel*>(data_.get());
   return data_.get();
 }
 
@@ -196,9 +196,9 @@ auto ImageGpu<Pixel, pixel_type>::cuData() const -> decltype(imp::cu::toConstCud
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void ImageGpu<Pixel, pixel_type>::setValue(const pixel_t& value)
+void ImageGpu<Pixel, pixel_type>::setValue(const Pixel& value)
 {
-  if (sizeof(pixel_t) == 1)
+  if (sizeof(Pixel) == 1)
   {
     cudaMemset2D((void*)this->data(), this->pitch(), (int)value.c[0], this->rowBytes(), this->height());
   }

@@ -6,13 +6,11 @@
 
 #include <imp/cu_core/cu_image_gpu.cuh>
 #include <imp/core/size.hpp>
+#include <imp/cu_correspondence/variational_stereo_parameters.hpp>
 
 
 namespace imp {
 namespace cu {
-
-// forward decl
-class VariationalStereoParameters;
 
 /**
  * @brief The StereoCtFWarpingLevel class
@@ -20,27 +18,16 @@ class VariationalStereoParameters;
 class SolverStereoAbstract
 {
 public:
+  using ImageGpu32fC1 = imp::cu::ImageGpu32fC1;
+  using ImageGpu32fC2 = imp::cu::ImageGpu32fC2;
   using Parameters = VariationalStereoParameters;
-
-  using Image = imp::cu::ImageGpu32fC1;
-  using ImagePtr = std::shared_ptr<Image>;
-
-  using DisparityImage = imp::cu::ImageGpu32fC1;
-  using DisparityImagePtr = std::shared_ptr<Image>;
-
-  using ConstImagePtrRef = const std::shared_ptr<Image>&;
-
-  using VectorImage = imp::cu::ImageGpu32fC2;
-  using VectorImagePtr = std::shared_ptr<VectorImage>;
-  using ConstVectorImagePtr = const std::shared_ptr<VectorImage>&;
-
 
 public:
   SolverStereoAbstract() = delete;
   virtual ~SolverStereoAbstract() = default;
 
-  SolverStereoAbstract(std::shared_ptr<Parameters> params,
-                        imp::Size2u size, std::uint16_t level)
+  SolverStereoAbstract(Parameters::Ptr params,
+                       imp::Size2u size, std::uint16_t level)
     : params_(params)
     , size_(size)
     , level_(level)
@@ -48,21 +35,21 @@ public:
 
   virtual void init() = 0;
   virtual void init(const SolverStereoAbstract& rhs) = 0;
-  virtual void solve(std::vector<ImagePtr> images) = 0;
-  virtual ImagePtr getDisparities() = 0;
+  virtual void solve(std::vector<ImageGpu32fC1::Ptr> images) = 0;
+  virtual ImageGpu32fC1::Ptr getDisparities() = 0;
   /**
    * @brief getOcclusion returns an estimate of occluded pixels
    * @note There is no need to implement this function so by default a nullptr is returned
    * @return A mask with an estimate of occluded pixels or nullptr if not estimated.
    */
-  virtual ImagePtr getOcclusion() {return nullptr;}
+  virtual ImageGpu32fC1::Ptr getOcclusion() {return nullptr;}
 
   // setters / getters
   inline imp::Size2u size() { return size_; }
   inline std::uint16_t level() { return level_; }
 
 protected:
-  std::shared_ptr<Parameters> params_; //!< configuration parameters
+  Parameters::Ptr params_; //!< configuration parameters
   imp::Size2u size_;
   std::uint16_t level_; //!< level number in the ctf pyramid (0=finest .. n=coarsest)
 };

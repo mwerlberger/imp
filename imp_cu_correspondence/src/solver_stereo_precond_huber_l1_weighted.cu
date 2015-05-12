@@ -31,15 +31,15 @@ SolverStereoPrecondHuberL1Weighted::SolverStereoPrecondHuberL1Weighted(
     const std::shared_ptr<Parameters>& params, imp::Size2u size, size_type level)
   : SolverStereoAbstract(params, size, level)
 {
-  u_.reset(new Image(size));
-  u_prev_.reset(new Image(size));
-  u0_.reset(new Image(size));
-  pu_.reset(new Dual(size));
-  q_.reset(new Image(size));
-  ix_.reset(new Image(size));
-  it_.reset(new Image(size));
-  xi_.reset(new Image(size));
-  g_.reset(new Image(size));
+  u_.reset(new ImageGpu32fC1(size));
+  u_prev_.reset(new ImageGpu32fC1(size));
+  u0_.reset(new ImageGpu32fC1(size));
+  pu_.reset(new ImageGpu32fC2(size));
+  q_.reset(new ImageGpu32fC1(size));
+  ix_.reset(new ImageGpu32fC1(size));
+  it_.reset(new ImageGpu32fC1(size));
+  xi_.reset(new ImageGpu32fC1(size));
+  g_.reset(new ImageGpu32fC1(size));
   g_->setValue(1.0f);
   occ_.reset(new ImageGpu32fC1(size));
 
@@ -79,7 +79,7 @@ void SolverStereoPrecondHuberL1Weighted::init(const SolverStereoAbstract& rhs)
 }
 
 //------------------------------------------------------------------------------
-void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImagePtr> images)
+void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImageGpu32fC1::Ptr> images)
 {
   if (params_->verbose > 0)
     std::cout << "StereoCtFWarpingLevelPrecondHuberL1: solving level " << level_ << " with " << images.size() << " images" << std::endl;
