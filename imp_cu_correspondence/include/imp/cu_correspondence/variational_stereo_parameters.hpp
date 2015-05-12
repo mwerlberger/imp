@@ -12,6 +12,8 @@ namespace cu {
 // the parameter struct
 struct VariationalStereoParameters
 {
+  using Ptr = typename std::shared_ptr<VariationalStereoParameters>;
+
   int verbose=10; //!< verbosity level (the higher, the more the Stereo algorithm talks to us)
   StereoPDSolver solver=StereoPDSolver::PrecondHuberL1; //!< selected primal-dual solver / model
   float lambda = 30.0f; //!< tradeoff between regularization and matching term

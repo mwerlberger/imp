@@ -18,6 +18,9 @@
 
 int main(int /*argc*/, char** /*argv*/)
 {
+  using Stereo = imp::cu::VariationalStereo;
+  using StereoParameters = Stereo::Parameters;
+
   try
   {
     imp::cu::ImageGpu32fC1::Ptr d_cones1_32fC1;
@@ -33,23 +36,24 @@ int main(int /*argc*/, char** /*argv*/)
       std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
     }
 
-    std::unique_ptr<imp::cu::VariationalStereo> stereo(
-          new imp::cu::VariationalStereo());
 
-    stereo->parameters()->verbose = 0;
-    stereo->parameters()->solver = imp::cu::StereoPDSolver::PrecondHuberL1Weighted;
-    stereo->parameters()->ctf.scale_factor = 0.8f;
-    stereo->parameters()->ctf.iters = 50;
-    stereo->parameters()->ctf.warps  = 10;
-    stereo->parameters()->ctf.apply_median_filter = true;
+    StereoParameters::Ptr stereo_params = std::make_shared<StereoParameters>();
+    stereo_params->verbose = 0;
+    stereo_params->solver = imp::cu::StereoPDSolver::PrecondHuberL1Weighted;
+    stereo_params->ctf.scale_factor = 0.8f;
+    stereo_params->ctf.iters = 50;
+    stereo_params->ctf.warps  = 10;
+    stereo_params->ctf.apply_median_filter = true;
+
+    std::unique_ptr<Stereo> stereo(new Stereo(stereo_params));
 
     stereo->addImage(d_cones1_32fC1);
     stereo->addImage(d_cones2_32fC1);
 
     stereo->solve();
 
-    std::shared_ptr<imp::cu::ImageGpu32fC1> d_disp = stereo->getDisparities();
-    std::shared_ptr<imp::cu::ImageGpu32fC1> d_occ = stereo->getOcclusion();
+    imp::cu::ImageGpu32fC1::Ptr d_disp = stereo->getDisparities();
+    imp::cu::ImageGpu32fC1::Ptr d_occ = stereo->getOcclusion();
 
     {
       imp::Pixel32fC1 min_val,max_val;
