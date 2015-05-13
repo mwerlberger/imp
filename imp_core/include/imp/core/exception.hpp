@@ -41,6 +41,8 @@ public:
   int line_;
 };
 
+#define IMP_THROW_EXCEPTION(msg) throw imp::Exception(msg, __FILE__, __FUNCTION__, __LINE__)
+
 }
 
 #endif // CORE_EXCEPTION_HPP
