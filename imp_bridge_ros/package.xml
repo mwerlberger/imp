@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>imp_tools_variational_stereo</name>
+  <name>imp_bridge_ros</name>
   <description>
-    IMP Tools: Variational Stereo Estimation
+    IMP bridge to Ros adds the ability to interconnect with the Ros framework
   </description>
   <version>0.0.1</version>
   <license>tbd</license>
@@ -12,12 +12,11 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
+  <depend>image_transport</depend>
+    
   <depend>imp_cmake</depend>
   <depend>imp_core</depend>
   <depend>imp_cu_core</depend>
-  <depend>imp_cu_correspondence</depend>
-  <depend>imp_bridge_opencv</depend>
-  <depend>eigen_catkin</depend>
 
   <test_depend>gtest</test_depend>
 </package>

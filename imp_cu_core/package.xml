@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>imp_tools_variational_stereo</name>
+  <name>imp_cu_core</name>
   <description>
-    IMP Tools: Variational Stereo Estimation
+    IMP core module for GPGPU processing (CUDA)
   </description>
   <version>0.0.1</version>
   <license>tbd</license>
@@ -14,10 +14,6 @@
 
   <depend>imp_cmake</depend>
   <depend>imp_core</depend>
-  <depend>imp_cu_core</depend>
-  <depend>imp_cu_correspondence</depend>
-  <depend>imp_bridge_opencv</depend>
-  <depend>eigen_catkin</depend>
-
+    
   <test_depend>gtest</test_depend>
 </package>

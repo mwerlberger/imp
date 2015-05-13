@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package>
+  <name>imp_cmake</name>
+  <version>0.1.0</version> 
+  <description>CMake scripts and macros provided by the IMP library</description>
+  <license>MIT</license>
+
+  <maintainer email="code@werlberger.org">Manuel Werlberger</maintainer>
+  <author>Manuel Werlberger</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+</package>
