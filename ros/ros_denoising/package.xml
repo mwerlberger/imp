@@ -15,12 +15,12 @@
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
   <depend>image_transport</depend>
-  <depend>cv_bridge</depend>
   <depend>rospy</depend>
   <depend>dynamic_reconfigure</depend>
 
   <depend>cv_bridge</depend>
 
+  <depend>imp_cmake</depend>
   <depend>imp_core</depend>
   <depend>imp_cu_core</depend>
   <depend>imp_cu_imgproc</depend>
