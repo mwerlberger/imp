@@ -1,7 +1,9 @@
 project(imp_core)
 cmake_minimum_required(VERSION 2.8.0)
 
-cmake_policy(SET CMP0054 OLD)
+if(${CMAKE_MAJOR_VERSION} VERSION_GREATER 3.0)
+  cmake_policy(SET CMP0054 OLD)
+endif(${CMAKE_MAJOR_VERSION} VERSION_GREATER 3.0)
 
 find_package(catkin_simple REQUIRED)
 catkin_simple()
