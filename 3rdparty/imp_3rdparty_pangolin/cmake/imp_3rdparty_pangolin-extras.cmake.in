@@ -1,6 +1,6 @@
 # This overrides the empty library with the pangolin library file.
 set(@PROJECT_NAME@_LIBRARIES
-   @CATKIN_DEVEL_PREFIX@/lib/libpangolin.so
+   @CATKIN_DEVEL_PREFIX@/lib/libpangolin@CMAKE_SHARED_LIBRARY_SUFFIX@
    @FREEGLUT_LIBRARY@
    @GLUT_LIBRARY@
    @OPENGL_LIBRARIES@
