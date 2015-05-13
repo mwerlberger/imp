@@ -1,4 +1,4 @@
-project(imp_ros_denoising)
+project(imp_ros_rof_denoising)
 cmake_minimum_required(VERSION 2.8.0)
 
 find_package(catkin_simple REQUIRED)

@@ -2,7 +2,7 @@
 #include <image_transport/image_transport.h>
 
 #include <dynamic_reconfigure/server.h>
-#include <imp_ros_denoising/RofNodeConfig.h>
+#include <imp_ros_rof_denoising/RofNodeConfig.h>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>

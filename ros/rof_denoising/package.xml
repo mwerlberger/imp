@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>imp_ros_denoising</name>
+  <name>imp_ros_rof_denoising</name>
   <description>
     ROS nodes for denoising functionalities
   </description>
