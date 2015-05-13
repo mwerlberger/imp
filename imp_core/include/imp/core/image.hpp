@@ -15,6 +15,7 @@ class Image : public ImageBase
 {
 public:
   using Ptr = typename std::shared_ptr<Image<Pixel,pixel_type>>;
+  using pixel_t = Pixel;
 
 protected:
   Image(imp::PixelOrder pixel_order = imp::PixelOrder::undefined)
