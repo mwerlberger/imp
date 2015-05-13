@@ -12,6 +12,8 @@ include(imp_finders)
 imp_setup()
 imp_find_cuda()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs" )
+
 ###
 ### command line tools
 ###
