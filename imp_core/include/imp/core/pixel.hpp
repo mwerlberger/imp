@@ -19,7 +19,7 @@ namespace imp {
 template<typename _T>
 union Pixel1
 {
-  typedef _T T;
+  using T = _T;
 
   struct
   {
@@ -63,7 +63,7 @@ union Pixel1
 template<typename _T>
 union Pixel2
 {
-  typedef _T T;
+  using T = _T;
 
   struct
   {
@@ -117,7 +117,7 @@ union Pixel2
 template<typename _T>
 union Pixel3
 {
-  typedef _T T;
+  using T = _T;
 
   struct
   {
@@ -175,7 +175,7 @@ union Pixel3
 template<typename _T>
 union Pixel4
 {
-  typedef _T T;
+  using T = _T;
 
   struct
   {

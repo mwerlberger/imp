@@ -87,7 +87,7 @@ void RofNode::paramCb(imp_ros_denoising::RofNodeConfig& config, uint32_t level)
 //==============================================================================
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "imp_rof_denoising");
+  ros::init(argc, argv, "RofNode");
 
 
   ros::NodeHandle nh;
@@ -102,7 +102,8 @@ int main(int argc, char **argv)
 
 
   image_transport::ImageTransport it(nh);
-  image_transport::Subscriber sub = it.subscribe("bluefox_ros_node/image_raw", 1, &imp::RofNode::imgCb, &rof_node);
+  image_transport::Subscriber sub = it.subscribe(
+        "camera/image_raw", 1, &imp::RofNode::imgCb, &rof_node);
 
   ros::spin();
   return EXIT_SUCCESS;
