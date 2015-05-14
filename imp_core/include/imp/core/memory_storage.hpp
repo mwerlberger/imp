@@ -28,7 +28,7 @@ public:
    *
    * @note Internally we use the C11 function aligned_alloc although there
    *       are also alignment functions in C++11 but aligned_alloc is the only
-   *       one where we don't have to mess around with allocated bigger chungs of
+   *       one where we don't have to mess around with allocated bigger chuncks of
    *       memory and shifting the start address accordingly. If you know a
    *       better approach using e.g. std::align(), let me know.
    */
@@ -48,8 +48,10 @@ public:
     const size_type memory_size = sizeof(Pixel) * num_elements;
     //std::cout << "memory_size=" << memory_size << "; sizeof(Pixel)=" << sizeof(Pixel) << std::endl;
 
-    Pixel* p_data_aligned =
-        (Pixel*)aligned_alloc(memaddr_align, memory_size);
+    // Pixel* p_data_aligned =
+    //     (Pixel*)aligned_alloc(memaddr_align, memory_size);
+    Pixel* p_data_aligned;
+    posix_memalign((void**)&p_data_aligned, memaddr_align, memory_size);
 
     if (p_data_aligned == nullptr)
     {

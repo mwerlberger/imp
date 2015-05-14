@@ -16,8 +16,8 @@
 
 #include <imp/core/roi.hpp>
 #include <imp/core/image_raw.hpp>
-#include <imp/bridge/opencv/image_cv.hpp>
-#include <imp/cu_core/cu_image_gpu.cuh>
+//#include <imp/bridge/opencv/image_cv.hpp>
+//#include <imp/cu_core/cu_image_gpu.cuh>
 #include <imp/bridge/pangolin/imread.hpp>
 #include <imp/bridge/pangolin/pangolin_display.hpp>
 
@@ -29,10 +29,11 @@ void setImageData(unsigned char * imageArray, int size){
   }
 }
 
-int main( int /*argc*/, char* argv[] )
+int main( int argc, char* argv[] )
 {
   google::InitGoogleLogging(argv[0]);
-  const std::string filename("/home/mwerlberger/data/std/Lena.png");
+  CHECK_GE(argc,2) << "Usage: pangolin_load_test image_location";
+  const std::string filename(argv[1]);
 
   std::shared_ptr<imp::ImageRaw8uC1> im_8uC1;
   imp::pangolinBridgeLoad(im_8uC1, filename, imp::PixelOrder::gray);

@@ -124,9 +124,9 @@ template<typename T, std::uint8_t DIM>
 struct Roi
     : public RoiBase<T, DIM, Roi<T, DIM> >
 {
-  typedef RoiBase<T, DIM, Roi<T, DIM> > Base;
+  using Base = RoiBase<T, DIM, Roi<T, DIM> >;
+  using Base::Base;
 
-  using Base::RoiBase;
   Roi() = default;
   virtual ~Roi() = default;
 };
@@ -139,9 +139,9 @@ template<typename T>
 struct Roi<T, 2>
     : public RoiBase<T, 2, Roi<T, 2> >
 {
-  typedef RoiBase<T, 2, Roi<T, 2> > Base;
+  using Base = RoiBase<T, 2, Roi<T, 2> >;
+  using Base::Base;
 
-  using Base::RoiBase;
   Roi() = default;
   virtual ~Roi() = default;
 
@@ -160,7 +160,7 @@ struct Roi<T, 2>
    * @brief y returns the ROI's y coordinate of the left-upper corner
    */
   T& y() noexcept {return this->pt[1];}
-  constexpr const T& y() const {return this->pt[1];}
+  constexpr const T& y() const noexcept {return this->pt[1];}
 
   /**
    * @brief width returns the width of the 2d Roi
@@ -183,15 +183,15 @@ struct Roi<T, 2>
 // some convencience typedefs
 
 // 2D
-typedef Roi<std::uint32_t, 2> Roi2u;
-typedef Roi<std::int32_t, 2> Roi2i;
-typedef Roi<float, 2> Roi2f;
-typedef Roi<float, 2> Roi2d;
+using Roi2u = Roi<std::uint32_t, 2>;
+using Roi2i = Roi<std::int32_t, 2>;
+using Roi2f = Roi<float, 2>;
+using Roi2d = Roi<float, 2>;
 //3D
-typedef Roi<std::uint32_t, 3> Roi3u;
-typedef Roi<std::int32_t, 3> Roi3i;
-typedef Roi<float, 3> Roi3f;
-typedef Roi<float, 3> Roi3d;
+using Roi3u = Roi<std::uint32_t, 3>;
+using Roi3i = Roi<std::int32_t, 3>;
+using Roi3f = Roi<float, 3>;
+using Roi3d = Roi<float, 3>;
 
 
 } // namespace imp
