@@ -6,7 +6,12 @@ macro(imp_find_cuda)
 ##
 # CUDA
 ##
-find_package(CUDA ${ARGN})
+find_package(CUDA)
+imp_debug("FOUND_CUDA: ${FOUND_CUDA}")
+if ((NOT ${FOUND_CUDA}) OR (NOT (${CUDA_VERSION_MAJOR} LESS 7)))
+   imp_debug("CUDA not found or too old CUDA version (CUDA_VERSION_MAJOR < 7). Skipping this package.")
+   return()
+endif()
 add_definitions(-DIMP_WITH_CUDA)
 list(APPEND CUDA_NVCC_FLAGS
    -Xcompiler -fno-strict-aliasing -lineinfo -use_fast_math -std=c++11

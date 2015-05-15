@@ -20,14 +20,14 @@ TEST(IMPCoreTestSuite, singleShotTimerTest)
   }
 
   imp::SingleShotTimer::TimePoint end_inner = imp::SingleShotTimer::Clock::now();
-  imp::SingleShotTimer::Milliseconds duration = timer.elapsedMs();
+  imp::SingleShotTimer::Nanoseconds duration = timer.elapsedNs();
   imp::SingleShotTimer::TimePoint end_outer = imp::SingleShotTimer::Clock::now();
 
-  imp::SingleShotTimer::Milliseconds duration_inner =
-      std::chrono::duration_cast<imp::SingleShotTimer::Milliseconds>(
+  imp::SingleShotTimer::Nanoseconds duration_inner =
+      std::chrono::duration_cast<imp::SingleShotTimer::Nanoseconds>(
         end_inner - start_inner);
-  imp::SingleShotTimer::Milliseconds duration_outer =
-      std::chrono::duration_cast<imp::SingleShotTimer::Milliseconds>(
+  imp::SingleShotTimer::Nanoseconds duration_outer =
+      std::chrono::duration_cast<imp::SingleShotTimer::Nanoseconds>(
         end_outer - start_outer);
 
   ASSERT_LE(duration_inner.count(), duration.count());

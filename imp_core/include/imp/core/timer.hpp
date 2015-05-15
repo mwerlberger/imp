@@ -31,7 +31,7 @@ public:
   virtual ~SingleShotTimer()
   {
     std::cout << "[" << name_ << "] "
-              << std::fixed << this->elapsedMs().count() << " ms" << std::endl;
+              << std::fixed << this->elapsedNs().count() << " ns" << std::endl;
   }
 
   /**
@@ -50,11 +50,19 @@ public:
     return std::chrono::duration_cast<Milliseconds>(Clock::now() - start_);
   }
 
+  /**
+   * @brief elapsedNs returns the elapsed \a Nanoseconds
+   */
+  Nanoseconds elapsedNs() const noexcept
+  {
+    return std::chrono::duration_cast<Nanoseconds>(Clock::now() - start_);
+  }
+
   template <typename T, typename Traits>
   friend std::basic_ostream<T, Traits>& operator<< (
       std::basic_ostream<T, Traits>& out, const SingleShotTimer& timer)
   {
-    return out << timer.elapsedMs().count();
+    return out << timer.elapsedNs().count() << " ns";
   }
 
 private:
