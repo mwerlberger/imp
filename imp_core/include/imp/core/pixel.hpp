@@ -19,7 +19,7 @@ namespace imp {
 template<typename _T>
 union Pixel1
 {
-  typedef _T T;
+  using T = _T;
 
   struct
   {
@@ -35,7 +35,7 @@ union Pixel1
   CUDA_HOST CUDA_DEVICE Pixel1(T _x) : x(_x) { }
   CUDA_HOST CUDA_DEVICE ~Pixel1() = default;
 
-  CUDA_HOST CUDA_DEVICE constexpr std::uint8_t numDims() {return 1;}
+  CUDA_HOST CUDA_DEVICE constexpr std::uint8_t numDims() const {return 1;}
 
   CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
   CUDA_HOST CUDA_DEVICE T& operator[](size_t i) { return c[i]; }
@@ -63,7 +63,7 @@ union Pixel1
 template<typename _T>
 union Pixel2
 {
-  typedef _T T;
+  using T = _T;
 
   struct
   {
@@ -80,7 +80,7 @@ union Pixel2
   CUDA_HOST CUDA_DEVICE Pixel2(T _x, T _y) : x(_x), y(_y) { }
   CUDA_HOST CUDA_DEVICE ~Pixel2() = default;
 
-  CUDA_HOST CUDA_DEVICE constexpr std::uint8_t numDims() {return 2;}
+  CUDA_HOST CUDA_DEVICE constexpr std::uint8_t numDims() const {return 2;}
 
   CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
   CUDA_HOST CUDA_DEVICE T& operator[](size_t i) { return c[i]; }
@@ -117,7 +117,7 @@ union Pixel2
 template<typename _T>
 union Pixel3
 {
-  typedef _T T;
+  using T = _T;
 
   struct
   {
@@ -134,7 +134,7 @@ union Pixel3
   CUDA_HOST CUDA_DEVICE Pixel3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) { }
   CUDA_HOST CUDA_DEVICE ~Pixel3() = default;
 
-  CUDA_HOST CUDA_DEVICE constexpr std::uint8_t numDims() {return 3;}
+  CUDA_HOST CUDA_DEVICE constexpr std::uint8_t numDims() const {return 3;}
 
   CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
   CUDA_HOST CUDA_DEVICE T& operator[](size_t i) { return c[i]; }
@@ -175,7 +175,7 @@ union Pixel3
 template<typename _T>
 union Pixel4
 {
-  typedef _T T;
+  using T = _T;
 
   struct
   {
@@ -192,7 +192,7 @@ union Pixel4
   CUDA_HOST CUDA_DEVICE Pixel4(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) { }
   CUDA_HOST CUDA_DEVICE ~Pixel4() = default;
 
-  CUDA_HOST CUDA_DEVICE constexpr std::uint8_t numDims() {return 4;}
+  CUDA_HOST CUDA_DEVICE constexpr std::uint8_t numDims() const {return 4;}
 
   CUDA_HOST CUDA_DEVICE operator T() const { return c[0]; }
   CUDA_HOST CUDA_DEVICE T& operator[](size_t i) { return c[i]; }

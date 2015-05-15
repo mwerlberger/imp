@@ -10,7 +10,7 @@
 
 namespace imp {
 
-template<typename Pixel, imp::PixelType pixel_type>
+template<typename Pixel, typename imp::PixelType pixel_type>
 class Image : public ImageBase
 {
 public:

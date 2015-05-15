@@ -38,10 +38,6 @@ target_link_libraries(cu_rof_denoising_test)
 cs_add_executable(cu_tvl1_denoising_test cu_tvl1_denoising_test.cpp)
 target_link_libraries(cu_tvl1_denoising_test)
 
-cs_add_executable(pangolin_load_test pangolin_load_test.cpp)
-target_link_libraries(pangolin_load_test)
-
-
 
 #cs_add_executable(example_executable src/main.cc)
 #target_link_libraries(example_executable example_library)

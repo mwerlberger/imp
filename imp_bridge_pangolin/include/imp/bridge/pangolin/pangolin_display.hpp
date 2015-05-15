@@ -5,7 +5,7 @@
 #include <imp/core/image.hpp>
 #include <pangolin/display.h>
 
-#include <imp/cu_core/cu_image_gpu.cuh>
+// #include <imp/cu_core/cu_image_gpu.cuh>
 
 namespace imp
 {
