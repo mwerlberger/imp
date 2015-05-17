@@ -1,3 +1,9 @@
+language: cpp
+
+compiler:
+    - gcc
+    - clang
+
 before_install:
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - sudo apt-get update -qq
@@ -6,6 +12,7 @@ before_install:
   - mkdir /tmp/ws_base
   - git clone git@github.com:ethz-asl/catkin_simple.git /tmp/ws_base/catkin_simple
   - cd -
+
 install:
   - pip install PyYAML argparse rosdep vcstools catkin-pkg
   - sudo `which rosdep` init
@@ -15,5 +22,10 @@ install:
   - cd -
   - source /tmp/ws_base/devel/setup.bash
   - catkin_make
+
 notifications:
   email: false
+
+os:
+  - linux
+  # - osx
