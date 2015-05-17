@@ -1,0 +1,19 @@
+before_install:
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+  - sudo apt-get update -qq
+  - sudo apt-get install -y gcc-4.9
+  - sudo apt-get install -y libgtest0 libgtest-dev
+  - mkdir /tmp/ws_base
+  - git clone git@github.com:ethz-asl/catkin_simple.git /tmp/ws_base/catkin_simple
+  - cd -
+install:
+  - pip install PyYAML argparse rosdep vcstools catkin-pkg
+  - sudo `which rosdep` init
+  - rosde update
+  - cd /tmp/ws_base
+  - catkin_make
+  - cd -
+  - source /tmp/ws_base/devel/setup.bash
+  - catkin_make
+notifications:
+  email: false
