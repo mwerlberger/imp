@@ -4,6 +4,10 @@ compiler:
     - gcc
     - clang
 
+# Handle git submodules yourself
+git:
+  submodules: false
+
 before_install:
   - ls
   - pwd
