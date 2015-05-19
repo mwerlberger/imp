@@ -7,9 +7,11 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
 
+#include <imp/cu_core/cu_image_gpu.cuh>
 #include <imp/bridge/opencv/image_cv.hpp>
 #include <imp/cu_imgproc/cu_rof_denoising.cuh>
 #include <imp/bridge/opencv/cu_cv_bridge.hpp>
+#include <imp/bridge/ros/ros_bridge.hpp>
 #include <imp/cu_core/cu_utils.hpp>
 
 #include <sensor_msgs/Image.h>
@@ -40,6 +42,7 @@ private:
 //------------------------------------------------------------------------------
 void RofNode::imgCb(const sensor_msgs::ImageConstPtr &img_msg)
 {
+#if 0
   cv::Mat mat;
   try
   {
@@ -66,6 +69,10 @@ void RofNode::imgCb(const sensor_msgs::ImageConstPtr &img_msg)
 
   cv_img_->cvMat() = mat;
   img_->copyFrom(*cv_img_);
+#else
+  imp::toImageGpu(img_, *img_msg);
+#endif
+
   rof_->denoise(denoised_, img_);
   denoised_->copyTo(*cv_denoised_);
   cv::imshow("input", cv_img_->cvMat());
