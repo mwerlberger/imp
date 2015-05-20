@@ -20,9 +20,9 @@ before_install:
   - cd -
 
 install:
-  - pip install PyYAML argparse rosdep vcstools catkin-pkg
+  - sudo pip install PyYAML argparse rosdep vcstools catkin-pkg
   - sudo `which rosdep` init
-  - rosde update
+  - rosdep update
   - cd /tmp/ws_base
   - catkin_make
   - cd -
