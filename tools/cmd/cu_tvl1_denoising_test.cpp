@@ -13,15 +13,20 @@
 #include <imp/cu_imgproc/cu_tvl1_denoising.cuh>
 #include <imp/bridge/opencv/cu_cv_bridge.hpp>
 
-int main(int /*argc*/, char** /*argv*/)
+int main(int argc, char** argv)
 {
   try
   {
+    if (argc < 2)
+    {
+      std::cout << "usage: cu_tvl1_denoising_test input";
+    }
+    std::string in_filename(argv[1]);
+
     // 8uC1
     {
       std::shared_ptr<imp::cu::ImageGpu8uC1> d_lena;
-      imp::cu::cvBridgeLoad(d_lena, "/home/mwerlberger/data/std/Lena.tiff",
-                            imp::PixelOrder::gray);
+      imp::cu::cvBridgeLoad(d_lena, in_filename, imp::PixelOrder::gray);
       std::shared_ptr<imp::cu::ImageGpu8uC1> d_lena_denoised(
             new imp::cu::ImageGpu8uC1(*d_lena));
 
