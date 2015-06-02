@@ -7,8 +7,9 @@ macro(imp_find_cuda)
 # CUDA
 ##
 find_package(CUDA)
-imp_debug("FOUND_CUDA: ${FOUND_CUDA}")
-if ((NOT ${FOUND_CUDA}) OR (NOT (${CUDA_VERSION_MAJOR} LESS 7)))
+imp_debug("CUDA_FOUND: ${CUDA_FOUND}")
+imp_debug("CUDA_VERSION_MAJOR: ${CUDA_VERSION_MAJOR}")
+if ((NOT ${CUDA_FOUND}) OR (${CUDA_VERSION_MAJOR} LESS 7))
    imp_debug("CUDA not found or too old CUDA version (CUDA_VERSION_MAJOR < 7). Skipping this package.")
    return()
 endif()
