@@ -52,11 +52,12 @@ target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
 ### GTESTS
 ###
 
-# catkin_add_gtest(${PROJECT_NAME}-test
-#   test/test_main.cpp
-#   test/size_test.cpp
-# )
-# target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME} pthread)
+catkin_add_gtest(${PROJECT_NAME}-test
+  test/test_main.cpp
+  test/image_gpu_simple_test.cpp
+)
+target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME} pthread)
+
 
 cs_install()
 cs_export()
