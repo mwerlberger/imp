@@ -43,8 +43,7 @@ ImageCv<Pixel, pixel_type>::ImageCv(const Image<Pixel, pixel_type>& from)
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-ImageCv<Pixel, pixel_type>
-::ImageCv(cv::Mat mat, imp::PixelOrder pixel_order)
+ImageCv<Pixel, pixel_type>::ImageCv(cv::Mat mat, imp::PixelOrder pixel_order)
   : Base(mat.cols, mat.rows, pixel_order)
   , mat_(mat)
 {
