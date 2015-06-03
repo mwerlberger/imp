@@ -24,8 +24,12 @@ set(CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE OFF)
 ##! @todo (MWE) find/check the path of the compiler as well as the OS
 string(REGEX MATCH "/ccache/" SYSTEM_USE_CCACHE "${CMAKE_C_COMPILER}")
 if(SYSTEM_USE_CCACHE)
-   #set(CUDA_HOST_COMPILER /usr/bin/gcc)
-   set(CUDA_HOST_COMPILER /opt/cuda/bin/gcc)
+   if(EXISTS "${CUDA_TOOLKIT_ROOT_DIR}/bin/gcc")
+      set(CUDA_HOST_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/gcc)
+   elseif(EXISTS "/usr/bin/gcc")
+      set(CUDA_HOST_COMPILER /usr/bin/gcc)
+   endif()
+   imp_debug("CUDA_HOST_COMPILER: ${CUDA_HOST_COMPILER}")
 endif()
 
 include_directories(
@@ -39,7 +43,7 @@ if(CUDA_VERSION_STRING STREQUAL "7.0")
    # CUDA 7.0
    #imp_debug("IMP library compiled with CUDA 7.0")
    add_definitions(-DCUDA_VERSION_70)
-elseif()
+else()
    message(FATAL_ERROR "unknown CUDA version. some things might not be tested.")
 endif()
 
