@@ -278,12 +278,12 @@ struct Size<T, 3>
 typedef Size<std::uint32_t, 2> Size2u;
 typedef Size<std::int32_t, 2> Size2i;
 typedef Size<float, 2> Size2f;
-typedef Size<float, 2> Size2d;
+typedef Size<double, 2> Size2d;
 //3D
 typedef Size<std::uint32_t, 3> Size3u;
 typedef Size<std::int32_t, 3> Size3i;
 typedef Size<float, 3> Size3f;
-typedef Size<float, 3> Size3d;
+typedef Size<double, 3> Size3d;
 
 } // namespace imp
 
