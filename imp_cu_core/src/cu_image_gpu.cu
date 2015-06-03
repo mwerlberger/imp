@@ -28,14 +28,6 @@ ImageGpu<Pixel, pixel_type>::ImageGpu(const imp::Size2u& size)
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-ImageGpu<Pixel, pixel_type>::ImageGpu(std::uint32_t width, std::uint32_t height)
-  : ImageGpu(imp::Size2u(width,height))
-{
-}
-
-
-//-----------------------------------------------------------------------------
-template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>::ImageGpu(const ImageGpu& from)
   : ImageGpu(from.size())
 {

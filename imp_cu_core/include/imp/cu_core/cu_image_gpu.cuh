@@ -60,7 +60,8 @@ public:
   /**
    * @brief ImageGpu construcs an image of given size \a width x \a height
    */
-  ImageGpu(std::uint32_t width, std::uint32_t height);
+  ImageGpu(std::uint32_t width, std::uint32_t height)
+    : ImageGpu(imp::Size2u(width,height)) {;}
 
   /**
    * @brief ImageGpu copy constructs an image from the given image \a from

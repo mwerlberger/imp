@@ -24,7 +24,8 @@ set(CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE OFF)
 ##! @todo (MWE) find/check the path of the compiler as well as the OS
 string(REGEX MATCH "/ccache/" SYSTEM_USE_CCACHE "${CMAKE_C_COMPILER}")
 if(SYSTEM_USE_CCACHE)
-   set(CUDA_HOST_COMPILER /usr/bin/gcc)
+   #set(CUDA_HOST_COMPILER /usr/bin/gcc)
+   set(CUDA_HOST_COMPILER /opt/cuda/bin/gcc)
 endif()
 
 include_directories(
