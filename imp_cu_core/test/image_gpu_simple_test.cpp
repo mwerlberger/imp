@@ -8,7 +8,7 @@
 #include <imp/cu_core/cu_image_gpu.cuh>
 
 
-TEST(IMPCoreTestSuite,imageGpuSimpleTest)
+TEST(IMPCuCoreTestSuite,imageGpuSimpleTest)
 {
   //
   // 2D image

@@ -54,8 +54,10 @@ target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
 
 catkin_add_gtest(${PROJECT_NAME}-test
   test/test_main.cpp
+  test/cu_linearmemory_test.cpp
   test/image_gpu_simple_test.cpp
   #test/image_gpu_test.cpp
+  test/min_max_test.cpp
 )
 target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME} pthread)
 

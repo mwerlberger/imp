@@ -33,7 +33,7 @@ public:
    *       better approach using e.g. std::align(), let me know.
    */
   static Pixel* alignedAlloc(const size_t num_elements,
-                                        bool init_with_zeros=false)
+                             bool init_with_zeros=false)
   {
     if (num_elements == 0)
     {
@@ -77,7 +77,7 @@ public:
    *
    */
   static Pixel* alignedAlloc(const std::uint32_t width, const std::uint32_t height,
-                                        size_type* pitch, bool init_with_zeros=false)
+                             size_type* pitch, bool init_with_zeros=false)
   {
     if (width == 0 || height == 0)
     {
@@ -107,7 +107,7 @@ public:
    * @return
    */
   static Pixel* alignedAlloc(imp::Size2u size, size_type* pitch,
-                                       bool init_with_zeros=false)
+                             bool init_with_zeros=false)
   {
     return alignedAlloc(size[0], size[1], pitch, init_with_zeros);
   }
@@ -134,8 +134,9 @@ public:
  *
  */
 template<typename Pixel>
-struct MemoryDeallocator
+class MemoryDeallocator
 {
+public:
   // Default custom deleter assuming we use arrays (new PixelType[length])
   MemoryDeallocator()
     : f([](Pixel* p) { free(p); })
