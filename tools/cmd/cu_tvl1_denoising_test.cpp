@@ -19,7 +19,8 @@ int main(int argc, char** argv)
   {
     if (argc < 2)
     {
-      std::cout << "usage: cu_tvl1_denoising_test input";
+      std::cout << "usage: cu_tvl1_denoising_test input_image_filename";
+      return EXIT_FAILURE;
     }
     std::string in_filename(argv[1]);
 
@@ -43,8 +44,7 @@ int main(int argc, char** argv)
     // 32fC1
     {
       std::shared_ptr<imp::cu::ImageGpu32fC1> d1_lena;
-      imp::cu::cvBridgeLoad(d1_lena, "/home/mwerlberger/data/std/Lena.tiff",
-                            imp::PixelOrder::gray);
+      imp::cu::cvBridgeLoad(d1_lena, in_filename, imp::PixelOrder::gray);
       std::shared_ptr<imp::cu::ImageGpu32fC1> d_lena_denoised(
             new imp::cu::ImageGpu32fC1(*d1_lena));
 
