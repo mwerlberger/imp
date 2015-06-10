@@ -13,42 +13,46 @@
 #include <imp/cu_imgproc/cu_rof_denoising.cuh>
 #include <imp/bridge/opencv/cu_cv_bridge.hpp>
 
-int main(int /*argc*/, char** /*argv*/)
+int main(int argc, char** argv)
 {
   try
   {
+    if (argc < 2)
+    {
+      std::cout << "usage: cu_rof_denoising_test input_image_filename";
+      return EXIT_FAILURE;
+    }
+    std::string in_filename(argv[1]);
+
+
     // ROF denoising 8uC1
     {
-      std::shared_ptr<imp::cu::ImageGpu8uC1> d1_lena_8uC1;
-      imp::cu::cvBridgeLoad(d1_lena_8uC1, "/home/mwerlberger/data/std/Lena.tiff",
-                            imp::PixelOrder::gray);
-      std::shared_ptr<imp::cu::ImageGpu8uC1> d_lena_denoised_8uC1(
-            new imp::cu::ImageGpu8uC1(*d1_lena_8uC1));
+      std::shared_ptr<imp::cu::ImageGpu8uC1> cu_im;
+      imp::cu::cvBridgeLoad(cu_im, in_filename, imp::PixelOrder::gray);
+      std::shared_ptr<imp::cu::ImageGpu8uC1> cu_im_denoised(
+            new imp::cu::ImageGpu8uC1(*cu_im));
 
       imp::cu::RofDenoising8uC1 rof;
       std::cout << "\n" << rof << std::endl << std::endl;
-      rof.denoise(d_lena_denoised_8uC1, d1_lena_8uC1);
+      rof.denoise(cu_im_denoised, cu_im);
 
       // show results
-      imp::cu::cvBridgeShow("lena input 8u", *d1_lena_8uC1);
-      imp::cu::cvBridgeShow("lena denoised 8u", *d_lena_denoised_8uC1);
+      imp::cu::cvBridgeShow("input 8u", *cu_im);
+      imp::cu::cvBridgeShow("denoised 8u", *cu_im_denoised);
     }
-
-//    imp::cvBridgeSave("test.png", h_lena_denoised_8uC1);
 
     // ROF denoising 32fC1
     {
-      std::shared_ptr<imp::cu::ImageGpu32fC1> d1_lena_32fC1;
-      imp::cu::cvBridgeLoad(d1_lena_32fC1, "/home/mwerlberger/data/std/Lena.tiff",
-                            imp::PixelOrder::gray);
-      std::shared_ptr<imp::cu::ImageGpu32fC1> d_lena_denoised_32fC1(
-            new imp::cu::ImageGpu32fC1(*d1_lena_32fC1));
+      std::shared_ptr<imp::cu::ImageGpu32fC1> cu_im;
+      imp::cu::cvBridgeLoad(cu_im, in_filename, imp::PixelOrder::gray);
+      std::shared_ptr<imp::cu::ImageGpu32fC1> cu_im_denoised(
+            new imp::cu::ImageGpu32fC1(*cu_im));
 
-      imp::cu::RofDenoising32fC1 rof_32fC1;
-      rof_32fC1.denoise(d_lena_denoised_32fC1, d1_lena_32fC1);
+      imp::cu::RofDenoising32fC1 rof;
+      rof.denoise(cu_im_denoised, cu_im);
 
-      imp::cu::cvBridgeShow("lena input 32f", *d1_lena_32fC1);
-      imp::cu::cvBridgeShow("lena denoised 32f", *d_lena_denoised_32fC1);
+      imp::cu::cvBridgeShow("input 32f", *cu_im);
+      imp::cu::cvBridgeShow("denoised 32f", *cu_im_denoised);
     }
 
     cv::waitKey();
