@@ -51,9 +51,9 @@ public:
     // Pixel* p_data_aligned =
     //     (Pixel*)aligned_alloc(memaddr_align, memory_size);
     Pixel* p_data_aligned;
-    posix_memalign((void**)&p_data_aligned, memaddr_align, memory_size);
+    int ret = posix_memalign((void**)&p_data_aligned, memaddr_align, memory_size);
 
-    if (p_data_aligned == nullptr)
+    if (p_data_aligned == nullptr || ret != 0)
     {
       throw std::bad_alloc();
     }
