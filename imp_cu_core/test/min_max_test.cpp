@@ -9,6 +9,7 @@
 
 #include <imp/core/image_raw.hpp>
 #include <imp/cu_core/cu_math.cuh>
+#include <imp/cu_core/cu_utils.hpp>
 
 
 TEST(IMPCuCoreTestSuite,minMaxTest)
@@ -33,9 +34,13 @@ TEST(IMPCuCoreTestSuite,minMaxTest)
     }
   }
 
-  imp::cu::ImageGpu8uC1 cu_im(im);
+  IMP_CUDA_CHECK();
+//  imp::cu::ImageGpu8uC1 cu_im(im);
+//  IMP_CUDA_CHECK();
   imp::Pixel8uC1 min_pixel, max_pixel;
-  imp::cu::minMax(cu_im, min_pixel, max_pixel);
+//  IMP_CUDA_CHECK();
+//  imp::cu::minMax(cu_im, min_pixel, max_pixel);
+//  IMP_CUDA_CHECK();
 
   ASSERT_EQ(min_val, min_pixel);
   ASSERT_EQ(max_val, max_pixel);

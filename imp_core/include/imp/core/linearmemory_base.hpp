@@ -10,9 +10,7 @@ namespace imp {
 class LinearMemoryBase
 {
 protected:
-  LinearMemoryBase() :
-    length_(0)
-  { }
+  LinearMemoryBase() = delete;
 
   LinearMemoryBase(const LinearMemoryBase& from) :
     length_(from.length_)

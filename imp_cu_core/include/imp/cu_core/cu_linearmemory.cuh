@@ -29,8 +29,8 @@ public:
   using Deallocator = imp::cu::MemoryDeallocator<Pixel>;
 
 public:
-  __host__ LinearMemory();
-  virtual ~LinearMemory() = default;
+  __host__ LinearMemory() = delete;
+  virtual ~LinearMemory() { }
 
   __host__ LinearMemory(const size_t& length);
   __host__ LinearMemory(const imp::cu::LinearMemory<Pixel>& from);

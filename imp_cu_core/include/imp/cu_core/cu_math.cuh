@@ -14,8 +14,8 @@ namespace cu {
 template<typename Pixel, imp::PixelType pixel_type>
 void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min, Pixel& max);
 
-template<typename Pixel>
-void minMax(const Texture2D& img_tex, Pixel& min_val, Pixel& max_val, const imp::Roi2u& roi);
+//template<typename Pixel>
+//void minMax(const Texture2D& img_tex, Pixel& min_val, Pixel& max_val, const imp::Roi2u& roi);
 
 } // namespace cu
 } // namespace imp

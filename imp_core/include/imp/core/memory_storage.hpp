@@ -139,21 +139,22 @@ class MemoryDeallocator
 public:
   // Default custom deleter assuming we use arrays (new PixelType[length])
   MemoryDeallocator()
-    : f([](Pixel* p) { free(p); })
-  { }
+  {
+    f_ = [](Pixel* p) {free(p);};
+  }
 
   // allow us to define a custom deallocator
-  explicit MemoryDeallocator(std::function<void(Pixel*)> const &_f)
-    : f(_f)
+  explicit MemoryDeallocator(std::function<void(Pixel*)> const &f)
+    : f_(f)
   { }
 
   void operator()(Pixel* p) const
   {
-    f(p);
+    f_(p);
   }
 
 private:
-  std::function< void(Pixel* )> f;
+  std::function< void(Pixel* )> f_;
 }; // MemoryDeallocator
 
 } // imp

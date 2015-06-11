@@ -24,8 +24,8 @@ __global__ void k_minMax(Pixel* d_col_mins, Pixel* d_col_maxs,
 
   if (x<roi_width)
   {
-    float xx = x + roi_x; // roi_offset TODO
-    float yy = roi_y; // roi_offset TODO
+    float xx = x + roi_x;
+    float yy = roi_y;
 
     Pixel cur_min, cur_max;
     img_tex.fetch(cur_min, xx, ++yy);
@@ -45,45 +45,78 @@ __global__ void k_minMax(Pixel* d_col_mins, Pixel* d_col_maxs,
 }
 
 
-//-----------------------------------------------------------------------------
-template<typename Pixel>
-void minMax(const Texture2D& img_tex, Pixel& min_val, Pixel& max_val, const imp::Roi2u& roi)
-{
-  Fragmentation<512,1,1> frag(roi.width(), 1);
+////-----------------------------------------------------------------------------
+//template<typename Pixel>
+//void minMax(const Texture2D& img_tex, Pixel& min_val, Pixel& max_val, const imp::Roi2u& roi)
+//{
+//  Fragmentation<512,1,1> frag(roi.width(), 1);
 
-  imp::cu::LinearMemory<Pixel> d_col_mins(roi.width());
-  imp::cu::LinearMemory<Pixel> d_col_maxs(roi.width());
+//  imp::cu::LinearMemory<Pixel> d_col_mins(roi.width());
+//  imp::cu::LinearMemory<Pixel> d_col_maxs(roi.width());
+//  IMP_CUDA_CHECK();
 
-  k_minMax
-      <<<
-        frag.dimGrid, frag.dimBlock
-      >>> (d_col_mins.data(), d_col_maxs.data(),
-           roi.x(), roi.y(), roi.width(), roi.height(), img_tex);
+//  k_minMax
+//      <<<
+//        frag.dimGrid, frag.dimBlock
+//      >>> (d_col_mins.data(), d_col_maxs.data(),
+//           roi.x(), roi.y(), roi.width(), roi.height(), img_tex);
+//  IMP_CUDA_CHECK();
 
-  imp::LinearMemory<Pixel> h_col_mins(roi.width());
-  imp::LinearMemory<Pixel> h_col_maxs(roi.width());
-  d_col_mins.copyTo(h_col_mins);
-  d_col_maxs.copyTo(h_col_maxs);
+//  imp::LinearMemory<Pixel> h_col_mins(roi.width());
+//  imp::LinearMemory<Pixel> h_col_maxs(roi.width());
+//  d_col_mins.copyTo(h_col_mins);
+//  d_col_maxs.copyTo(h_col_maxs);
 
-  min_val = h_col_mins(0);
-  max_val = h_col_maxs(0);
+//  min_val = h_col_mins(0);
+//  max_val = h_col_maxs(0);
 
-  for (auto i=1u; i<roi.width(); ++i)
-  {
-    min_val = imp::cu::min<Pixel>(min_val, h_col_mins(i));
-    max_val = imp::cu::max<Pixel>(max_val, h_col_maxs(i));
-  }
+//  for (auto i=1u; i<roi.width(); ++i)
+//  {
+//    min_val = imp::cu::min<Pixel>(min_val, h_col_mins(i));
+//    max_val = imp::cu::max<Pixel>(max_val, h_col_maxs(i));
+//  }
 
-  IMP_CUDA_CHECK();
-}
+//  IMP_CUDA_CHECK();
+//}
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
 void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min_val, Pixel& max_val)
 {
+  IMP_CUDA_CHECK();
+
   std::unique_ptr<Texture2D> img_tex = img.genTexture();
+  IMP_CUDA_CHECK();
   imp::Roi2u roi = img.roi();
-  imp::cu::minMax(*img_tex, min_val, max_val, roi);
+  //imp::cu::minMax(*img_tex, min_val, max_val, roi);
+
+    Fragmentation<512,1,1> frag(roi.width(), 1);
+
+    imp::cu::LinearMemory<Pixel> d_col_mins(roi.width());
+    imp::cu::LinearMemory<Pixel> d_col_maxs(roi.width());
+    IMP_CUDA_CHECK();
+
+    k_minMax
+        <<<
+          frag.dimGrid, frag.dimBlock
+        >>> (d_col_mins.data(), d_col_maxs.data(),
+             roi.x(), roi.y(), roi.width(), roi.height(), *img_tex);
+    IMP_CUDA_CHECK();
+
+    imp::LinearMemory<Pixel> h_col_mins(roi.width());
+    imp::LinearMemory<Pixel> h_col_maxs(roi.width());
+    d_col_mins.copyTo(h_col_mins);
+    d_col_maxs.copyTo(h_col_maxs);
+
+    min_val = h_col_mins(0);
+    max_val = h_col_maxs(0);
+
+    for (auto i=1u; i<roi.width(); ++i)
+    {
+      min_val = imp::cu::min<Pixel>(min_val, h_col_mins(i));
+      max_val = imp::cu::max<Pixel>(max_val, h_col_maxs(i));
+    }
+
   IMP_CUDA_CHECK();
 }
 
