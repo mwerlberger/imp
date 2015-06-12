@@ -24,8 +24,8 @@ __global__ void k_minMax(Pixel* d_col_mins, Pixel* d_col_maxs,
 
   if (x<roi_width)
   {
-    float xx = x + roi_x; // roi_offset TODO
-    float yy = roi_y; // roi_offset TODO
+    float xx = x + roi_x;
+    float yy = roi_y;
 
     Pixel cur_min, cur_max;
     img_tex.fetch(cur_min, xx, ++yy);
@@ -53,12 +53,14 @@ void minMax(const Texture2D& img_tex, Pixel& min_val, Pixel& max_val, const imp:
 
   imp::cu::LinearMemory<Pixel> d_col_mins(roi.width());
   imp::cu::LinearMemory<Pixel> d_col_maxs(roi.width());
+  IMP_CUDA_CHECK();
 
   k_minMax
       <<<
         frag.dimGrid, frag.dimBlock
       >>> (d_col_mins.data(), d_col_maxs.data(),
            roi.x(), roi.y(), roi.width(), roi.height(), img_tex);
+  IMP_CUDA_CHECK();
 
   imp::LinearMemory<Pixel> h_col_mins(roi.width());
   imp::LinearMemory<Pixel> h_col_maxs(roi.width());
@@ -81,7 +83,10 @@ void minMax(const Texture2D& img_tex, Pixel& min_val, Pixel& max_val, const imp:
 template<typename Pixel, imp::PixelType pixel_type>
 void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min_val, Pixel& max_val)
 {
+  IMP_CUDA_CHECK();
+
   std::unique_ptr<Texture2D> img_tex = img.genTexture();
+  IMP_CUDA_CHECK();
   imp::Roi2u roi = img.roi();
   imp::cu::minMax(*img_tex, min_val, max_val, roi);
   IMP_CUDA_CHECK();
