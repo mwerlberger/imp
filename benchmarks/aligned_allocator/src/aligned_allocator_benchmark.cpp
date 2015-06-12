@@ -21,8 +21,9 @@ int main(int argc, char* argv[])
     for (std::uint64_t i=0; i<num_rounds; ++i)
     {
       std::uint8_t* p_data_aligned;
-      posix_memalign((void**)&p_data_aligned, memaddr_align, memory_size);
+      int ret = posix_memalign((void**)&p_data_aligned, memaddr_align, memory_size);
       free(p_data_aligned);
+      (void)ret;
     }
 
     LOG(INFO) << "posix_memalign: " << std::fixed << (double)timer.elapsedMs().count()/num_rounds << " ms / alloc+free";
