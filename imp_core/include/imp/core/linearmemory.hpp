@@ -21,7 +21,7 @@ public:
 
 public:
   LinearMemory() = delete;
-  virtual ~LinearMemory() = default;
+  virtual ~LinearMemory() { }
   LinearMemory(const size_t& length);
   LinearMemory(const LinearMemory<Pixel>& from);
   LinearMemory(Pixel* host_data, const size_t& length,

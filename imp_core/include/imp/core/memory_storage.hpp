@@ -51,9 +51,9 @@ public:
     // Pixel* p_data_aligned =
     //     (Pixel*)aligned_alloc(memaddr_align, memory_size);
     Pixel* p_data_aligned;
-    posix_memalign((void**)&p_data_aligned, memaddr_align, memory_size);
+    int ret = posix_memalign((void**)&p_data_aligned, memaddr_align, memory_size);
 
-    if (p_data_aligned == nullptr)
+    if (p_data_aligned == nullptr || ret != 0)
     {
       throw std::bad_alloc();
     }
@@ -139,21 +139,22 @@ class MemoryDeallocator
 public:
   // Default custom deleter assuming we use arrays (new PixelType[length])
   MemoryDeallocator()
-    : f([](Pixel* p) { free(p); })
-  { }
+  {
+    f_ = [](Pixel* p) {free(p);};
+  }
 
   // allow us to define a custom deallocator
-  explicit MemoryDeallocator(std::function<void(Pixel*)> const &_f)
-    : f(_f)
+  explicit MemoryDeallocator(std::function<void(Pixel*)> const &f)
+    : f_(f)
   { }
 
   void operator()(Pixel* p) const
   {
-    f(p);
+    f_(p);
   }
 
 private:
-  std::function< void(Pixel* )> f;
+  std::function< void(Pixel* )> f_;
 }; // MemoryDeallocator
 
 } // imp
