@@ -112,6 +112,7 @@ int main(int /*argc*/, char** /*argv*/)
     stereo->parameters()->ctf.iters = 30;
     stereo->parameters()->ctf.warps  = 5;
     stereo->parameters()->ctf.apply_median_filter = true;
+    stereo->parameters()->lambda = 20;
 
     stereo->addImage(im0);
     stereo->addImage(im1);
@@ -125,7 +126,7 @@ int main(int /*argc*/, char** /*argv*/)
     stereo->setIntrinsics({cu_cam, cu_cam});
     stereo->setExtrinsics(T_mov_fix);
     stereo->setDepthProposal(cu_mu, cu_sigma2);
-
+    
     stereo->solve();
 
     std::shared_ptr<imp::cu::ImageGpu32fC1> d_disp = stereo->getDisparities();
