@@ -29,11 +29,17 @@ public:
   virtual __host__ void denoise(const std::shared_ptr<imp::ImageBase>& dst,
                                 const std::shared_ptr<imp::ImageBase>& src) override;
 
+  __host__ void primalDualEnergy(double& primal_energy, double& dual_energy);
+
 protected:
   virtual void print(std::ostream &os) const override;
 
 private:
   typename ImageGpu::Ptr f_;
+
+  // pixel-wise primal and dual energies to avoid allocation of memory for every check
+  std::unique_ptr<ImageGpu32fC1> primal_energies_;
+  std::unique_ptr<ImageGpu32fC1> dual_energies_;
 
 };
 

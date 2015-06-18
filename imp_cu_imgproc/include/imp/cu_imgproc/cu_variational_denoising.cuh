@@ -18,6 +18,8 @@ struct VariationalDenoisingParams
   float lambda = 10.f;
   std::uint16_t max_iter = 100;
   bool verbose = false;
+  std::uint16_t primal_dual_energy_check_iter = 0;
+  double primal_dual_gap_tolerance = 0.0;
 };
 
 /**

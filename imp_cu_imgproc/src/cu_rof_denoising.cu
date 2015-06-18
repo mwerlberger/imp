@@ -89,6 +89,41 @@ __global__ void k_convertResult8uC1(Pixel8uC1* d_u, size_t stride_u,
   }
 }
 
+//-----------------------------------------------------------------------------
+__global__ void k_rofPrimalEnergy(Pixel32fC1* d_ep,  size_type stride,
+                                  std::uint32_t width, std::uint32_t height,
+                                  float lambda, Texture2D f_tex, Texture2D u_tex)
+{
+  int x = blockIdx.x*blockDim.x + threadIdx.x;
+  int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+  if (x<width && y<height)
+  {
+    float2 dp_u = dp(u_tex, x, y);
+    float f = f_tex.fetch<float>(x,y);
+    float u = u_tex.fetch<float>(x,y);
+    d_ep[y*stride + x] = length(dp_u) + lambda/2.0f * imp::cu::sqr(u-f);
+  }
+}
+
+//-----------------------------------------------------------------------------
+__global__ void k_rofDualEnergy(Pixel32fC1* d_ed,  size_type stride,
+                                std::uint32_t width, std::uint32_t height,
+                                float lambda, Texture2D f_tex, Texture2D p_tex)
+{
+  int x = blockIdx.x*blockDim.x + threadIdx.x;
+  int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+  if (x<width && y<height)
+  {
+    float f = f_tex.fetch<float>(x,y);
+    float div = dpAd(p_tex, x, y, width, height);
+    d_ed[y*stride + x] = -imp::cu::sqr(div)/(2.0f*lambda) - div*f;
+  }
+}
+
+
+
 //#############################################################################
 
 //-----------------------------------------------------------------------------
@@ -161,6 +196,16 @@ void RofDenoising<Pixel, pixel_type>::denoise(const std::shared_ptr<ImageBase>& 
                 << "; sigma: " << sigma << "; theta: " << theta << std::endl;
     }
 
+    if (params_.primal_dual_energy_check_iter > 0
+        && iter % params_.primal_dual_energy_check_iter
+        && params_.primal_dual_gap_tolerance > 0.f)
+    {
+      double primal_energy = 0.0, dual_energy = 0.0;
+      this->primalDualEnergy(primal_energy, dual_energy);
+      std::cout << "ENERGIES: primal: " << primal_energy <<
+                   "; dual: " << dual_energy << std::endl;
+    }
+
     k_rofDualUpdate
         <<< dimGrid(), dimBlock() >>> (p_->data(), p_->stride(),
                                        *p_tex_, *u_prev_tex_,
@@ -197,6 +242,40 @@ void RofDenoising<Pixel, pixel_type>::denoise(const std::shared_ptr<ImageBase>& 
     throw imp::cu::Exception("Unsupported PixelType.",
                              __FILE__, __FUNCTION__, __LINE__);
   }
+  IMP_CUDA_CHECK();
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+void RofDenoising<Pixel, pixel_type>::primalDualEnergy(
+    double& primal_energy, double& dual_energy)
+{
+  if (!primal_energies_ || !dual_energies_)
+  {
+    primal_energies_.reset(new ImageGpu32fC1(size_));
+    dual_energies_.reset(new ImageGpu32fC1(size_));
+  }
+
+  k_rofPrimalEnergy
+      <<<
+         this->dimGrid(), this->dimBlock()
+      >>> (primal_energies_->data(), primal_energies_->stride(),
+           size_.width(), size_.height(), params_.lambda,
+           *f_tex_, *u_tex_);
+
+  // TODO sum
+  primal_energy = 10.0;
+  //imp::cu::minMax(primal_energies_, )
+  IMP_CUDA_CHECK();
+
+  k_rofDualEnergy
+      <<<
+         this->dimGrid(), this->dimBlock()
+      >>> (dual_energies_->data(), dual_energies_->stride(),
+           size_.width(), size_.height(), params_.lambda,
+           *f_tex_, *p_tex_);
+  dual_energy = 20.0;
+
   IMP_CUDA_CHECK();
 }
 

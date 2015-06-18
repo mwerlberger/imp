@@ -148,6 +148,12 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
   // sanity check:
   // TODO
 
+
+  // image textures
+  i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
+  i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
+
+
   // constants
   constexpr float tau = 0.95f;
   constexpr float sigma = 0.95f;
@@ -173,10 +179,6 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
   }
   lambda_tex_ = lambda->genTexture(false,cudaFilterModePoint,
                                    cudaAddressModeClamp, cudaReadModeElementType);
-
-  // image textures
-  i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
-  i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
 
   // compute edge weight
   imp::cu::naturalEdges(*g_, *images.at(0),

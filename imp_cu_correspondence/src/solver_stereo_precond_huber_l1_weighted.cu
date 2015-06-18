@@ -173,6 +173,9 @@ void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImageGpu32fC1::Ptr> i
                params_->lambda, tau, lin_step,
                *u_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *xi_tex_, *g_tex_);
 
+    } // iters
+    lin_step /= 1.2f;
+
 #if 0
       k_primalEnergy
           <<<
@@ -184,9 +187,6 @@ void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImageGpu32fC1::Ptr> i
       imp::cu::minMax(*ep, ep_min, ep_max);
       std::cout << "ENERGY: " << ep_min.x << ", " << ep_max.x << std::endl;
 #endif
-
-    } // iters
-    lin_step /= 1.2f;
 
   } // warps
   IMP_CUDA_CHECK();

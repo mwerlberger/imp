@@ -30,14 +30,11 @@ set(CU_HDRS
   )
 
 set(CU_SRCS
-  src/image_transform/cu_reduce_impl.cu
-  src/image_transform/cu_resample_impl.cu
-  src/cu_image_transform.cu
-  src/image_filter/cu_median3x3_impl.cu
-  src/image_filter/cu_gauss_impl.cu
-  src/cu_image_filter.cu
-  src/edge_detectors/natural_edges_impl.cu
-  src/edge_detectors.cu
+  src/reduce.cu
+  src/resample.cu
+  src/median3x3_filter.cu
+  src/gauss_filter.cu
+  src/natural_edges.cu
   src/cu_variational_denoising.cu
   src/cu_rof_denoising.cu
   src/cu_tvl1_denoising.cu

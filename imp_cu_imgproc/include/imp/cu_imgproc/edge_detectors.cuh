@@ -9,7 +9,7 @@
 namespace imp {
 namespace cu {
 
-/** Compute 'natural' image edges as a functino like g = exp(-alpha*(norm)^q)
+/** Compute 'natural' image edges as a function like g = exp(-alpha*(norm)^q)
  * Dependending on the dimension of the edge image the function computes the edge's
  * magnitude (EdgePixel == Pixel1), its direction (EdgePixel == Pixel2) or a
  * 3-dimensional tensor (EdgePixel == Pixel3 or Pixel4).

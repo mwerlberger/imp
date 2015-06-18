@@ -49,6 +49,8 @@ int main(int argc, char** argv)
             new imp::cu::ImageGpu32fC1(*cu_im));
 
       imp::cu::RofDenoising32fC1 rof;
+      rof.params().primal_dual_energy_check_iter = 10;
+      rof.params().primal_dual_gap_tolerance = 1e-3;
       rof.denoise(cu_im_denoised, cu_im);
 
       imp::cu::cvBridgeShow("input 32f", *cu_im);

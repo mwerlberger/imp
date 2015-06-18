@@ -23,7 +23,6 @@ std::uint32_t divUp(std::uint32_t a, std::uint32_t b)
   return (a % b != 0) ? (a / b + 1) : (a / b);
 }
 
-
 template<typename T>
 __host__ __device__ __forceinline__
 T min(const T& a, const T& b, bool check_inf_or_nan=true)
@@ -52,6 +51,7 @@ T max(const T& a, const T& b, bool check_inf_or_nan=true)
   return a>b ? a : b;
 }
 
+/// @todo (MWE) rvalue?
 template<typename T>
 __host__ __device__ __forceinline__
 T sqr(const T& a) {return a*a;}
