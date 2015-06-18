@@ -178,13 +178,9 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
   i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
   i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
 
-
-
   // compute edge weight
   imp::cu::naturalEdges(*g_, *images.at(0),
                         params_->edge_sigma, params_->edge_alpha, params_->edge_q);
-
-
 
   // warping
   for (std::uint32_t warp = 0; warp < params_->ctf.warps; ++warp)

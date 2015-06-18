@@ -17,6 +17,7 @@ add_definitions(-DIMP_WITH_CUDA)
 list(APPEND CUDA_NVCC_FLAGS
    -Xcompiler -fno-strict-aliasing -lineinfo -use_fast_math -std=c++11
    -Xptxas -dlcm=cg)
+# set to OFF cuda files are added to multiple targets
 set(CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE OFF)
 
 # nvcc and ccache are not very good friends, hence we set the host compiler

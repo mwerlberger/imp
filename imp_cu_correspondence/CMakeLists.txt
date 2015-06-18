@@ -65,9 +65,9 @@ set(CU_SRCS
 #endforeach()
 
 cs_cuda_add_library(${PROJECT_NAME}
-   ${CU_SRCS} ${CU_HDRS} ${SOURCES} ${HEADERS}
-   )
-target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
+  ${CU_SRCS} ${CU_HDRS} ${SOURCES} ${HEADERS}
+  )
+#target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES} ${catkin_LIBRARIES})
 
 ###
 ### GTESTS

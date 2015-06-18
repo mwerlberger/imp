@@ -41,12 +41,12 @@ set(CU_SRC
   src/cu_math.cu
   )
 
-cuda_compile(CU_OBJ ${CU_SRC})
+#cuda_compile(CU_OBJ ${CU_SRC})
 
-cs_add_library(${PROJECT_NAME}
-   ${CU_OBJ} ${CU_SRC} ${SOURCES} ${HEADERS}
+cs_cuda_add_library(${PROJECT_NAME}
+   ${CU_SRC} ${SOURCES} ${HEADERS}
    )
-target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
+#target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES} ${catkin_LIBRARIES})
 
 ###
 ### GTESTS

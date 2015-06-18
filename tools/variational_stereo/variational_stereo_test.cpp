@@ -38,7 +38,7 @@ int main(int /*argc*/, char** /*argv*/)
 
 
     StereoParameters::Ptr stereo_params = std::make_shared<StereoParameters>();
-    stereo_params->verbose = 0;
+    stereo_params->verbose = 10;
     stereo_params->solver = imp::cu::StereoPDSolver::PrecondHuberL1Weighted;
     stereo_params->ctf.scale_factor = 0.8f;
     stereo_params->ctf.iters = 50;
@@ -79,10 +79,13 @@ int main(int /*argc*/, char** /*argv*/)
 
     // get primal energy
     imp::cu::ImageGpu32fC1::Ptr d_ep = stereo->computePrimalEnergy();
-    imp::cu::cvBridgeShow("primal energy", *d_ep, true);
-    imp::Pixel32fC1 ep_min, ep_max;
-    imp::cu::minMax(*d_ep, ep_min, ep_max);
-    std::cout << "primal energy: min: " << ep_min.x << " max: " << ep_max.x << std::endl;
+    if (d_ep)
+    {
+      imp::cu::cvBridgeShow("primal energy", *d_ep, true);
+      imp::Pixel32fC1 ep_min, ep_max;
+      imp::cu::minMax(*d_ep, ep_min, ep_max);
+      std::cout << "primal energy: min: " << ep_min.x << " max: " << ep_max.x << std::endl;
+    }
 
 
     cv::waitKey();
