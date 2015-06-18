@@ -47,6 +47,7 @@ public:
 
   void addImage(const ImageGpu32fC1::Ptr& image);
   void solve();
+  ImageGpu32fC1::Ptr computePrimalEnergy(size_type level=0);
   ImageGpu32fC1::Ptr getDisparities(size_type level=0);
   ImageGpu32fC1::Ptr getOcclusion(size_type level=0);
 

@@ -54,6 +54,19 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
   depth_proposal_.reset(new ImageGpu32fC1(size));
   depth_proposal_sigma2_.reset(new ImageGpu32fC1(size));
 
+  u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
+  u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
+  u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
+  pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
+  q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
+  ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
+  it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
+  xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
+  g_tex_ =  g_->genTexture(false, cudaFilterModeLinear);
+  depth_proposal_tex_ =  depth_proposal_->genTexture(false, cudaFilterModeLinear);
+  depth_proposal_sigma2_tex_ =  depth_proposal_sigma2_->genTexture(false, cudaFilterModeLinear);
+
+
   float scale_factor = std::pow(params->ctf.scale_factor, level);
 
   if (depth_proposal.size() == size)
@@ -161,20 +174,9 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
   lambda_tex_ = lambda->genTexture(false,cudaFilterModePoint,
                                    cudaAddressModeClamp, cudaReadModeElementType);
 
-  // textures
+  // image textures
   i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
   i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
-  u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
-  u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
-  u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
-  pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
-  q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
-  ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
-  it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
-  xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
-  g_tex_ =  g_->genTexture(false, cudaFilterModeLinear);
-  depth_proposal_tex_ =  depth_proposal_->genTexture(false, cudaFilterModeLinear);
-  depth_proposal_sigma2_tex_ =  depth_proposal_sigma2_->genTexture(false, cudaFilterModeLinear);
 
 
 

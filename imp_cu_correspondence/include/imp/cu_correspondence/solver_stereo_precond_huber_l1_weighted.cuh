@@ -32,9 +32,10 @@ public:
   virtual void init(const SolverStereoAbstract& rhs) override;
   virtual void solve(std::vector<ImageGpu32fC1::Ptr> images) override;
 
+  virtual ImageGpu32fC1::Ptr computePrimalEnergy() override;
+
   virtual inline ImageGpu32fC1::Ptr getDisparities() override {return u_;}
   virtual inline ImageGpu32fC1::Ptr getOcclusion() override {return occ_;}
-
 
 protected:
   ImageGpu32fC1::Ptr u_; //!< disparities (result)

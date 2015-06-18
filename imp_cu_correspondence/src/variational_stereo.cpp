@@ -39,6 +39,11 @@ void VariationalStereo::solve()
   ctf_->solve();
 }
 
+//------------------------------------------------------------------------------
+ImageGpu32fC1::Ptr VariationalStereo::computePrimalEnergy(size_type level)
+{
+  return ctf_->computePrimalEnergy(level);
+}
 
 //------------------------------------------------------------------------------
 VariationalStereo::ImageGpu32fC1::Ptr VariationalStereo::getDisparities(size_type level)

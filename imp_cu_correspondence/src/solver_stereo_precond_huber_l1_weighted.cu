@@ -43,6 +43,16 @@ SolverStereoPrecondHuberL1Weighted::SolverStereoPrecondHuberL1Weighted(
   g_->setValue(1.0f);
   occ_.reset(new ImageGpu32fC1(size));
 
+  u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
+  u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
+  u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
+  pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
+  q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
+  ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
+  it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
+  xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
+  g_tex_  = g_->genTexture(false, cudaFilterModeLinear);
+  occ_tex_ = occ_->genTexture();
 
 }
 
@@ -89,16 +99,8 @@ void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImageGpu32fC1::Ptr> i
 
   i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
   i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
-  u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
-  u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
-  u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
-  pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
-  q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
-  ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
-  it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
-  xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
-  g_tex_  = g_->genTexture(false, cudaFilterModeLinear);
-  occ_tex_ = occ_->genTexture();
+
+  ImageGpu32fC1::Ptr ep = std::make_shared<ImageGpu32fC1>(size_);
 
   Fragmentation<16,16> frag(size_);
   u_->copyTo(*u_prev_);
@@ -126,18 +128,6 @@ void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImageGpu32fC1::Ptr> i
     occ_->setValue(0);
 #if 1
     occlusionCandidatesUniqunessMapping(occ_, u0_);
-
-    i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
-    i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
-    u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
-    u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
-    u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
-    pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
-    q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
-    ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
-    it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
-    xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
-    g_tex_  = g_->genTexture(false, cudaFilterModeLinear);
 
 #else
     k_occlusionCandidatesUniqunessMapping
@@ -183,11 +173,37 @@ void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImageGpu32fC1::Ptr> i
                params_->lambda, tau, lin_step,
                *u_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *xi_tex_, *g_tex_);
 
+#if 0
+      k_primalEnergy
+          <<<
+            frag.dimGrid, frag.dimBlock
+          >>> (ep->cuData(), ep->stride(), ep->width(), ep->height(),
+               params_->lambda,
+               *u_tex_, *g_tex_, *i1_tex_, *i2_tex_);
+      Pixel32fC1 ep_min, ep_max;
+      imp::cu::minMax(*ep, ep_min, ep_max);
+      std::cout << "ENERGY: " << ep_min.x << ", " << ep_max.x << std::endl;
+#endif
+
     } // iters
     lin_step /= 1.2f;
 
   } // warps
   IMP_CUDA_CHECK();
+}
+
+//------------------------------------------------------------------------------
+ImageGpu32fC1::Ptr SolverStereoPrecondHuberL1Weighted::computePrimalEnergy()
+{
+  ImageGpu32fC1::Ptr ep = std::make_shared<ImageGpu32fC1>(size_);
+  Fragmentation<16,16> frag(size_);
+  k_primalEnergy
+      <<<
+        frag.dimGrid, frag.dimBlock
+      >>> (ep->cuData(), ep->stride(), ep->width(), ep->height(),
+           params_->lambda,
+           *u_tex_, *g_tex_, *i1_tex_, *i2_tex_);
+  return ep;
 }
 
 

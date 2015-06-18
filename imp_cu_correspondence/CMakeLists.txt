@@ -57,15 +57,15 @@ set(CU_SRCS
   #src/occlusion_kernel.cuh
   )
 
-cuda_compile(CU_OBJ ${CU_SRCS} ${CU_HDRS})
+#cuda_compile(CU_OBJ ${CU_SRCS} ${CU_HDRS})
 
 #foreach(cu_file ${CU_SRCS})
 #  message(STATUS "Process file: ${cu_file}")
 #  set_source_files_properties(cu_file PROPERTIES HEADER_FILE_ONLY TRUE)
 #endforeach()
 
-cs_add_library(${PROJECT_NAME}
-   ${CU_OBJ} ${SOURCES} ${HEADERS} ${CU_HDRS}
+cs_cuda_add_library(${PROJECT_NAME}
+   ${CU_SRCS} ${CU_HDRS} ${SOURCES} ${HEADERS}
    )
 target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
 

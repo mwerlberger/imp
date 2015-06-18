@@ -36,13 +36,23 @@ public:
   virtual void init() = 0;
   virtual void init(const SolverStereoAbstract& rhs) = 0;
   virtual void solve(std::vector<ImageGpu32fC1::Ptr> images) = 0;
+
+  /**
+   * @brief computePrimalEnergy returns an the primal energy with the current disparity values.
+   * @note There is no need to implement this function so by default a nullptr is returned
+   * @return Pixel-wise primal energy
+   */
+  virtual ImageGpu32fC1::Ptr computePrimalEnergy() {return nullptr;}
+
   virtual ImageGpu32fC1::Ptr getDisparities() = 0;
+
   /**
    * @brief getOcclusion returns an estimate of occluded pixels
    * @note There is no need to implement this function so by default a nullptr is returned
    * @return A mask with an estimate of occluded pixels or nullptr if not estimated.
    */
   virtual ImageGpu32fC1::Ptr getOcclusion() {return nullptr;}
+
 
   // setters / getters
   inline imp::Size2u size() { return size_; }

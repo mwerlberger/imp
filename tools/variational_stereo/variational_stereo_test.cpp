@@ -76,6 +76,15 @@ int main(int /*argc*/, char** /*argv*/)
     {
       imp::cu::cvBridgeShow("occlusions", *d_occ, true);
     }
+
+    // get primal energy
+    imp::cu::ImageGpu32fC1::Ptr d_ep = stereo->computePrimalEnergy();
+    imp::cu::cvBridgeShow("primal energy", *d_ep, true);
+    imp::Pixel32fC1 ep_min, ep_max;
+    imp::cu::minMax(*d_ep, ep_min, ep_max);
+    std::cout << "primal energy: min: " << ep_min.x << " max: " << ep_max.x << std::endl;
+
+
     cv::waitKey();
   }
   catch (std::exception& e)

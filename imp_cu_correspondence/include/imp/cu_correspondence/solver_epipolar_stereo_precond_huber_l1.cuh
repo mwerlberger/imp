@@ -55,7 +55,6 @@ protected:
   std::unique_ptr<ImageGpu32fC1> xi_; //!< preconditioner
   std::unique_ptr<ImageGpu32fC1> g_; //!< for edge weighting
 
-
   cu::Matrix3f F_;
   std::vector<cu::PinholeCamera> cams_;
   cu::SE3<float> T_mov_fix_;

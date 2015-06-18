@@ -163,6 +163,33 @@ __global__ void k_dualUpdateWeighted(DPixel* d_pu, const size_type stride_pu,
   }
 }
 
+//-----------------------------------------------------------------------------
+template<typename T>
+__global__ void k_primalEnergy(T* ep, const size_type stride,
+                               const std::uint32_t width, const std::uint32_t height,
+                               const float lambda,
+                               Texture2D u_tex, Texture2D g_tex,
+                               Texture2D i1_tex, Texture2D i2_tex)
+{
+  const int x = blockIdx.x*blockDim.x + threadIdx.x;
+  const int y = blockIdx.y*blockDim.y + threadIdx.y;
+  if (x<width && y<height)
+  {
+    float2 du = dpWeighted(u_tex, g_tex, x, y);
+    float u = u_tex.fetch<float>(x,y);
+    float wx = x+u;
+    float dat = 0.f;
+
+    float bd = .5f;
+    if ((wx > bd) && (x > bd) && (wx < width-bd-1) && (x < width-bd-1) &&
+        (y>bd) && (y<height-bd-1))
+    {
+      dat = i2_tex.fetch<float>(wx,y) - i1_tex.fetch<float>(x,y);
+    }
+
+    ep[y*stride+x] = length(du) + lambda * fabs(dat);
+  }
+}
 
 } // namespace cu
 } // namespace imp
