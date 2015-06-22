@@ -59,7 +59,10 @@ protected:
   {
     //os << "  size: " << this->size_ << std::endl
     os << "  lambda: " << this->params_.lambda << std::endl
-       << "  max_iter: " << this->params_.max_iter << std::endl;
+       << "  max_iter: " << this->params_.max_iter << std::endl
+       << "  primal_dual_energy_check_iter: " << this->params_.primal_dual_energy_check_iter << std::endl
+       << "  primal_dual_gap_tolerance: " << this->params_.primal_dual_gap_tolerance << std::endl
+       << std::endl;
   }
 
 
