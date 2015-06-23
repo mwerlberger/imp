@@ -6,6 +6,7 @@
 #include <cuda_runtime.h>
 #include <imp/core/types.hpp>
 #include <imp/core/pixel.hpp>
+#include <imp/core/pixel_enums.hpp>
 #include <imp/cu_core/cu_exception.hpp>
 
 namespace imp {
