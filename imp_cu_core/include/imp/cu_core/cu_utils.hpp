@@ -3,6 +3,8 @@
 
 #include <cuda_runtime_api.h>
 #include <cstdint>
+#include <cmath>
+#include <type_traits>
 
 #include <imp/core/size.hpp>
 #include <imp/core/roi.hpp>
@@ -23,32 +25,153 @@ std::uint32_t divUp(std::uint32_t a, std::uint32_t b)
   return (a % b != 0) ? (a / b + 1) : (a / b);
 }
 
+/*
+template<class T>
+typename std::enable_if<std::is_integral<T>::value, std::function<T()> >::type
+getRandomGenerator()
+*/
+
 template<typename T>
 __host__ __device__ __forceinline__
-T min(const T& a, const T& b, bool check_inf_or_nan=true)
+typename std::enable_if<std::is_integral<T>::value, T>::type
+min(const T& a, const T& b, bool check_inf_or_nan=true)
 {
-  //  if (check_inf_or_nan)
-  //  {
-  //    if (isnan(a) || isinf(a))
-  //      return b;
-  //    if (isnan(b) || isinf(b))
-  //      return a;
-  //  }
+    if (check_inf_or_nan)
+    {
+      if (std::isnan(a) || std::isinf(a))
+        return b;
+      if (std::isnan(b) || std::isinf(b))
+        return a;
+    }
   return a<b ? a : b;
 }
 
 template<typename T>
 __host__ __device__ __forceinline__
-T max(const T& a, const T& b, bool check_inf_or_nan=true)
+typename std::enable_if<std::is_floating_point<T>::value, T>::type
+min(const T& a, const T& b, bool check_inf_or_nan=true)
 {
-  //  if (check_inf_or_nan)
-  //  {
-  //    if (isnan(a) || isinf(a))
-  //      return b;
-  //    if (isnan(b) || isinf(b))
-  //      return a;
-  //  }
+    if (check_inf_or_nan)
+    {
+      if (std::isnan(a) || std::isinf(a))
+        return b;
+      if (std::isnan(b) || std::isinf(b))
+        return a;
+    }
+  return a<b ? a : b;
+}
+
+template<typename T>
+__host__ __device__ __forceinline__
+Pixel1<T> min(const Pixel1<T>& a, const Pixel1<T>& b)
+{
+  Pixel1<T> result;
+  for (auto i=0; i<a.numDims(); ++i)
+    result[i] = (a[i]<b[i]) ? a[i] : b[i];
+  return result;
+}
+template<typename T>
+__host__ __device__ __forceinline__
+Pixel2<T> min(const Pixel2<T>& a, const Pixel2<T>& b)
+{
+  Pixel2<T> result;
+  for (auto i=0; i<a.numDims(); ++i)
+    result[i] = (a[i]<b[i]) ? a[i] : b[i];
+  return result;
+}
+template<typename T>
+__host__ __device__ __forceinline__
+Pixel3<T> min(const Pixel3<T>& a, const Pixel3<T>& b)
+{
+  Pixel3<T> result;
+  for (auto i=0; i<a.numDims(); ++i)
+    result[i] = (a[i]<b[i]) ? a[i] : b[i];
+  return result;
+}
+template<typename T>
+__host__ __device__ __forceinline__
+Pixel4<T> min(const Pixel4<T>& a, const Pixel4<T>& b)
+{
+  Pixel4<T> result;
+  for (auto i=0; i<a.numDims(); ++i)
+    result[i] = (a[i]<b[i]) ? a[i] : b[i];
+  return result;
+}
+
+//------------------------------------------------------------------------------
+template<typename T>
+__host__ __device__ __forceinline__
+typename std::enable_if<std::is_integral<T>::value, T>::type
+max(const T& a, const T& b, bool check_inf_or_nan=true)
+{
+    if (check_inf_or_nan)
+    {
+      if (std::isnan(a) || std::isinf(a))
+        return b;
+      if (std::isnan(b) || std::isinf(b))
+        return a;
+    }
   return a>b ? a : b;
+}
+
+template<typename T>
+__host__ __device__ __forceinline__
+typename std::enable_if<std::is_floating_point<T>::value, T>::type
+max(const T& a, const T& b, bool check_inf_or_nan=true)
+{
+    if (check_inf_or_nan)
+    {
+      if (std::isnan(a) || std::isinf(a))
+        return b;
+      if (std::isnan(b) || std::isinf(b))
+        return a;
+    }
+  return a>b ? a : b;
+}
+
+template<typename T>
+__host__ __device__ __forceinline__
+Pixel1<T> max(const Pixel1<T>& a, const Pixel1<T>& b)
+{
+  Pixel1<T> result;
+  for (auto i=0; i<a.numDims(); ++i)
+    result[i] = (a[i]>b[i]) ? a[i] : b[i];
+  return result;
+}
+template<typename T>
+__host__ __device__ __forceinline__
+Pixel2<T> max(const Pixel2<T>& a, const Pixel2<T>& b)
+{
+  Pixel2<T> result;
+  for (auto i=0; i<a.numDims(); ++i)
+    result[i] = (a[i]>b[i]) ? a[i] : b[i];
+  return result;
+}
+template<typename T>
+__host__ __device__ __forceinline__
+Pixel3<T> max(const Pixel3<T>& a, const Pixel3<T>& b)
+{
+  Pixel3<T> result;
+  for (auto i=0; i<a.numDims(); ++i)
+    result[i] = (a[i]>b[i]) ? a[i] : b[i];
+  return result;
+}
+template<typename T>
+__host__ __device__ __forceinline__
+Pixel4<T> max(const Pixel4<T>& a, const Pixel4<T>& b)
+{
+  Pixel4<T> result;
+  for (auto i=0; i<a.numDims(); ++i)
+    result[i] = (a[i]>b[i]) ? a[i] : b[i];
+  return result;
+}
+
+template<typename T>
+__host__ __device__ __forceinline__
+typename std::enable_if<!std::is_floating_point<T>::value && !std::is_integral<T>::value, T>::type
+min(const T& a, const T& b, bool check_inf_or_nan=true)
+{
+  return a<b ? a : b;
 }
 
 /// @todo (MWE) rvalue?

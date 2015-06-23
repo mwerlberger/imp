@@ -28,7 +28,7 @@ __global__ void k_minMax(Pixel* d_col_mins, Pixel* d_col_maxs,
     float yy = roi_y;
 
     Pixel cur_min, cur_max;
-    img_tex.fetch(cur_min, xx, ++yy);
+    img_tex.fetch(cur_min, xx, yy++);
     cur_max = cur_min;
 
     Pixel val;
@@ -72,8 +72,8 @@ void minMax(const Texture2D& img_tex, Pixel& min_val, Pixel& max_val, const imp:
 
   for (auto i=1u; i<roi.width(); ++i)
   {
-    min_val = imp::cu::min<Pixel>(min_val, h_col_mins(i));
-    max_val = imp::cu::max<Pixel>(max_val, h_col_maxs(i));
+    min_val = imp::cu::min(min_val, h_col_mins(i));
+    max_val = imp::cu::max(max_val, h_col_maxs(i));
   }
 
   IMP_CUDA_CHECK();

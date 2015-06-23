@@ -15,8 +15,11 @@ if ((NOT ${CUDA_FOUND}) OR (${CUDA_VERSION_MAJOR} LESS 7))
 endif()
 add_definitions(-DIMP_WITH_CUDA)
 list(APPEND CUDA_NVCC_FLAGS
-   -Xcompiler -fno-strict-aliasing -lineinfo -use_fast_math -std=c++11
+   -Xcompiler -fno-strict-aliasing -lineinfo -std=c++11
    -Xptxas -dlcm=cg)
+# list(APPEND CUDA_NVCC_FLAGS
+#    -Xcompiler -fno-strict-aliasing -lineinfo -use_fast_math -std=c++11
+#    -Xptxas -dlcm=cg)
 # set to OFF cuda files are added to multiple targets
 set(CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE OFF)
 
