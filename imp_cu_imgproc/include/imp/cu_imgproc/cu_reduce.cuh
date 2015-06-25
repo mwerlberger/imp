@@ -1,5 +1,5 @@
-#ifndef IMP_CU_REDUCTION_CUH
-#define IMP_CU_REDUCTION_CUH
+#ifndef IMP_CU_REDUCE_CUH
+#define IMP_CU_REDUCE_CUH
 
 #include <imp/core/types.hpp>
 #include <imp/core/pixel_enums.hpp>
@@ -18,17 +18,17 @@ void reduce(ImageGpu<Pixel, pixel_type>& dst,
             bool gauss_prefilter=true);
 
 
-/**
- * @brief Image reduction from \a src to \a dst image
- */
-template<typename Pixel, imp::PixelType pixel_type>
-void resample(ImageGpu<Pixel, pixel_type>& dst,
-              const ImageGpu<Pixel, pixel_type>& src,
-              InterpolationMode interp = InterpolationMode::linear,
-              bool gauss_prefilter=false);
+// /**
+//  * @brief Image reduction from \a src to \a dst image
+//  */
+// template<typename Pixel, imp::PixelType pixel_type>
+// void resample(ImageGpu<Pixel, pixel_type>& dst,
+//               const ImageGpu<Pixel, pixel_type>& src,
+//               InterpolationMode interp = InterpolationMode::linear,
+//               bool gauss_prefilter=false);
 
 
 } // namespace cu
 } // namespace imp
 
-#endif // IMP_CU_REDUCTION_CUH
+#endif // IMP_CU_REDUCE_CUH

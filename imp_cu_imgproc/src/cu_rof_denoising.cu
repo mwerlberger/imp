@@ -65,7 +65,7 @@ __global__ void k_rofDualUpdate(
 
   if (x<width && y<height)
   {
-    float2 p = tex2D<float2>(u_tex, x+.5f, y+.5f);
+    float2 p = tex2D<float2>(p_tex, x+.5f, y+.5f);
     float2 dp_u = dp(u_prev_tex, x, y);
 
     p = p + sigma*dp_u;

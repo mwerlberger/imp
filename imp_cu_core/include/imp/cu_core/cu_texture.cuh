@@ -22,8 +22,8 @@ public:
   cudaTextureObject_t tex_object;
   __device__ __forceinline__ operator cudaTextureObject_t() const {return tex_object;}
 
-//  using Ptr = std::shared_ptr<Texture2D>;
-//  using UPtr = std::unique_ptr<Texture2D>;
+  //  using Ptr = std::shared_ptr<Texture2D>;
+  //  using UPtr = std::unique_ptr<Texture2D>;
 
   __host__ Texture2D()
     : tex_object(0)
@@ -94,65 +94,65 @@ public:
     return *this;
   }
 
-//  /**
-//   * @brief Wrapper for accesing texels including coord manipulation {e.g. x = (x+.5f)*mul_x + add_x}
-//   * @param mul_x multiplicative factor of x-coordinate
-//   * @param mul_y multiplicative factor of y-coordinate
-//   * @param add_x additive factor of x-coordinate
-//   * @param add_y additive factor of y-coordinate
-//   * @note The coordinate are not texture but pixel coords (no need to add 0.5f!)
-//   */
-//  template<typename T>
-//  __device__ __forceinline__ T fetch(float x, float y,
-//                                     float mul_x=1.0f, float mul_y=1.0f,
-//                                     float add_x=0.0f, float add_y=0.0f) const
-//  {
-//    return tex2D<T>(tex_object, x*mul_x+add_x+0.5f, y*mul_y+add_y+.5f);
-//  }
+  //  /**
+  //   * @brief Wrapper for accesing texels including coord manipulation {e.g. x = (x+.5f)*mul_x + add_x}
+  //   * @param mul_x multiplicative factor of x-coordinate
+  //   * @param mul_y multiplicative factor of y-coordinate
+  //   * @param add_x additive factor of x-coordinate
+  //   * @param add_y additive factor of y-coordinate
+  //   * @note The coordinate are not texture but pixel coords (no need to add 0.5f!)
+  //   */
+  //  template<typename T>
+  //  __device__ __forceinline__ T fetch(float x, float y,
+  //                                     float mul_x=1.0f, float mul_y=1.0f,
+  //                                     float add_x=0.0f, float add_y=0.0f) const
+  //  {
+  //    return tex2D<T>(tex_object, x*mul_x+add_x+0.5f, y*mul_y+add_y+.5f);
+  //  }
 
 public:
   /*
    *     FETCH OVERLOADS AS TEX2D ONLY ALLOWS FOR CUDA VEC TYPES
    */
   __device__ void fetch(imp::Pixel8uC1& texel, float x,
-                                        float y, float mul_x=1.0f, float mul_y=1.0f,
-                                        float add_x=0.0f, float add_y=0.0f);
+                        float y, float mul_x=1.0f, float mul_y=1.0f,
+                        float add_x=0.0f, float add_y=0.0f);
   __device__ void fetch(imp::Pixel8uC2& texel, float x, float y,
-                                        float mul_x=1.0f, float mul_y=1.0f,
-                                        float add_x=0.0f, float add_y=0.0f);
+                        float mul_x=1.0f, float mul_y=1.0f,
+                        float add_x=0.0f, float add_y=0.0f);
   __device__ void fetch(imp::Pixel8uC4& texel, float x, float y,
-                                        float mul_x=1.0f, float mul_y=1.0f,
-                                        float add_x=0.0f, float add_y=0.0f);
+                        float mul_x=1.0f, float mul_y=1.0f,
+                        float add_x=0.0f, float add_y=0.0f);
 
   __device__ void fetch(imp::Pixel16uC1& texel, float x, float y,
-                                        float mul_x=1.0f, float mul_y=1.0f,
-                                        float add_x=0.0f, float add_y=0.0f);
+                        float mul_x=1.0f, float mul_y=1.0f,
+                        float add_x=0.0f, float add_y=0.0f);
   __device__ void fetch(imp::Pixel16uC2& texel, float x, float y,
-                                        float mul_x=1.0f, float mul_y=1.0f,
-                                        float add_x=0.0f, float add_y=0.0f);
+                        float mul_x=1.0f, float mul_y=1.0f,
+                        float add_x=0.0f, float add_y=0.0f);
   __device__ void fetch(imp::Pixel16uC4& texel, float x, float y,
-                                        float mul_x=1.0f, float mul_y=1.0f,
-                                        float add_x=0.0f, float add_y=0.0f);
+                        float mul_x=1.0f, float mul_y=1.0f,
+                        float add_x=0.0f, float add_y=0.0f);
 
   __device__ void fetch(imp::Pixel32sC1& texel, float x, float y,
-                                        float mul_x=1.0f, float mul_y=1.0f,
-                                        float add_x=0.0f, float add_y=0.0f);
+                        float mul_x=1.0f, float mul_y=1.0f,
+                        float add_x=0.0f, float add_y=0.0f);
   __device__ void fetch(imp::Pixel32sC2& texel, float x, float y,
-                                        float mul_x=1.0f, float mul_y=1.0f,
-                                        float add_x=0.0f, float add_y=0.0f);
+                        float mul_x=1.0f, float mul_y=1.0f,
+                        float add_x=0.0f, float add_y=0.0f);
   __device__ void fetch(imp::Pixel32sC4& texel, float x, float y,
-                                        float mul_x=1.0f, float mul_y=1.0f,
-                                        float add_x=0.0f, float add_y=0.0f);
+                        float mul_x=1.0f, float mul_y=1.0f,
+                        float add_x=0.0f, float add_y=0.0f);
 
   __device__ void fetch(imp::Pixel32fC1& texel, float x, float y,
-                                        float mul_x=1.0f, float mul_y=1.0f,
-                                        float add_x=0.0f, float add_y=0.0f);
+                        float mul_x=1.0f, float mul_y=1.0f,
+                        float add_x=0.0f, float add_y=0.0f);
   __device__ void fetch(imp::Pixel32fC2& texel, float x, float y,
-                                        float mul_x=1.0f, float mul_y=1.0f,
-                                        float add_x=0.0f, float add_y=0.0f);
+                        float mul_x=1.0f, float mul_y=1.0f,
+                        float add_x=0.0f, float add_y=0.0f);
   __device__ void fetch(imp::Pixel32fC4& texel, float x, float y,
-                                        float mul_x=1.0f, float mul_y=1.0f,
-                                        float add_x=0.0f, float add_y=0.0f);
+                        float mul_x=1.0f, float mul_y=1.0f,
+                        float add_x=0.0f, float add_y=0.0f);
 };
 
 

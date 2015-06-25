@@ -1,9 +1,6 @@
-#ifndef IMP_CU_REDUCE_IMPL_CU
-#define IMP_CU_REDUCE_IMPL_CU
+#include <imp/cu_imgproc/cu_reduce.cuh>
 
-#include <imp/cu_imgproc/cu_image_transform.cuh>
-
-//#include <memory>
+#include <memory>
 #include <cstdint>
 #include <cmath>
 
@@ -130,4 +127,3 @@ template void reduce(ImageGpu32fC4& dst, const ImageGpu32fC4& src, Interpolation
 } // namespace cu
 } // namespace imp
 
-#endif // IMP_CU_REDUCE_IMPL_CU

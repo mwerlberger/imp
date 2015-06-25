@@ -208,7 +208,7 @@ void ImageGpu<Pixel, pixel_type>::setValue(const Pixel& value)
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-std::unique_ptr<Texture2D> ImageGpu<Pixel, pixel_type>::genTexture(
+std::shared_ptr<Texture2D> ImageGpu<Pixel, pixel_type>::genTexture(
     bool normalized_coords,
     cudaTextureFilterMode filter_mode,
     cudaTextureAddressMode address_mode,
@@ -216,9 +216,8 @@ std::unique_ptr<Texture2D> ImageGpu<Pixel, pixel_type>::genTexture(
 {
   // don't blame me for doing a const_cast as binding textures needs a void* but
   // we want genTexture to be a const function as we don't modify anything here!
-  return std::unique_ptr<Texture2D>(
-        new Texture2D(this->cuData(), this->pitch(), channel_format_desc_, this->size(),
-                      normalized_coords, filter_mode, address_mode, read_mode));
+  return std::make_shared<Texture2D>(this->cuData(), this->pitch(), channel_format_desc_, this->size(),
+                                     normalized_coords, filter_mode, address_mode, read_mode);
 }
 
 //-----------------------------------------------------------------------------

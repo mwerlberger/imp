@@ -21,7 +21,7 @@ set(SOURCES
   )
 
 set(CU_HDRS
-  include/imp/cu_imgproc/cu_image_transform.cuh
+  include/imp/cu_imgproc/cu_reduce.cuh
   include/imp/cu_imgproc/cu_image_filter.cuh
   include/imp/cu_imgproc/edge_detectors.cuh
   include/imp/cu_imgproc/cu_variational_denoising.cuh
@@ -31,7 +31,7 @@ set(CU_HDRS
 
 set(CU_SRCS
   src/reduce.cu
-  src/resample.cu
+  #src/resample.cu
   src/median3x3_filter.cu
   src/gauss_filter.cu
   src/natural_edges.cu
