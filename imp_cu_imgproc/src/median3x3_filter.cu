@@ -262,7 +262,7 @@ template<typename Pixel, imp::PixelType pixel_type>
 void filterMedian3x3(ImageGpu<Pixel, pixel_type>& dst,
                      const ImageGpu<Pixel, pixel_type>& src)
 {
-  std::unique_ptr<Texture2D> src_tex =
+  std::shared_ptr<Texture2D> src_tex =
       src.genTexture(false, (src.bitDepth()<32) ? cudaFilterModePoint
                                                   : cudaFilterModeLinear);
 

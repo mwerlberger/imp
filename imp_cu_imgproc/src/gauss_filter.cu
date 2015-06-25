@@ -130,7 +130,7 @@ void filterGauss(ImageGpu<Pixel, pixel_type>& dst,
            roi.x(), roi.y(), tmp_img->width(), tmp_img->height(),
            src_tex, /*sigma, */kernel_size, c0, c1, false);
 
-  std::unique_ptr<Texture2D> tmp_tex =
+  std::shared_ptr<Texture2D> tmp_tex =
       tmp_img->genTexture(false,(tmp_img->bitDepth()<32) ? cudaFilterModePoint
                                                          : cudaFilterModeLinear);
   // Convolve vertically
@@ -153,7 +153,7 @@ void filterGauss(ImageGpu<Pixel, pixel_type>& dst,
                  ImageGpuPtr<Pixel, pixel_type> tmp_img)
 //                 cudaStream_t stream);
 {
-  std::unique_ptr<Texture2D> src_tex =
+  std::shared_ptr<Texture2D> src_tex =
       src.genTexture(false,(src.bitDepth()<32) ? cudaFilterModePoint
                                                : cudaFilterModeLinear);
   imp::Roi2u roi = src.roi();

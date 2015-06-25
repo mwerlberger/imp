@@ -68,7 +68,7 @@ void reduce(ImageGpu<Pixel, pixel_type>& dst,
   if (src.bitDepth() < 32)
     tex_filter_mode = cudaFilterModePoint;
 
-  std::unique_ptr<Texture2D> src_tex;
+  std::shared_ptr<Texture2D> src_tex;
   if (filtered)
     src_tex = filtered->genTexture(false, tex_filter_mode);
   else

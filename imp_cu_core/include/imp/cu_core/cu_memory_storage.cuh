@@ -55,7 +55,7 @@ public:
    *
    */
   static Pixel* alignedAlloc(const std::uint32_t width, const std::uint32_t height,
-                                        size_type* pitch)
+                             size_type* pitch)
   {
     if (width == 0 || height == 0)
     {
@@ -128,23 +128,23 @@ struct MemoryDeallocator
   // Default custom deleter assuming we use arrays (new PixelType[length])
   MemoryDeallocator()
     : f([](Pixel* p) { cudaFree(p); })
-  { }
+{ }
 
-  // allow us to define a custom deallocator
-  explicit MemoryDeallocator(std::function<void(Pixel*)> const &_f)
-    : f(_f)
-  { }
+// allow us to define a custom deallocator
+explicit MemoryDeallocator(std::function<void(Pixel*)> const &_f)
+  : f(_f)
+{ }
 
-  void operator()(Pixel* p) const
-  {
-    f(p);
-  }
+void operator()(Pixel* p) const
+{
+  f(p);
+}
 
 private:
-  std::function< void(Pixel* )> f;
+std::function< void(Pixel* )> f;
 };
 
-} // namespace cu
+              } // namespace cu
 } // namespace imp
 
 #endif // IMP_CU_MEMORY_STORAGE_CUH

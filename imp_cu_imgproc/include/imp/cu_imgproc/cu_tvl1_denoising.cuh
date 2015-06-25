@@ -25,8 +25,8 @@ public:
   virtual ~TvL1Denoising() = default;
   using Base::Base;
 
-  virtual __host__ void init(const Size2u& size) override;
-  virtual __host__ void denoise(const ImageBase::Ptr& dst,
+  virtual void init(const Size2u& size) override;
+  virtual void __host__ denoise(const ImageBase::Ptr& dst,
                                 const ImageBase::Ptr& src) override;
 
 protected:

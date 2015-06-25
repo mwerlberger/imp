@@ -29,7 +29,7 @@ typename std::enable_if<!std::is_integral<T>::value, std::function<T()> >::type
 getRandomGenerator()
 {
   std::default_random_engine generator;
-  std::uniform_real_distribution<T> distribution(std::numeric_limits<T>::min(),
+  std::uniform_real_distribution<T> distribution(FLT_MIN,
                                                  std::numeric_limits<T>::max());
   auto random_val = std::bind(distribution, generator);
   return random_val;
@@ -92,7 +92,8 @@ TEST(IMPCuCoreTestSuite,minMaxTest_32fC1)
     }
   }
 
-  std::cout << "numeric: min, max: " << std::numeric_limits<float>::lowest() << " " << std::numeric_limits<float>::max() << std::endl;
+  std::cout << "numeric:  min, max: " << std::numeric_limits<float>::lowest() << " " << std::numeric_limits<float>::max() << std::endl;
+  std::cout << "numeric2: min, max: " << FLT_MIN << " " << FLT_MAX << std::endl;
   std::cout << "CPU min, max: " << min_val << " " << max_val << std::endl;
 
   IMP_CUDA_CHECK();

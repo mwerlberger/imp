@@ -25,11 +25,11 @@ public:
   virtual ~RofDenoising() = default;
   using Base::Base;
 
-  virtual __host__ void init(const Size2u& size) override;
-  virtual __host__ void denoise(const std::shared_ptr<imp::ImageBase>& dst,
-                                const std::shared_ptr<imp::ImageBase>& src) override;
+  virtual void init(const Size2u& size) override;
+  virtual void denoise(const std::shared_ptr<imp::ImageBase>& dst,
+                       const std::shared_ptr<imp::ImageBase>& src) override;
 
-  __host__ void primalDualEnergy(double& primal_energy, double& dual_energy);
+  void primalDualEnergy(double& primal_energy, double& dual_energy);
 
 protected:
   virtual void print(std::ostream &os) const override;

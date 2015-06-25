@@ -48,7 +48,7 @@ void occlusionCandidatesUniqunessMapping(
     const ImageGpu32fC1::Ptr& disp)
 {
   occ->setValue(0.0f);
-  std::unique_ptr<imp::cu::Texture2D> disp_tex = disp->genTexture();
+  std::shared_ptr<imp::cu::Texture2D> disp_tex = disp->genTexture();
   imp::cu::Fragmentation<16,16> frag(disp->size());
   k_occlusionCandidatesUniqunessMapping
       <<<
@@ -57,7 +57,7 @@ void occlusionCandidatesUniqunessMapping(
            *disp_tex);
 
   // clamp the occlusions to get a nice mask with 0 and 1 entries
-  std::unique_ptr<Texture2D> occ_tex = occ->genTexture();
+  std::shared_ptr<Texture2D> occ_tex = occ->genTexture();
   k_clampOcclusion
       <<<
         frag.dimGrid, frag.dimBlock

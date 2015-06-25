@@ -62,24 +62,24 @@ protected:
   std::unique_ptr<ImageGpu32fC1> depth_proposal_sigma2_;
 
   // textures
-  std::unique_ptr<Texture2D> lambda_tex_;
-  std::unique_ptr<Texture2D> i1_tex_;
-  std::unique_ptr<Texture2D> i2_tex_;
-  std::unique_ptr<Texture2D> u_tex_;
-  std::unique_ptr<Texture2D> u_prev_tex_;
-  std::unique_ptr<Texture2D> u0_tex_;
-  std::unique_ptr<Texture2D> pu_tex_;
-  std::unique_ptr<Texture2D> q_tex_;
-  std::unique_ptr<Texture2D> ix_tex_;
-  std::unique_ptr<Texture2D> it_tex_;
-  std::unique_ptr<Texture2D> xi_tex_;
-  std::unique_ptr<Texture2D> g_tex_;
+  std::shared_ptr<Texture2D> lambda_tex_;
+  std::shared_ptr<Texture2D> i1_tex_;
+  std::shared_ptr<Texture2D> i2_tex_;
+  std::shared_ptr<Texture2D> u_tex_;
+  std::shared_ptr<Texture2D> u_prev_tex_;
+  std::shared_ptr<Texture2D> u0_tex_;
+  std::shared_ptr<Texture2D> pu_tex_;
+  std::shared_ptr<Texture2D> q_tex_;
+  std::shared_ptr<Texture2D> ix_tex_;
+  std::shared_ptr<Texture2D> it_tex_;
+  std::shared_ptr<Texture2D> xi_tex_;
+  std::shared_ptr<Texture2D> g_tex_;
 
-  std::unique_ptr<Texture2D> depth_proposal_tex_;
-  std::unique_ptr<Texture2D> depth_proposal_sigma2_tex_;
+  std::shared_ptr<Texture2D> depth_proposal_tex_;
+  std::shared_ptr<Texture2D> depth_proposal_sigma2_tex_;
 
-//  std::unique_ptr<Texture2D> correspondence_guess_tex_;
-//  std::unique_ptr<Texture2D> epi_vec_tex_;
+//  std::shared_ptr<Texture2D> correspondence_guess_tex_;
+//  std::shared_ptr<Texture2D> epi_vec_tex_;
 
 };
 

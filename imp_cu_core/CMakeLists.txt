@@ -38,6 +38,7 @@ set(CU_HDRS
 
 set(CU_SRCS
   src/cu_linearmemory.cu
+  src/cu_texture.cu
   src/cu_image_gpu.cu
   src/min_max.cu
   )

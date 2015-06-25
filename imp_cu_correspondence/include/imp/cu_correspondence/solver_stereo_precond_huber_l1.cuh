@@ -44,16 +44,16 @@ protected:
   std::unique_ptr<ImageGpu32fC1> xi_; //!< preconditioner
 
   // textures
-  std::unique_ptr<Texture2D> i1_tex_;
-  std::unique_ptr<Texture2D> i2_tex_;
-  std::unique_ptr<Texture2D> u_tex_;
-  std::unique_ptr<Texture2D> u_prev_tex_;
-  std::unique_ptr<Texture2D> u0_tex_;
-  std::unique_ptr<Texture2D> pu_tex_;
-  std::unique_ptr<Texture2D> q_tex_;
-  std::unique_ptr<Texture2D> ix_tex_;
-  std::unique_ptr<Texture2D> it_tex_;
-  std::unique_ptr<Texture2D> xi_tex_;
+  std::shared_ptr<Texture2D> i1_tex_;
+  std::shared_ptr<Texture2D> i2_tex_;
+  std::shared_ptr<Texture2D> u_tex_;
+  std::shared_ptr<Texture2D> u_prev_tex_;
+  std::shared_ptr<Texture2D> u0_tex_;
+  std::shared_ptr<Texture2D> pu_tex_;
+  std::shared_ptr<Texture2D> q_tex_;
+  std::shared_ptr<Texture2D> ix_tex_;
+  std::shared_ptr<Texture2D> it_tex_;
+  std::shared_ptr<Texture2D> xi_tex_;
 
 };
 

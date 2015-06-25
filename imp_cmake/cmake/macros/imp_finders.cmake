@@ -14,12 +14,25 @@ if ((NOT ${CUDA_FOUND}) OR (${CUDA_VERSION_MAJOR} LESS 7))
    return()
 endif()
 add_definitions(-DIMP_WITH_CUDA)
-list(APPEND CUDA_NVCC_FLAGS
-   -Xcompiler -fno-strict-aliasing -lineinfo -std=c++11
-   -Xptxas -dlcm=cg)
-# list(APPEND CUDA_NVCC_FLAGS
-#    -Xcompiler -fno-strict-aliasing -lineinfo -use_fast_math -std=c++11
-#    -Xptxas -dlcm=cg)
+
+list (APPEND CUDA_NVCC_FLAGS -relaxed-constexpr -use_fast_math -std=c++11)
+list (APPEND CUDA_NVCC_FLAGS --compiler-options;-fno-strict-aliasing;)
+list (APPEND CUDA_NVCC_FLAGS --compiler-options;-fPIC;)
+list (APPEND CUDA_NVCC_FLAGS --compiler-options;-Wall;)
+list (APPEND CUDA_NVCC_FLAGS --compiler-options;-Werror;)
+#list (APPEND CUDA_NVCC_FLAGS -Werror)
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+   list (APPEND CUDA_NVCC_FLAGS --device-debug)
+   list (APPEND CUDA_NVCC_FLAGS --compiler-options;-g;)
+   list (APPEND CUDA_NVCC_FLAGS --compiler-options;-rdynamic;)
+   list (APPEND CUDA_NVCC_FLAGS --compiler-options;-lineinfo;)
+   list (APPEND CUDA_NVCC_FLAGS --ptxas-options=-v;)
+endif()
+
+#list (APPEND CUDA_NVCC_FLAGS --device-c)
+list (APPEND CUDA_NVCC_FLAGS -rdc=true)
+
+set(CUDA_SEPARABLE_COMPILATION ON)
 # set to OFF cuda files are added to multiple targets
 set(CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE OFF)
 

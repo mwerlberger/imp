@@ -55,7 +55,7 @@ void resample(ImageGpu<Pixel, pixel_type>& dst,
   if (src.bitDepth() < 32)
     tex_filter_mode = cudaFilterModePoint;
 
-  std::unique_ptr<Texture2D> src_tex;
+  std::shared_ptr<Texture2D> src_tex;
   std::unique_ptr<ImageGpu<Pixel,pixel_type>> filtered;
   if (gauss_prefilter)
   {

@@ -110,22 +110,21 @@ void naturalEdges(ImageGpu<Pixel, pixel_type>& dst,
 
   imp::cu::filterGauss(*tmp_denoised, src, sigma);
 
-  std::unique_ptr<Texture2D> src_tex =
-      tmp_denoised->genTexture(false, (tmp_denoised->bitDepth()<32) ? cudaFilterModePoint
-                                                            : cudaFilterModeLinear);
+  std::shared_ptr<Texture2D> src_tex =
+      tmp_denoised->genTexture(
+        false, (tmp_denoised->bitDepth()<32) ? cudaFilterModePoint
+                                             : cudaFilterModeLinear);
+  IMP_CUDA_CHECK();
 
-  constexpr std::uint16_t block_size = 16;
-  Fragmentation<block_size, block_size> frag(roi);
+  Fragmentation<16, 16> frag(roi);
 
   k_naturalEdges<Pixel, Pixel>
       <<<
         frag.dimGrid, frag.dimBlock
-      >>> (
-          dst.data(), dst.stride(),
-          alpha, q,
-          roi.x(), roi.y(), roi.width(), roi.height(), *src_tex);
+      >>> (dst.data(), dst.stride(),
+           alpha, q,
+           roi.x(), roi.y(), roi.width(), roi.height(), *src_tex);
 
-  (void) block_size;
   IMP_CUDA_CHECK();
 }
 

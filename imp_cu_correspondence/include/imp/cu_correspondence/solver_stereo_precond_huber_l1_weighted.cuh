@@ -50,19 +50,19 @@ protected:
   imp::cu::ImageGpu32fC1::Ptr occ_; //!< estimation of occluded pixels
 
   // textures
-  std::unique_ptr<Texture2D> lambda_tex_; //!< For pointwise lambda
-  std::unique_ptr<Texture2D> i1_tex_;
-  std::unique_ptr<Texture2D> i2_tex_;
-  std::unique_ptr<Texture2D> u_tex_;
-  std::unique_ptr<Texture2D> u_prev_tex_;
-  std::unique_ptr<Texture2D> u0_tex_;
-  std::unique_ptr<Texture2D> pu_tex_;
-  std::unique_ptr<Texture2D> q_tex_;
-  std::unique_ptr<Texture2D> ix_tex_;
-  std::unique_ptr<Texture2D> it_tex_;
-  std::unique_ptr<Texture2D> xi_tex_;
-  std::unique_ptr<Texture2D> g_tex_;
-  std::unique_ptr<Texture2D> occ_tex_;
+  std::shared_ptr<Texture2D> lambda_tex_; //!< For pointwise lambda
+  std::shared_ptr<Texture2D> i1_tex_;
+  std::shared_ptr<Texture2D> i2_tex_;
+  std::shared_ptr<Texture2D> u_tex_;
+  std::shared_ptr<Texture2D> u_prev_tex_;
+  std::shared_ptr<Texture2D> u0_tex_;
+  std::shared_ptr<Texture2D> pu_tex_;
+  std::shared_ptr<Texture2D> q_tex_;
+  std::shared_ptr<Texture2D> ix_tex_;
+  std::shared_ptr<Texture2D> it_tex_;
+  std::shared_ptr<Texture2D> xi_tex_;
+  std::shared_ptr<Texture2D> g_tex_;
+  std::shared_ptr<Texture2D> occ_tex_;
 
 };
 

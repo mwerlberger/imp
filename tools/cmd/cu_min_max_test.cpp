@@ -38,9 +38,9 @@ int main(int argc, char** argv)
   catch (std::exception& e)
   {
     std::cout << "[exception] " << e.what() << std::endl;
+    cudaDeviceReset();
     assert(false);
   }
-
+  cudaDeviceReset();
   return EXIT_SUCCESS;
-
 }
