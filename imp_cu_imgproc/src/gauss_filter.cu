@@ -48,7 +48,7 @@ __global__ void k_gauss(Pixel* dst, const size_type stride,
     int half_kernel_elements = (kernel_size - 1) / 2;
 
     Pixel texel_c, texel;
-    src_tex.fetch(texel_c, x, y);
+    tex2DFetch(texel_c, src_tex, x, y);
 
     if (horizontal)
     {
@@ -62,10 +62,10 @@ __global__ void k_gauss(Pixel* dst, const size_type stride,
         c0 *= c1;
         c1 *= g2;
         int cur_x = max(0, min(width-1, x+i));
-        src_tex.fetch(texel, cur_x, y);
+        tex2DFetch(texel, src_tex, cur_x, y);
         sum += c0 * texel;
         cur_x = max(0, min(width-1, x-i));
-        src_tex.fetch(texel, cur_x, y);
+        tex2DFetch(texel, src_tex, cur_x, y);
         sum += c0 * texel;
         sum_coeff += 2.0f*c0;
       }
@@ -83,10 +83,10 @@ __global__ void k_gauss(Pixel* dst, const size_type stride,
         c0 *= c1;
         c1 *= g2;
         float cur_y = max(0, min(height-1, y+j));
-        src_tex.fetch(texel, x, cur_y);
+        tex2DFetch(texel, src_tex, x, cur_y);
         sum += c0 * texel;
         cur_y = max(0, min(height-1, y-j));
-        src_tex.fetch(texel, x, cur_y);
+        tex2DFetch(texel, src_tex, x, cur_y);
         sum += c0 *  texel;
         sum_coeff += 2.0f*c0;
       }
@@ -117,7 +117,7 @@ void filterGauss(ImageGpu<Pixel, pixel_type>& dst,
   }
 
   // fragmentation
-  Fragmentation<16,16> frag(roi);
+  Fragmentation<> frag(roi);
 
   float c0 = 1.0f / (std::sqrt(2.0f * M_PI)*sigma);
   float c1 = std::exp(-0.5f / (sigma * sigma));
@@ -130,9 +130,12 @@ void filterGauss(ImageGpu<Pixel, pixel_type>& dst,
            roi.x(), roi.y(), tmp_img->width(), tmp_img->height(),
            src_tex, /*sigma, */kernel_size, c0, c1, false);
 
+  IMP_CUDA_CHECK();
   std::shared_ptr<Texture2D> tmp_tex =
       tmp_img->genTexture(false,(tmp_img->bitDepth()<32) ? cudaFilterModePoint
                                                          : cudaFilterModeLinear);
+  IMP_CUDA_CHECK();
+
   // Convolve vertically
   k_gauss
       <<<

@@ -32,10 +32,10 @@ endif()
 #list (APPEND CUDA_NVCC_FLAGS --device-c)
 #list (APPEND CUDA_NVCC_FLAGS -rdc=true)
 
-set(CUDA_SEPARABLE_COMPILATION ON)
+set(CUDA_SEPARABLE_COMPILATION OFF)
 # set to OFF cuda files are added to multiple targets
 set(CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE ON)
-set(BUILD_SHARED_LIBS OFF)
+set(BUILD_SHARED_LIBS ON)
 
 # nvcc and ccache are not very good friends, hence we set the host compiler
 # for cuda manually if ccache is enabled.

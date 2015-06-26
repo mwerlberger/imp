@@ -27,6 +27,7 @@ set(CU_HDRS
   include/imp/cu_core/cu_memory_storage.cuh
   include/imp/cu_core/cu_linearmemory.cuh
   include/imp/cu_core/cu_image_gpu.cuh
+  include/imp/cu_core/cu_texture2d.cuh
   include/imp/cu_core/cu_texture.cuh
   include/imp/cu_core/cu_math.cuh
   include/imp/cu_core/cu_k_setvalue.cuh
@@ -38,7 +39,7 @@ set(CU_HDRS
 
 set(CU_SRCS
   src/cu_linearmemory.cu
-  src/cu_texture.cu
+  #src/cu_texture.cu
   src/cu_image_gpu.cu
   src/min_max.cu
   )

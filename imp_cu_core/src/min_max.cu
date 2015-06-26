@@ -1,6 +1,3 @@
-#ifndef IMP_CU_MIN_MAX_IMPL_CU
-#define IMP_CU_MIN_MAX_IMPL_CU
-
 #include <imp/core/linearmemory.hpp>
 #include <imp/core/image.hpp>
 #include <imp/cu_core/cu_math.cuh>
@@ -28,13 +25,13 @@ __global__ void k_minMax(Pixel* d_col_mins, Pixel* d_col_maxs,
     float yy = roi_y;
 
     Pixel cur_min, cur_max;
-    img_tex.fetch(cur_min, xx, yy++);
+    tex2DFetch(cur_min, img_tex, xx, yy++);
     cur_max = cur_min;
 
     Pixel val;
     for (; yy<roi_y+roi_height; ++yy)
     {
-      img_tex.fetch(val, xx, yy);
+      tex2DFetch(val, img_tex, xx, yy);
       if (val<cur_min) cur_min = val;
       if (val>cur_max) cur_max = val;
     }
@@ -49,11 +46,13 @@ __global__ void k_minMax(Pixel* d_col_mins, Pixel* d_col_maxs,
 template<typename Pixel>
 void minMax(const Texture2D& img_tex, Pixel& min_val, Pixel& max_val, const imp::Roi2u& roi)
 {
-  Fragmentation<512,1,1> frag(roi.width(), 1);
+  Fragmentation<512,1> frag(roi.width(), 1);
 
   imp::cu::LinearMemory<Pixel> d_col_mins(roi.width());
   imp::cu::LinearMemory<Pixel> d_col_maxs(roi.width());
   IMP_CUDA_CHECK();
+  d_col_mins.setValue(Pixel(0));
+  d_col_maxs.setValue(Pixel(0));
 
   k_minMax
       <<<
@@ -62,8 +61,11 @@ void minMax(const Texture2D& img_tex, Pixel& min_val, Pixel& max_val, const imp:
            roi.x(), roi.y(), roi.width(), roi.height(), img_tex);
   IMP_CUDA_CHECK();
 
-  imp::LinearMemory<Pixel> h_col_mins(roi.width());
-  imp::LinearMemory<Pixel> h_col_maxs(roi.width());
+  imp::LinearMemory<Pixel> h_col_mins(d_col_mins.length());
+  imp::LinearMemory<Pixel> h_col_maxs(d_col_maxs.length());
+  h_col_mins.setValue(Pixel(0));
+  h_col_maxs.setValue(Pixel(0));
+
   d_col_mins.copyTo(h_col_mins);
   d_col_maxs.copyTo(h_col_maxs);
 
@@ -116,5 +118,3 @@ template void minMax(const ImageGpu32fC4& img, imp::Pixel32fC4& min, imp::Pixel3
 
 } // namespace cu
 } // namespace imp
-
-#endif // IMP_CU_MIN_MAX_IMPL_CU

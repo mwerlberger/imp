@@ -196,8 +196,8 @@ T sqr(const T& a) {return a*a;}
 
 /** Fragmentation for gpu / cuda grid blocks
  */
-template <std::uint16_t block_size_x=16,
-          std::uint16_t block_size_y=16,
+template <std::uint16_t block_size_x=32,
+          std::uint16_t block_size_y=32,
           std::uint16_t block_size_z=1>
 struct Fragmentation
 {
@@ -208,6 +208,11 @@ struct Fragmentation
 
 
   Fragmentation() = delete;
+
+  Fragmentation(size_t length)
+    : dimGrid(divUp(length, dimBlock.x), dimBlock.x, dimBlock.y)
+  {
+  }
 
   Fragmentation(imp::Size2u sz)
     : dimGrid(divUp(sz.width(), dimBlock.x), divUp(sz.height(), dimBlock.y))
@@ -264,7 +269,7 @@ static inline void checkCudaErrorState(const char* file, const char* function,
 #ifdef IMP_THROW_ON_CUDA_ERROR
 #  define IMP_CUDA_CHECK() imp::cu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__)
 #else
-#  define IMP_CUDA_CHECK() do{}while(0)
+#  define IMP_CUDA_CHECK() cudaDeviceSynchronize()
 #endif
 
 static inline float getTotalGPUMemory()

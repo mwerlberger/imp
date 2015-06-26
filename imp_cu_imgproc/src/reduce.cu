@@ -28,7 +28,7 @@ __global__ void k_reduce(Pixel* d_dst, size_type stride,
   if (x<dst_width && y<dst_height)
   {
     Pixel val;
-    src_tex.fetch(val, x, y, sf_x, sf_y);
+    tex2DFetch(val, src_tex, x, y, sf_x, sf_y);
     d_dst[y*stride+x] = val;
   }
 }
@@ -72,7 +72,7 @@ void reduce(ImageGpu<Pixel, pixel_type>& dst,
     src_tex = src.genTexture(false, tex_filter_mode);
 
 
-  Fragmentation<16,16> dst_frag(dst_roi.size());
+  Fragmentation<> dst_frag(dst_roi.size());
 
   switch(interp)
   {
@@ -96,7 +96,7 @@ void reduce(ImageGpu<Pixel, pixel_type>& dst,
     //                                      sf_x , sf_y);
     //    break;
   default:
-    IMP_CU_THROW_EXCEPTION("unsupported interpolation type");
+    IMP_THROW_EXCEPTION("unsupported interpolation type");
   }
 
   IMP_CUDA_CHECK();

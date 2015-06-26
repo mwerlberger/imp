@@ -44,19 +44,35 @@ class CuLinearMemoryTest : public ::testing::Test
     : linmem_(numel_)
     , linmem_copy_(numel_)
     , cu_linmem_(numel_)
+    , cu_linmem_init0_(numel_)
+    , cu_linmem_init_rand_(numel_)
+    , linmem_init0_cp_(numel_)
+    , linmem_init_rand_cp_(numel_)
   {
     using T = typename Pixel::T;
-    auto random_val = getRandomGenerator<T>();
+    auto random_val_generator = getRandomGenerator<T>();
 
     for (size_t i=0; i<this->numel_; ++i)
     {
-      linmem_[i] = random_val();
+      linmem_[i] = random_val_generator();
     }
 
     IMP_CUDA_CHECK();
     cu_linmem_.copyFrom(linmem_);
     IMP_CUDA_CHECK();
     cu_linmem_.copyTo(linmem_copy_);
+    IMP_CUDA_CHECK();
+
+    cu_linmem_init0_.setValue(cu_linmem_init0_pixel_val_);
+    IMP_CUDA_CHECK();
+    cu_linmem_init0_.copyTo(linmem_init0_cp_);
+    IMP_CUDA_CHECK();
+
+    cu_linmem_init_rand_pixel_val_ = Pixel(random_val_generator());
+
+    cu_linmem_init_rand_.setValue(cu_linmem_init_rand_pixel_val_);
+    IMP_CUDA_CHECK();
+    cu_linmem_init_rand_.copyTo(linmem_init_rand_cp_);
     IMP_CUDA_CHECK();
   }
 
@@ -67,6 +83,12 @@ class CuLinearMemoryTest : public ::testing::Test
   imp::LinearMemory<Pixel> linmem_;
   imp::LinearMemory<Pixel> linmem_copy_;
   imp::cu::LinearMemory<Pixel> cu_linmem_;
+  Pixel cu_linmem_init0_pixel_val_ = Pixel(0);
+  imp::cu::LinearMemory<Pixel> cu_linmem_init0_;
+  imp::cu::LinearMemory<Pixel> cu_linmem_init_rand_;
+  Pixel cu_linmem_init_rand_pixel_val_;
+  imp::LinearMemory<Pixel> linmem_init0_cp_;
+  imp::LinearMemory<Pixel> linmem_init_rand_cp_;
 };
 
 // The list of types we want to test.
@@ -106,5 +128,7 @@ TYPED_TEST(CuLinearMemoryTest, CheckMemoryWithCopy)
   // assumed that the copy process has already been done!
   for (size_t i=0; i<this->numel_; ++i) {
     ASSERT_EQ(this->linmem_[i], this->linmem_copy_[i]);
+    ASSERT_EQ(this->linmem_init0_cp_[i], this->cu_linmem_init0_pixel_val_);
+    ASSERT_EQ(this->linmem_init_rand_cp_[i], this->cu_linmem_init_rand_pixel_val_);
   }
 }

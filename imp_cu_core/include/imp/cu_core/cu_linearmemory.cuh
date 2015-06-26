@@ -15,12 +15,6 @@
 namespace imp {
 namespace cu {
 
-//struct DeviceData
-//{
-
-//};
-
-
 template<typename Pixel>
 class LinearMemory : public LinearMemoryBase
 {
@@ -54,13 +48,17 @@ public:
    */
   const Pixel* data() const;
 
-//  /** Sets a certain value to all pixels in the data vector.
-//   */
-//  void setValue(const Pixel& value);
+  /** Sets a certain value to all pixels in the data vector.
+   */
+  void setValue(const Pixel& value);
 
-  /** Copy data to another device class instance.
+  /** Copy data to a host class instance.
    */
   void copyTo(imp::cu::LinearMemory<Pixel>& dst);
+
+  /** Copy data from a host class instance.
+   */
+  void copyFrom(const imp::cu::LinearMemory<Pixel>& dst);
 
   /** Copy data to a host class instance.
    */
@@ -68,7 +66,7 @@ public:
 
   /** Copy data from a host class instance.
    */
-  void copyFrom(imp::LinearMemory<Pixel>& dst);
+  void copyFrom(const imp::LinearMemory<Pixel>& dst);
 
 //  //! @todo (MWE) operator= for copyTo/copyFrom?
 //  LinearMem& operator=(Pixel rhs);

@@ -47,7 +47,7 @@ __global__ void  k_median3x3(Pixel* dst, const size_type stride,
     {
       // for each thread: copy the data of the current input position to shared mem
       Pixel texel;
-      src_tex.fetch(texel, x, y);
+      tex2DFetch(texel, src_tex, x, y);
       sh_in[shc] = texel;
 
       /////////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ __global__ void  k_median3x3(Pixel* dst, const size_type stride,
         else if (ty == 1)
         {
           // left-upper corner (block)
-          src_tex.fetch(texel, x, y-1.f);
+          tex2DFetch(texel, src_tex, x, y-1.f);
           sh_in[shc-shp-1] = texel;
         }
 
@@ -70,7 +70,7 @@ __global__ void  k_median3x3(Pixel* dst, const size_type stride,
           sh_in[shc+shp-1] = FLT_MAX; // left-lower corner (image)
         else if (ty == blockDim.y)
         {
-          src_tex.fetch(texel, x, y+1);
+          tex2DFetch(texel, src_tex, x, y+1);
           sh_in[shc+shp-1] = texel; // left-lower corner (block)
         }
       }
@@ -78,26 +78,26 @@ __global__ void  k_median3x3(Pixel* dst, const size_type stride,
       {
         if (y == 0)
         {
-          src_tex.fetch(texel, x-1, y);
+          tex2DFetch(texel, src_tex, x-1, y);
           sh_in[shc-shp-1] = texel; // left-upper corner (block, outside)
         }
         else if (ty == 1)
         {
-          src_tex.fetch(texel, x-1, y-1);
+          tex2DFetch(texel, src_tex, x-1, y-1);
           sh_in[shc-shp-1] = texel; // left-upper corner (block, inside)
         }
 
-        src_tex.fetch(texel, x-1, y);
+        tex2DFetch(texel, src_tex, x-1, y);
         sh_in[shc-1] = texel; // left border (block)
 
         if (y == height-1)
         {
-          src_tex.fetch(texel, x-1, y);
+          tex2DFetch(texel, src_tex, x-1, y);
           sh_in[shc+shp-1] = texel; // left-lower corner (block, outside)
         }
         else if (ty == blockDim.y)
         {
-          src_tex.fetch(texel, x-1, y+1);
+          tex2DFetch(texel, src_tex, x-1, y+1);
           sh_in[shc+shp-1] = texel; // left-lower corner (block, inside)
         }
       }
@@ -109,7 +109,7 @@ __global__ void  k_median3x3(Pixel* dst, const size_type stride,
           sh_in[shc-shp+1] = FLT_MAX; // right-upper corner (image)
         else if (ty == 1)
         {
-          src_tex.fetch(texel, x, y-1);
+          tex2DFetch(texel, src_tex, x, y-1);
           sh_in[shc-shp+1] = texel; // right-upper corner (block)
         }
 
@@ -119,7 +119,7 @@ __global__ void  k_median3x3(Pixel* dst, const size_type stride,
           sh_in[shc+shp+1] = FLT_MAX; // right-lower corner (image)
         else if (ty == blockDim.y)
         {
-          src_tex.fetch(texel, x, y+1);
+          tex2DFetch(texel, src_tex, x, y+1);
           sh_in[shc+shp+1] = texel; // right-lower corner (block)
         }
       }
@@ -127,26 +127,26 @@ __global__ void  k_median3x3(Pixel* dst, const size_type stride,
       {
         if (y == 0)
         {
-          src_tex.fetch(texel, x+1, y);
+          tex2DFetch(texel, src_tex, x+1, y);
           sh_in[shc-shp+1] = texel; // right-upper corner (block, outside)
         }
         else if (ty == 1)
         {
-          src_tex.fetch(texel, x+1, y-1);
+          tex2DFetch(texel, src_tex, x+1, y-1);
           sh_in[shc-shp+1] = texel; // right-upper corner (block, inside)
         }
 
-        src_tex.fetch(texel, x+1, y);
+        tex2DFetch(texel, src_tex, x+1, y);
         sh_in[shc+1] = texel; // right border (block)
 
         if (y == height-1)
         {
-          src_tex.fetch(texel, x+1, y);
+          tex2DFetch(texel, src_tex, x+1, y);
           sh_in[shc+shp+1] = texel; // right-lower corner (block, outside)
         }
         else if (ty == blockDim.y)
         {
-          src_tex.fetch(texel, x+1, y+1);
+          tex2DFetch(texel, src_tex, x+1, y+1);
           sh_in[shc+shp+1] = texel; // right-lower corner (block, inside)
         }
       }
@@ -155,7 +155,7 @@ __global__ void  k_median3x3(Pixel* dst, const size_type stride,
         sh_in[shc-shp] = sh_in[shc]; // upper border (image)
       else if (ty == 1)
       {
-        src_tex.fetch(texel, x, y-1);
+        tex2DFetch(texel, src_tex, x, y-1);
         sh_in[shc-shp] = texel; // upper border (block)
       }
 
@@ -163,7 +163,7 @@ __global__ void  k_median3x3(Pixel* dst, const size_type stride,
         sh_in[shc+shp] = sh_in[shc]; // lower border (image)
       else if (ty == blockDim.y)
       {
-        src_tex.fetch(texel, x, y+1);
+        tex2DFetch(texel, src_tex, x, y+1);
         sh_in[shc+shp] = texel; // lower border (block)
       }
 

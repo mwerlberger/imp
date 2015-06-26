@@ -57,7 +57,8 @@ public:
 } // namespace cu
 } // namespace imp
 
-#define IMP_CU_THROW_EXCEPTION(msg) throw imp::cu::Exception(msg, __FILE__, __FUNCTION__, __LINE__)
+#define IMP_CU_THROW_EXCEPTION(msg, err) \
+  throw imp::cu::Exception(msg, err, __FILE__, __FUNCTION__, __LINE__)
 
 #endif // CUCORE_CU_EXCEPTION_HPP
 

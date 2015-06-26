@@ -7,7 +7,6 @@
 #include <imp/cu_core/cu_utils.hpp>
 #include <imp/cu_core/cu_linearmemory.cuh>
 #include <imp/cu_core/cu_texture.cuh>
-//#include <imp/cu_core/cu_pixel_conversion.hpp>
 
 // kernel includes
 #include <imp/cu_core/cu_k_setvalue.cuh>
@@ -197,7 +196,7 @@ void ImageGpu<Pixel, pixel_type>::setValue(const Pixel& value)
   else
   {
     // fragmentation
-    cu::Fragmentation<16,16> frag(this->size());
+    cu::Fragmentation<> frag(this->size());
 
     // todo add roi to kernel!
     imp::cu::k_setValue
@@ -226,7 +225,7 @@ template<typename Pixel, imp::PixelType pixel_type>
 ImageGpu<Pixel, pixel_type>& ImageGpu<Pixel, pixel_type>::operator*=(const Pixel& rhs)
 {
   // fragmentation
-  cu::Fragmentation<16,16> frag(this->size());
+  cu::Fragmentation<> frag(this->size());
 
   // todo add roi to kernel!
   imp::cu::k_pixelWiseMul

@@ -72,9 +72,9 @@ __global__ void k_naturalEdges(EdgePixel *g, const size_type stride,
   if (x<width && y<height)
   {
     Pixel ic, ixp, iyp;
-    src_tex.fetch(ic, x, y);
-    src_tex.fetch(ixp, x+1.f, y);
-    src_tex.fetch(iyp, x, y+1.f);
+    tex2DFetch(ic, src_tex, x, y);
+    tex2DFetch(ixp, src_tex, x+1.f, y);
+    tex2DFetch(iyp, src_tex, x, y+1.f);
 
     // calculate finite derivatives
     Pixel dx = ixp - ic;
