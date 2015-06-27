@@ -33,8 +33,8 @@ int main(int argc, char** argv)
             new imp::cu::ImageGpu8uC1(*cu_im));
 
       imp::cu::RofDenoising8uC1 rof;
-      rof.params().primal_dual_energy_check_iter = 10;
-      rof.params().primal_dual_gap_tolerance = 1e-3;
+//      rof.params().primal_dual_energy_check_iter = 10;
+//      rof.params().primal_dual_gap_tolerance = 1e-3;
 
       std::cout << "\n" << rof << std::endl;
       rof.denoise(cu_im_denoised, cu_im);
@@ -44,6 +44,8 @@ int main(int argc, char** argv)
       imp::cu::cvBridgeShow("denoised 8u", *cu_im_denoised);
     }
 
+    cv::waitKey();
+    return EXIT_SUCCESS;
     std::cout << "-------------------------------------------------------------"
               << std::endl << std::endl;
 

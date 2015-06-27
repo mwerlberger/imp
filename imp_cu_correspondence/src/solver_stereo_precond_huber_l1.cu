@@ -94,7 +94,7 @@ void SolverStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> images)
   i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
   i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
   u_->copyTo(*u_prev_);
-  Fragmentation<16,16> frag(size_);
+  Fragmentation<> frag(size_);
 
   // constants
   constexpr float tau = 0.95f;

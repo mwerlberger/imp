@@ -25,7 +25,7 @@ __global__ void k_initRofSolver(Pixel32fC1* d_u, Pixel32fC1* d_u_prev, size_t st
 
   if (x<width && y<height)
   {
-    float val = tex2D<float>(f_tex, x+.5f, y+.5f);
+    float val = tex2DFetch<float>(f_tex, x, y);
     d_u[y*stride_u + x] = val;
     d_u_prev[y*stride_u + x] = val;
     d_p[y*stride_p + x] = Pixel32fC2(0.0f, 0.0f);
@@ -43,8 +43,8 @@ __global__ void k_rofPrimalUpdate(
 
   if (x<width && y<height)
   {
-    float f = tex2D<float>(f_tex, x+0.5f, y+0.5f);
-    float u = tex2D<float>(u_tex, x+0.5f, y+0.5f);
+    float f = tex2DFetch<float>(f_tex, x, y);
+    float u = tex2DFetch<float>(u_tex, x, y);
     float u_prev = u;
     float div = dpAd(p_tex, x, y, width, height);
 
@@ -65,7 +65,7 @@ __global__ void k_rofDualUpdate(
 
   if (x<width && y<height)
   {
-    float2 p = tex2D<float2>(p_tex, x+.5f, y+.5f);
+    float2 p = tex2DFetch<float2>(p_tex, x, y);
     float2 dp_u = dp(u_prev_tex, x, y);
 
     p = p + sigma*dp_u;
@@ -85,7 +85,7 @@ __global__ void k_convertResult8uC1(Pixel8uC1* d_u, size_t stride_u,
   if (x<width && y<height)
   {
     d_u[y*stride_u + x] = static_cast<std::uint8_t>(
-          255.0f * tex2D<float>(u_tex, x+0.5f, y+0.5f));
+          255.0f * tex2DFetch<float>(u_tex, x, y));
   }
 }
 
@@ -100,8 +100,8 @@ __global__ void k_rofPrimalEnergy(Pixel32fC1* d_ep,  size_type stride,
   if (x<width && y<height)
   {
     float2 dp_u = dp(u_tex, x, y);
-    float f = tex2D<float>(f_tex, x+0.5f, y+0.5f);
-    float u = tex2D<float>(u_tex, x+0.5f, y+0.5f);
+    float f = tex2DFetch<float>(f_tex, x, y);
+    float u = tex2DFetch<float>(u_tex, x, y);
     d_ep[y*stride + x] = length(dp_u) + lambda/2.0f * imp::cu::sqr(u-f);
   }
 }
@@ -116,7 +116,7 @@ __global__ void k_rofDualEnergy(Pixel32fC1* d_ed,  size_type stride,
 
   if (x<width && y<height)
   {
-    float f = tex2D<float>(f_tex, x+0.5f, y+0.5f);
+    float f = tex2DFetch<float>(f_tex, x, y);
     float div = dpAd(p_tex, x, y, width, height);
     d_ed[y*stride + x] = -imp::cu::sqr(div)/(2.0f*lambda) - div*f;
   }

@@ -116,7 +116,7 @@ void naturalEdges(ImageGpu<Pixel, pixel_type>& dst,
                                              : cudaFilterModeLinear);
   IMP_CUDA_CHECK();
 
-  Fragmentation<16, 16> frag(roi);
+  Fragmentation<> frag(roi);
 
   k_naturalEdges<Pixel, Pixel>
       <<<

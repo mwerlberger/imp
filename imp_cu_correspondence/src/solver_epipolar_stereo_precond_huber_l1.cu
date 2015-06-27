@@ -158,7 +158,7 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
   constexpr float tau = 0.95f;
   constexpr float sigma = 0.95f;
   float lin_step = 0.5f;
-  Fragmentation<16,16> frag(size_);
+  Fragmentation<> frag(size_);
   constexpr float eta = 2.0f;
 
   // init

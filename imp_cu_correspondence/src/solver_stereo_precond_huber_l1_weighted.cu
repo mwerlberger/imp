@@ -90,7 +90,7 @@ void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImageGpu32fC1::Ptr> i
 
   ImageGpu32fC1::Ptr ep = std::make_shared<ImageGpu32fC1>(size_);
 
-  Fragmentation<16,16> frag(size_);
+  Fragmentation<> frag(size_);
   u_->copyTo(*u_prev_);
 
   // compute edge weight
@@ -196,7 +196,7 @@ void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImageGpu32fC1::Ptr> i
 ImageGpu32fC1::Ptr SolverStereoPrecondHuberL1Weighted::computePrimalEnergy()
 {
   ImageGpu32fC1::Ptr ep = std::make_shared<ImageGpu32fC1>(size_);
-  Fragmentation<16,16> frag(size_);
+  Fragmentation<> frag(size_);
   k_primalEnergy
       <<<
         frag.dimGrid, frag.dimBlock

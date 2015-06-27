@@ -49,7 +49,7 @@ void occlusionCandidatesUniqunessMapping(
 {
   occ->setValue(0.0f);
   std::shared_ptr<imp::cu::Texture2D> disp_tex = disp->genTexture();
-  imp::cu::Fragmentation<16,16> frag(disp->size());
+  imp::cu::Fragmentation<> frag(disp->size());
   k_occlusionCandidatesUniqunessMapping
       <<<
         frag.dimGrid, frag.dimBlock

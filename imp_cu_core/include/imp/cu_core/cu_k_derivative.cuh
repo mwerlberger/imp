@@ -13,11 +13,9 @@ static __device__ __forceinline__ float2 dp(
     const imp::cu::Texture2D& tex, size_t x, size_t y)
 {
   float2 grad = make_float2(0.0f, 0.0f);
-  size_t xx = x+.5f;
-  size_t yy = y+.5f;
-  float cval = tex2D<float>(tex, xx, yy);
-  grad.x = tex2D<float>(tex, xx+1.f, yy) - cval;
-  grad.y = tex2D<float>(tex, xx, yy+1.f) - cval;
+  float cval = tex2DFetch<float>(tex, x, y);
+  grad.x = tex2DFetch<float>(tex, x+1.f, y) - cval;
+  grad.y = tex2DFetch<float>(tex, x, y+1.f) - cval;
   return grad;
 }
 
@@ -27,12 +25,9 @@ static __device__ __forceinline__
 float dpAd(const imp::cu::Texture2D& tex,
            size_t x, size_t y, size_t width, size_t height)
 {
-  size_t xx = x+.5f;
-  size_t yy = y+.5f;
-
-  float2 c = tex2D<float2>(tex, xx,y);
-  float2 w = tex2D<float2>(tex, xx-1, yy);
-  float2 n = tex2D<float2>(tex, xx, yy-1);
+  float2 c = tex2DFetch<float2>(tex, x,y);
+  float2 w = tex2DFetch<float2>(tex, x-1.f, y);
+  float2 n = tex2DFetch<float2>(tex, x, y-1.f);
 
   if (x == 0)
     w.x = 0.0f;
@@ -55,15 +50,12 @@ static __device__ __forceinline__ float2 dpWeighted(
     const imp::cu::Texture2D& tex, const imp::cu::Texture2D& g_tex,
     size_t x, size_t y)
 {
-  size_t xx = x+.5f;
-  size_t yy = y+.5f;
-
-  float cval = tex2D<float>(tex, xx, yy);
-  float g = tex2D<float>(g_tex, xx, yy);
+  float cval = tex2DFetch<float>(tex, x, y);
+  float g = tex2DFetch<float>(g_tex, x, y);
 
   return make_float2(
-        g*(tex2D<float>(tex, xx+1.f, yy) - cval),
-        g*(tex2D<float>(tex, xx, yy+1.f) - cval));
+        g*(tex2DFetch<float>(tex, x+1.f, y) - cval),
+        g*(tex2DFetch<float>(tex, x, y+1.f) - cval));
 }
 
 //-----------------------------------------------------------------------------
@@ -72,16 +64,13 @@ static __device__ __forceinline__
 float dpAdWeighted(const imp::cu::Texture2D& tex, const imp::cu::Texture2D& g_tex,
                    size_t x, size_t y, size_t width, size_t height)
 {
-  size_t xx = x+.5f;
-  size_t yy = y+.5f;
+  float2 c = tex2DFetch<float2>(tex, x, y);
+  float2 w = tex2DFetch<float2>(tex, x-1.f, y);
+  float2 n = tex2DFetch<float2>(tex, x, y-1);
 
-  float2 c = tex2D<float2>(tex, xx, yy);
-  float2 w = tex2D<float2>(tex, xx-1.f, yy);
-  float2 n = tex2D<float2>(tex, xx, yy-1);
-
-  float g = tex2D<float>(g_tex, xx, yy);
-  float g_w = tex2D<float>(g_tex, xx-1.f, yy);
-  float g_n = tex2D<float>(g_tex, xx, yy-1);
+  float g = tex2DFetch<float>(g_tex, x, y);
+  float g_w = tex2DFetch<float>(g_tex, x-1.f, y);
+  float g_n = tex2DFetch<float>(g_tex, x, y-1);
 
   if (x == 0)
     w.x = 0.0f;
@@ -105,20 +94,17 @@ float dpAdDirected(const imp::cu::Texture2D& tex,
                    const imp::cu::Texture2D& tensor_c_tex,
                    size_t x, size_t y, size_t width, size_t height)
 {
-  size_t xx = x+.5f;
-  size_t yy = y+.5f;
+  float2 c = tex2DFetch<float2>(tex, x, y);
+  float2 w = tex2DFetch<float2>(tex, x-1.f, y);
+  float2 n = tex2DFetch<float2>(tex, x, y-1);
 
-  float2 c = tex2D<float2>(tex, xx, yy);
-  float2 w = tex2D<float2>(tex, xx-1.f, yy);
-  float2 n = tex2D<float2>(tex, xx, yy-1);
-
-  float tensor_a   = tex2D<float>(tensor_a_tex, xx,     yy);
-  float tensor_a_w = tex2D<float>(tensor_a_tex, xx-1.f, yy);
-  float tensor_b   = tex2D<float>(tensor_b_tex, xx,     yy);
-  float tensor_b_n = tex2D<float>(tensor_b_tex, xx    , yy-1.f);
-  float tensor_c   = tex2D<float>(tensor_c_tex, xx,     yy);
-  float tensor_c_w = tex2D<float>(tensor_c_tex, xx-1.f, yy);
-  float tensor_c_n = tex2D<float>(tensor_c_tex, xx    , yy-1.f);
+  float tensor_a   = tex2DFetch<float>(tensor_a_tex, x,     y);
+  float tensor_a_w = tex2DFetch<float>(tensor_a_tex, x-1.f, y);
+  float tensor_b   = tex2DFetch<float>(tensor_b_tex, x,     y);
+  float tensor_b_n = tex2DFetch<float>(tensor_b_tex, x    , y-1.f);
+  float tensor_c   = tex2DFetch<float>(tensor_c_tex, x,     y);
+  float tensor_c_w = tex2DFetch<float>(tensor_c_tex, x-1.f, y);
+  float tensor_c_n = tex2DFetch<float>(tensor_c_tex, x    , y-1.f);
 
   if (x == 0)
     w = make_float2(0.0f, 0.0f);
@@ -140,16 +126,13 @@ static __device__ __forceinline__
 float dpAdTensor(const imp::cu::Texture2D& tex, const imp::cu::Texture2D& g_tex,
                  size_t x, size_t y, size_t width, size_t height)
 {
-  size_t xx = x+.5f;
-  size_t yy = y+.5f;
+  float2 c = tex2DFetch<float2>(tex, x, y);
+  float2 w = tex2DFetch<float2>(tex, x-1.f, y);
+  float2 n = tex2DFetch<float2>(tex, x, y-1);
 
-  float2 c = tex2D<float2>(tex, xx, yy);
-  float2 w = tex2D<float2>(tex, xx-1.f, yy);
-  float2 n = tex2D<float2>(tex, xx, yy-1);
-
-  float2 g = tex2D<float2>(g_tex, xx, yy);
-  float2 g_w = tex2D<float2>(g_tex, xx-1.f, yy);
-  float2 g_n = tex2D<float2>(g_tex, xx, yy-1);
+  float2 g = tex2DFetch<float2>(g_tex, x, y);
+  float2 g_w = tex2DFetch<float2>(g_tex, x-1.f, y);
+  float2 g_n = tex2DFetch<float2>(g_tex, x, y-1);
 
   if (x == 0)
     w.x = 0.0f;
