@@ -8,7 +8,7 @@
 #include <imp/cu_core/cu_texture.cuh>
 #include <imp/cu_core/cu_math.cuh>
 #include <imp/cu_imgproc/cu_image_filter.cuh>
-#include <imp/cu_imgproc/cu_image_transform.cuh>
+#include <imp/cu_imgproc/cu_resample.cuh>
 #include <imp/cu_imgproc/edge_detectors.cuh>
 #include <imp/cu_correspondence/occlusion.cuh>
 

@@ -25,7 +25,7 @@ __global__ void k_preconditioner(Pixel* xi, size_type stride,
   if (x<width && y<height)
   {
     Pixel ix;
-    ix_tex.fetch(ix, x, y);
+    tex2DFetch(ix, ix_tex, x, y);
     xi[y*stride+x] = 4 + sqr(lambda) * sqr(ix);
   }
 }
@@ -65,10 +65,10 @@ __global__ void k_primalUpdate(PPixel* d_u, PPixel* d_u_prev, const size_type st
 
   if (x<width && y<height)
   {
-    float u_prev = u_tex.fetch<float>(x, y);
-    float q = q_tex.fetch<float>(x, y);
-    float ix = ix_tex.fetch<float>(x, y);
-    float xi = xi_tex.fetch<float>(x, y);
+    float u_prev = tex2DFetch<float>(u_tex, x, y);
+    float q = tex2DFetch<float>(q_tex, x, y);
+    float ix = tex2DFetch<float>(ix_tex, x, y);
+    float xi = tex2DFetch<float>(xi_tex, x, y);
 
     float div = dpAd(pu_tex, x, y, width, height);
 
@@ -99,17 +99,17 @@ __global__ void k_dualUpdate(DPixel* d_pu, const size_type stride_pu,
 
     // update pu
     float2 du = dp(u_prev_tex, x, y);
-    float2 pu = pu_tex.fetch<float2>(x,y);
+    float2 pu = tex2DFetch<float2>(pu_tex, x,y);
     pu  = (pu + sigma_by_eta*du) / (1.f + sigma_by_eta*eps_u);
     pu = pu / max(1.0f, length(pu));
     d_pu[y*stride_pu+x] = {pu.x, pu.y};
 
     // update q
-    float u_prev = u_prev_tex.fetch<float>(x, y);
-    float u0 = u0_tex.fetch<float>(x, y);
-    float q = q_tex.fetch<float>(x, y);
-    float ix = ix_tex.fetch<float>(x, y);
-    float it = it_tex.fetch<float>(x, y);
+    float u_prev = tex2DFetch<float>(u_prev_tex, x, y);
+    float u0 = tex2DFetch<float>(u0_tex, x, y);
+    float q = tex2DFetch<float>(q_tex, x, y);
+    float ix = tex2DFetch<float>(ix_tex, x, y);
+    float it = tex2DFetch<float>(it_tex, x, y);
     const float sigma_q = sigma / max(1e-6f, lambda * fabs(ix));
     q = q + lambda*sigma_q * (it + ix*(u_prev-u0));
     d_q[y*stride_q+x] = max(-1.f, min(1.f, q));

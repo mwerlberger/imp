@@ -20,7 +20,8 @@ __device__ Pixel k_linearized_update(Pixel& d_srcdst, Texture2D& lin_tex,
                                      const float lin_step,
                                      const int x, const int y)
 {
-  Pixel lin = lin_tex.fetch<Pixel>(x, y);
+  Pixel lin;
+  tex2DFetch(lin, lin_tex, x, y);
   d_srcdst = imp::cu::max(lin-lin_step,
                           imp::cu::min(lin+lin_step, d_srcdst));
   return d_srcdst;
@@ -44,15 +45,15 @@ __global__ void k_primalUpdate(PPixel* d_u, PPixel* d_u_prev, const size_type st
 
   if (x<width && y<height)
   {
-    float u0 = u0_tex.fetch<float>(x,y);
-    float it = it_tex.fetch<float>(x, y);
-    float ix = ix_tex.fetch<float>(x, y);
+    float u0 = tex2DFetch<float>(u0_tex, x,y);
+    float it = tex2DFetch<float>(it_tex, x, y);
+    float ix = tex2DFetch<float>(ix_tex, x, y);
 
     // divergence operator (dpAD) of dual var
     float div = dpAd(pu_tex, x, y, width, height);
 
     // save current u
-    float u_prev = u_tex.fetch<float>(x, y);
+    float u_prev = tex2DFetch<float>(u_tex, x, y);
     float u = u_prev;
     u += tau*div;
 
@@ -95,7 +96,7 @@ __global__ void k_dualUpdate(DPixel* d_pu, const size_type stride_pu,
   {
     // update pu
     float2 du = dp(u_prev_tex, x, y);
-    float2 pu = pu_tex.fetch<float2>(x,y);
+    float2 pu = tex2DFetch<float2>(pu_tex, x,y);
     pu  = (pu + sigma*du) / (1.f + sigma*eps_u);
     pu = pu / max(1.0f, length(pu));
 

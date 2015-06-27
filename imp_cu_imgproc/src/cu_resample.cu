@@ -1,9 +1,6 @@
-#ifndef IMP_CU_RESAMPLE_IMPL_CU
-#define IMP_CU_RESAMPLE_IMPL_CU
+#include <imp/cu_imgproc/cu_resample.cuh>
 
-#include <imp/cu_imgproc/cu_image_transform.cuh>
-
-//#include <memory>
+#include <memory>
 #include <cstdint>
 #include <cmath>
 
@@ -31,7 +28,7 @@ __global__ void k_resample(Pixel* d_dst, size_type stride,
   if (x<dst_width && y<dst_height)
   {
     Pixel val;
-    src_tex.fetch(val, x, y, sf_x, sf_y);
+    tex2DFetch(val, src_tex, x, y, sf_x, sf_y);
     d_dst[y*stride+x] = val;
   }
 }
@@ -75,7 +72,7 @@ void resample(ImageGpu<Pixel, pixel_type>& dst,
     src_tex = src.genTexture(false, tex_filter_mode);
   }
 
-  Fragmentation<16,16> dst_frag(dst_roi.size());
+  Fragmentation<> dst_frag(dst_roi.size());
 
   switch(interp)
   {
@@ -99,7 +96,7 @@ void resample(ImageGpu<Pixel, pixel_type>& dst,
     //                                      sf_x , sf_y);
     //    break;
   default:
-    IMP_CU_THROW_EXCEPTION("unsupported interpolation type");
+    IMP_THROW_EXCEPTION("unsupported interpolation type");
   }
 
   IMP_CUDA_CHECK();
@@ -129,5 +126,3 @@ template void resample(ImageGpu32fC4& dst, const ImageGpu32fC4& src, Interpolati
 
 } // namespace cu
 } // namespace imp
-
-#endif // IMP_CU_REDUCE_IMPL_CU

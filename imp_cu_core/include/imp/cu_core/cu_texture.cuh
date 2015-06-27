@@ -103,6 +103,38 @@ __device__ __forceinline__ void tex2DFetch(
   texel = imp::Pixel32fC4(val.x, val.y, val.z, val.w);
 }
 
+//-----------------------------------------------------------------------------
+__device__ __forceinline__ void tex2DFetch(
+    float& texel, const Texture2D& tex, float x, float y,
+    float mul_x=1.f, float mul_y=1.f, float add_x=0.f, float add_y=0.f)
+{
+  texel = ::tex2D<float>(tex.tex_object, x*mul_x+add_x+0.5f, y*mul_y+add_y+.5f);
+}
+
+//-----------------------------------------------------------------------------
+template<typename T>
+__device__ __forceinline__
+T tex2DFetch(
+    const Texture2D& tex, float x, float y,
+    float mul_x=1.f, float mul_y=1.f, float add_x=0.f, float add_y=0.f)
+{
+  return ::tex2D<T>(tex.tex_object, x*mul_x+add_x+0.5f, y*mul_y+add_y+.5f);
+}
+
+////-----------------------------------------------------------------------------
+//template<typename T>
+//__device__ __forceinline__
+//typename std::enable_if<!std::is_integral<T>::value && !std::is_floating_point<T>::value, T>::type
+//tex2DFetch(
+//    const Texture2D& tex, float x, float y,
+//    float mul_x=1.f, float mul_y=1.f, float add_x=0.f, float add_y=0.f)
+//{
+//  T val;
+//  tex2DFetch(val, tex, x, y, mul_x, mul_y, add_x, add_y);
+//  return val;
+//}
+
+
 
 } // namespace cu
 } // namespace imp
