@@ -43,14 +43,14 @@ protected:
   std::unique_ptr<ImageGpu32fC1> it_; //!< temporal gradients between warped and fixed image
 
   // textures
-  std::unique_ptr<Texture2D> i1_tex_;
-  std::unique_ptr<Texture2D> i2_tex_;
-  std::unique_ptr<Texture2D> u_tex_;
-  std::unique_ptr<Texture2D> u_prev_tex_;
-  std::unique_ptr<Texture2D> u0_tex_;
-  std::unique_ptr<Texture2D> pu_tex_;
-  std::unique_ptr<Texture2D> ix_tex_;
-  std::unique_ptr<Texture2D> it_tex_;
+  std::shared_ptr<Texture2D> i1_tex_;
+  std::shared_ptr<Texture2D> i2_tex_;
+  std::shared_ptr<Texture2D> u_tex_;
+  std::shared_ptr<Texture2D> u_prev_tex_;
+  std::shared_ptr<Texture2D> u0_tex_;
+  std::shared_ptr<Texture2D> pu_tex_;
+  std::shared_ptr<Texture2D> ix_tex_;
+  std::shared_ptr<Texture2D> it_tex_;
 
 };
 

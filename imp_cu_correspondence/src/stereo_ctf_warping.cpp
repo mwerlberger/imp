@@ -161,6 +161,19 @@ void StereoCtFWarping::solve()
 }
 
 //------------------------------------------------------------------------------
+ImageGpu32fC1::Ptr StereoCtFWarping::computePrimalEnergy(size_type level)
+{
+  if (!this->ready())
+  {
+    throw Exception("not initialized correctly; bailing out.",
+                    __FILE__, __FUNCTION__, __LINE__);
+  }
+  level = max(params_->ctf.finest_level,
+              min(params_->ctf.coarsest_level, level));
+  return levels_.at(level)->computePrimalEnergy();
+}
+
+//------------------------------------------------------------------------------
 StereoCtFWarping::ImageGpu32fC1::Ptr StereoCtFWarping::getDisparities(size_type level)
 {
   if (!this->ready())

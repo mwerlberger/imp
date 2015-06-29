@@ -15,7 +15,7 @@ __global__ void k_occlusionCandidatesUniqunessMapping(
   const int x = blockIdx.x*blockDim.x + threadIdx.x /*+ roi_x*/;
   const int y = blockIdx.y*blockDim.y + threadIdx.y /*+ roi_y*/;
 
-  const int wx = x + static_cast<int>(disp_tex.fetch<float>(x,y) + 0.5f);
+  const int wx = x + static_cast<int>(tex2DFetch<float>(disp_tex, x, y) + 0.5f);
 
   if (wx>0 && wx<width && y<height)
   {
@@ -38,7 +38,7 @@ __global__ void k_clampOcclusion(
   const int y = blockIdx.y*blockDim.y + threadIdx.y /*+ roi_y*/;
   if (x<width && y<height)
   {
-    occ[y*stride+x] = 1.f - clamp(occ_tex.fetch<float>(x,y)-1.f, 0.f, 1.f);
+    occ[y*stride+x] = 1.f - clamp(tex2DFetch<float>(occ_tex, x, y)-1.f, 0.f, 1.f);
   }
 }
 
@@ -48,8 +48,8 @@ void occlusionCandidatesUniqunessMapping(
     const ImageGpu32fC1::Ptr& disp)
 {
   occ->setValue(0.0f);
-  std::unique_ptr<imp::cu::Texture2D> disp_tex = disp->genTexture();
-  imp::cu::Fragmentation<16,16> frag(disp->size());
+  std::shared_ptr<imp::cu::Texture2D> disp_tex = disp->genTexture();
+  imp::cu::Fragmentation<> frag(disp->size());
   k_occlusionCandidatesUniqunessMapping
       <<<
         frag.dimGrid, frag.dimBlock
@@ -57,7 +57,7 @@ void occlusionCandidatesUniqunessMapping(
            *disp_tex);
 
   // clamp the occlusions to get a nice mask with 0 and 1 entries
-  std::unique_ptr<Texture2D> occ_tex = occ->genTexture();
+  std::shared_ptr<Texture2D> occ_tex = occ->genTexture();
   k_clampOcclusion
       <<<
         frag.dimGrid, frag.dimBlock

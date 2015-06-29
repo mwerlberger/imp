@@ -1,9 +1,6 @@
-#ifndef IMP_CU_RESAMPLE_IMPL_CU
-#define IMP_CU_RESAMPLE_IMPL_CU
+#include <imp/cu_imgproc/cu_reduce.cuh>
 
-#include <imp/cu_imgproc/cu_image_transform.cuh>
-
-//#include <memory>
+#include <memory>
 #include <cstdint>
 #include <cmath>
 
@@ -21,26 +18,26 @@ namespace cu {
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
-__global__ void k_resample(Pixel* d_dst, size_type stride,
-                           std::uint32_t dst_width, std::uint32_t dst_height,
-                           std::uint32_t roi_x, std::uint32_t roi_y,
-                           float sf_x, float sf_y, Texture2D src_tex)
+__global__ void k_reduce(Pixel* d_dst, size_type stride,
+                         std::uint32_t dst_width, std::uint32_t dst_height,
+                         std::uint32_t roi_x, std::uint32_t roi_y,
+                         float sf_x, float sf_y, Texture2D src_tex)
 {
   const int x = blockIdx.x*blockDim.x + threadIdx.x + roi_x;
   const int y = blockIdx.y*blockDim.y + threadIdx.y + roi_y;
   if (x<dst_width && y<dst_height)
   {
     Pixel val;
-    src_tex.fetch(val, x, y, sf_x, sf_y);
+    tex2DFetch(val, src_tex, x, y, sf_x, sf_y);
     d_dst[y*stride+x] = val;
   }
 }
 
 //-----------------------------------------------------------------------------
 template<typename Pixel, imp::PixelType pixel_type>
-void resample(ImageGpu<Pixel, pixel_type>& dst,
-              const ImageGpu<Pixel, pixel_type>& src,
-              imp::InterpolationMode interp, bool gauss_prefilter)
+void reduce(ImageGpu<Pixel, pixel_type>& dst,
+            const ImageGpu<Pixel, pixel_type>& src,
+            imp::InterpolationMode interp, bool gauss_prefilter)
 {
   imp::Roi2u src_roi = src.roi();
   imp::Roi2u dst_roi = dst.roi();
@@ -49,13 +46,6 @@ void resample(ImageGpu<Pixel, pixel_type>& dst,
   float sf_x = static_cast<float>(src_roi.width()) / static_cast<float>(dst_roi.width());
   float sf_y = static_cast<float>(src_roi.height()) / static_cast<float>(dst_roi.height());
 
-  cudaTextureFilterMode tex_filter_mode =
-      (interp == InterpolationMode::linear) ? cudaFilterModeLinear
-                                            : cudaFilterModePoint;
-  if (src.bitDepth() < 32)
-    tex_filter_mode = cudaFilterModePoint;
-
-  std::unique_ptr<Texture2D> src_tex;
   std::unique_ptr<ImageGpu<Pixel,pixel_type>> filtered;
   if (gauss_prefilter)
   {
@@ -68,21 +58,28 @@ void resample(ImageGpu<Pixel, pixel_type>& dst,
       kernel_size++;
 
     imp::cu::filterGauss(*filtered, src, sigma, kernel_size);
-    src_tex = filtered->genTexture(false, tex_filter_mode);
-  }
-  else
-  {
-    src_tex = src.genTexture(false, tex_filter_mode);
   }
 
-  Fragmentation<16,16> dst_frag(dst_roi.size());
+  cudaTextureFilterMode tex_filter_mode = (interp == InterpolationMode::linear) ?
+        cudaFilterModeLinear : cudaFilterModePoint;
+  if (src.bitDepth() < 32)
+    tex_filter_mode = cudaFilterModePoint;
+
+  std::shared_ptr<Texture2D> src_tex;
+  if (filtered)
+    src_tex = filtered->genTexture(false, tex_filter_mode);
+  else
+    src_tex = src.genTexture(false, tex_filter_mode);
+
+
+  Fragmentation<> dst_frag(dst_roi.size());
 
   switch(interp)
   {
   case InterpolationMode::point:
   case InterpolationMode::linear:
     // fallthrough intended
-    k_resample
+    k_reduce
         <<<
           dst_frag.dimGrid, dst_frag.dimBlock/*, 0, stream*/
         >>> (dst.data(), dst.stride(), dst.width(), dst.height(),
@@ -99,7 +96,7 @@ void resample(ImageGpu<Pixel, pixel_type>& dst,
     //                                      sf_x , sf_y);
     //    break;
   default:
-    IMP_CU_THROW_EXCEPTION("unsupported interpolation type");
+    IMP_THROW_EXCEPTION("unsupported interpolation type");
   }
 
   IMP_CUDA_CHECK();
@@ -110,24 +107,23 @@ void resample(ImageGpu<Pixel, pixel_type>& dst,
 // template instantiations for all our image types
 //
 
-template void resample(ImageGpu8uC1& dst, const ImageGpu8uC1& src, InterpolationMode interp, bool gauss_prefilter);
-template void resample(ImageGpu8uC2& dst, const ImageGpu8uC2& src, InterpolationMode interp, bool gauss_prefilter);
-template void resample(ImageGpu8uC4& dst, const ImageGpu8uC4& src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu8uC1& dst, const ImageGpu8uC1& src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu8uC2& dst, const ImageGpu8uC2& src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu8uC4& dst, const ImageGpu8uC4& src, InterpolationMode interp, bool gauss_prefilter);
 
-template void resample(ImageGpu16uC1& dst, const ImageGpu16uC1& src, InterpolationMode interp, bool gauss_prefilter);
-template void resample(ImageGpu16uC2& dst, const ImageGpu16uC2& src, InterpolationMode interp, bool gauss_prefilter);
-template void resample(ImageGpu16uC4& dst, const ImageGpu16uC4& src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu16uC1& dst, const ImageGpu16uC1& src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu16uC2& dst, const ImageGpu16uC2& src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu16uC4& dst, const ImageGpu16uC4& src, InterpolationMode interp, bool gauss_prefilter);
 
-template void resample(ImageGpu32sC1& dst, const ImageGpu32sC1& src, InterpolationMode interp, bool gauss_prefilter);
-template void resample(ImageGpu32sC2& dst, const ImageGpu32sC2& src, InterpolationMode interp, bool gauss_prefilter);
-template void resample(ImageGpu32sC4& dst, const ImageGpu32sC4& src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu32sC1& dst, const ImageGpu32sC1& src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu32sC2& dst, const ImageGpu32sC2& src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu32sC4& dst, const ImageGpu32sC4& src, InterpolationMode interp, bool gauss_prefilter);
 
-template void resample(ImageGpu32fC1& dst, const ImageGpu32fC1& src, InterpolationMode interp, bool gauss_prefilter);
-template void resample(ImageGpu32fC2& dst, const ImageGpu32fC2& src, InterpolationMode interp, bool gauss_prefilter);
-template void resample(ImageGpu32fC4& dst, const ImageGpu32fC4& src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu32fC1& dst, const ImageGpu32fC1& src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu32fC2& dst, const ImageGpu32fC2& src, InterpolationMode interp, bool gauss_prefilter);
+template void reduce(ImageGpu32fC4& dst, const ImageGpu32fC4& src, InterpolationMode interp, bool gauss_prefilter);
 
 
 } // namespace cu
 } // namespace imp
 
-#endif // IMP_CU_REDUCE_IMPL_CU

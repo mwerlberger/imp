@@ -21,7 +21,8 @@ set(SOURCES
   )
 
 set(CU_HDRS
-  include/imp/cu_imgproc/cu_image_transform.cuh
+  include/imp/cu_imgproc/cu_reduce.cuh
+  include/imp/cu_imgproc/cu_resample.cuh
   include/imp/cu_imgproc/cu_image_filter.cuh
   include/imp/cu_imgproc/edge_detectors.cuh
   include/imp/cu_imgproc/cu_variational_denoising.cuh
@@ -30,25 +31,22 @@ set(CU_HDRS
   )
 
 set(CU_SRCS
-  src/image_transform/cu_reduce_impl.cu
-  src/image_transform/cu_resample_impl.cu
-  src/cu_image_transform.cu
-  src/image_filter/cu_median3x3_impl.cu
-  src/image_filter/cu_gauss_impl.cu
-  src/cu_image_filter.cu
-  src/edge_detectors/natural_edges_impl.cu
-  src/edge_detectors.cu
+  src/cu_reduce.cu
+  src/cu_resample.cu
+  src/cu_median3x3_filter.cu
+  src/cu_gauss_filter.cu
+  src/cu_natural_edges.cu
   src/cu_variational_denoising.cu
   src/cu_rof_denoising.cu
   src/cu_tvl1_denoising.cu
   )
 
-cuda_compile(CU_OBJ ${CU_SRCS} ${CU_HDRS})
+#cuda_compile(CU_OBJ ${CU_SRCS} ${CU_HDRS})
 
-cs_add_library(${PROJECT_NAME}
-   ${CU_OBJ} ${SOURCES} ${HEADERS} ${CU_HDRS}
+cs_cuda_add_library(${PROJECT_NAME}
+   ${CU_SRCS} ${CU_HDRS} ${SOURCES} ${HEADERS}
    )
-target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
+#target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES} ${catkin_LIBRARIES})
 
 ###
 ### GTESTS

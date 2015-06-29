@@ -17,10 +17,17 @@ set(HEADERS
   include/imp/cu_core/cu_utils.hpp
   include/imp/cu_core/cu_exception.hpp
   include/imp/cu_core/cu_pixel_conversion.hpp
+  )
+
+set(SOURCES
+  src/cu_pixel_conversion.cpp
+  )
+
+set(CU_HDRS
   include/imp/cu_core/cu_memory_storage.cuh
   include/imp/cu_core/cu_linearmemory.cuh
-  #include/imp/cu_core/cu_gpu_data.cuh # unused at the moment
   include/imp/cu_core/cu_image_gpu.cuh
+  include/imp/cu_core/cu_texture2d.cuh
   include/imp/cu_core/cu_texture.cuh
   include/imp/cu_core/cu_math.cuh
   include/imp/cu_core/cu_k_setvalue.cuh
@@ -30,23 +37,19 @@ set(HEADERS
   include/imp/cu_core/cu_matrix.cuh
   )
 
-set(SOURCES
-  src/cu_pixel_conversion.cpp
-  )
-
-set(CU_SRC
+set(CU_SRCS
   src/cu_linearmemory.cu
+  #src/cu_texture.cu
   src/cu_image_gpu.cu
-#  src/math/cu_min_max_impl.cu
-  src/cu_math.cu
+  src/min_max.cu
   )
 
-cuda_compile(CU_OBJ ${CU_SRC})
+#cuda_compile(CU_OBJ ${CU_SRC})
 
-cs_add_library(${PROJECT_NAME}
-   ${CU_OBJ} ${CU_SRC} ${SOURCES} ${HEADERS}
+cs_cuda_add_library(${PROJECT_NAME}
+   ${CU_SRCS} ${CU_HDRS} ${SOURCES} ${HEADERS}
    )
-target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
+#target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES} ${catkin_LIBRARIES})
 
 ###
 ### GTESTS

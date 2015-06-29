@@ -9,7 +9,9 @@ find_package(catkin_simple REQUIRED)
 catkin_simple()
 
 include(imp_macros)
+include(imp_finders)
 imp_setup()
+imp_find_cuda()
 
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++0x -D__STRICT_ANSI__")
 
@@ -28,8 +30,8 @@ set(SOURCES
 set(IMPL_FILES
   )
 
-cs_add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${IMPL_FILES})
-target_link_libraries(${PROJECT_NAME})
+cs_cuda_add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${IMPL_FILES})
+#target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES} ${catkin_LIBRARIES})
 
 ###
 ### GTESTS

@@ -25,7 +25,7 @@ __global__ void k_warpedGradients(Pixel* ix, Pixel* it, size_type stride,
 
   if (x<width && y<height)
   {
-    float u0 = u0_tex.fetch<float>(x,y);
+    float u0 = tex2DFetch<float>(u0_tex, x,y);
     float wx = x+u0;
 
     float bd = .5f;
@@ -39,11 +39,11 @@ __global__ void k_warpedGradients(Pixel* ix, Pixel* it, size_type stride,
     {
       Pixel i1_c, i2_w_c, i2_w_m, i2_w_p;
 
-      i1_tex.fetch(i1_c, x, y);
+      tex2DFetch(i1_c, i1_tex, x, y);
 
-      i2_tex.fetch(i2_w_c, wx, y);
-      i2_tex.fetch(i2_w_m, wx-0.5f, y);
-      i2_tex.fetch(i2_w_p, wx+0.5f, y);
+      tex2DFetch(i2_w_c, i2_tex, wx, y);
+      tex2DFetch(i2_w_m, i2_tex, wx-.5f, y);
+      tex2DFetch(i2_w_p, i2_tex, wx+.5f, y);
 
       // spatial gradient on warped image
       ix[c] = i2_w_p - i2_w_m;
@@ -71,7 +71,7 @@ __global__ void k_warpedGradientsEpipolarConstraint(
   if (x<width && y<height)
   {
     // compute epipolar geometry
-    float mu = depth_proposal_tex.fetch<float>(x,y);
+    float mu = tex2DFetch<float>(depth_proposal_tex, x, y);
 
     //    float sigma = sqrtf(depth_proposal_sigma2_tex.fetch<float>(x,y));
     float2 px_ref = make_float2((float)x, (float)y);
@@ -121,7 +121,7 @@ __global__ void k_warpedGradientsEpipolarConstraint(
     }
 #endif
 
-    float u0 = u0_tex.fetch<float>(x,y);
+    float u0 = tex2DFetch<float>(u0_tex, x,y);
     float2 px_u0 = px_mean + epi_vec*u0; // assuming that epi_vec is the unit vec
     float2 px_u0_p = px_u0 + 0.5f*epi_vec;
     float2 px_u0_m = px_u0 - 0.5f*epi_vec;
@@ -142,14 +142,13 @@ __global__ void k_warpedGradientsEpipolarConstraint(
     {
       Pixel i1_c, i2_w_c, i2_w_m, i2_w_p;
 
-      i1_tex.fetch(i1_c, x, y);
 
-      /// @todo (MWE) don't we want to have the gradient along the epipolar line??
-#if 1
-      i2_tex.fetch(i2_w_c, px_u0.x, px_u0.y);
-      i2_tex.fetch(i2_w_m, px_u0.x-0.5f*epi_vec.x, px_u0.y-0.5f*epi_vec.y);
-      i2_tex.fetch(i2_w_p, px_u0.x+0.5f*epi_vec.x, px_u0.y+0.5f*epi_vec.y);
-#endif
+      tex2DFetch(i1_c, i1_tex, x, y);
+
+      tex2DFetch(i2_w_c, i2_tex, px_u0.x, px_u0.y-.5f*epi_vec.y);
+      tex2DFetch(i2_w_m, i2_tex, px_u0.x-.5f*epi_vec.x, px_u0.y-.5f*epi_vec.y);
+      tex2DFetch(i2_w_p, i2_tex, px_u0.x+.5f*epi_vec.x, px_u0.y+.5f*epi_vec.y);
+
 #if 0
       i2_tex.fetch(i2_w_c, px_ref.x+epi_vec.x*u0, px_ref.y);
       i2_tex.fetch(i2_w_m, px_ref.x+epi_vec.x*u0-epi_vec.x*0.5f, px_ref.y-0.5f*epi_vec.y);

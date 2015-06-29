@@ -11,13 +11,15 @@ namespace imp {
 namespace cu {
 
 // forward declarations
-struct Texture2D;
+class Texture2D;
 
 struct VariationalDenoisingParams
 {
   float lambda = 10.f;
   std::uint16_t max_iter = 100;
   bool verbose = false;
+  std::uint16_t primal_dual_energy_check_iter = 0;
+  double primal_dual_gap_tolerance = 0.0;
 };
 
 /**
@@ -33,19 +35,13 @@ public:
   VariationalDenoising();
   virtual ~VariationalDenoising();
 
-  virtual __host__ void init(const Size2u& size);
+  virtual void init(const Size2u& size);
+  virtual void  __host__  denoise(const std::shared_ptr<imp::ImageBase>& dst,
+                                  const std::shared_ptr<imp::ImageBase>& src) = 0;
 
-  virtual __host__ void denoise(const std::shared_ptr<imp::ImageBase>& dst,
-                                const std::shared_ptr<imp::ImageBase>& src) = 0;
-
-  __forceinline__ __host__ __device__
-  dim3 dimGrid() {return fragmentation_->dimGrid;}
-
-  __forceinline__ __host__ __device__
-  dim3 dimBlock() {return fragmentation_->dimBlock;}
-
-  __forceinline__ __host__ __device__
-  virtual VariationalDenoisingParams& params() { return params_; }
+  inline dim3 dimGrid() {return fragmentation_->dimGrid;}
+  inline dim3 dimBlock() {return fragmentation_->dimBlock;}
+  virtual inline VariationalDenoisingParams& params() { return params_; }
 
 
   friend std::ostream& operator<<(std::ostream& os,
@@ -57,7 +53,10 @@ protected:
   {
     //os << "  size: " << this->size_ << std::endl
     os << "  lambda: " << this->params_.lambda << std::endl
-       << "  max_iter: " << this->params_.max_iter << std::endl;
+       << "  max_iter: " << this->params_.max_iter << std::endl
+       << "  primal_dual_energy_check_iter: " << this->params_.primal_dual_energy_check_iter << std::endl
+       << "  primal_dual_gap_tolerance: " << this->params_.primal_dual_gap_tolerance << std::endl
+       << std::endl;
   }
 
 
@@ -66,10 +65,10 @@ protected:
   imp::cu::ImageGpu32fC2::Ptr p_;
 
   // cuda textures
-  std::unique_ptr<imp::cu::Texture2D> f_tex_;
-  std::unique_ptr<imp::cu::Texture2D> u_tex_;
-  std::unique_ptr<imp::cu::Texture2D> u_prev_tex_;
-  std::unique_ptr<imp::cu::Texture2D> p_tex_;
+  std::shared_ptr<imp::cu::Texture2D> f_tex_;
+  std::shared_ptr<imp::cu::Texture2D> u_tex_;
+  std::shared_ptr<imp::cu::Texture2D> u_prev_tex_;
+  std::shared_ptr<imp::cu::Texture2D> p_tex_;
 
   Size2u size_;
   FragmentationPtr fragmentation_;

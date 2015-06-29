@@ -7,7 +7,7 @@
 #include <imp/cu_correspondence/variational_stereo_parameters.hpp>
 #include <imp/cu_core/cu_image_gpu.cuh>
 #include <imp/cu_imgproc/cu_image_filter.cuh>
-#include <imp/cu_imgproc/cu_image_transform.cuh>
+#include <imp/cu_imgproc/cu_resample.cuh>
 #include <imp/cu_core/cu_utils.hpp>
 #include <imp/cu_core/cu_texture.cuh>
 #include <imp/cu_core/cu_math.cuh>
@@ -53,6 +53,19 @@ SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
 
   depth_proposal_.reset(new ImageGpu32fC1(size));
   depth_proposal_sigma2_.reset(new ImageGpu32fC1(size));
+
+  u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
+  u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
+  u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
+  pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
+  q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
+  ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
+  it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
+  xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
+  g_tex_ =  g_->genTexture(false, cudaFilterModeLinear);
+  depth_proposal_tex_ =  depth_proposal_->genTexture(false, cudaFilterModeLinear);
+  depth_proposal_sigma2_tex_ =  depth_proposal_sigma2_->genTexture(false, cudaFilterModeLinear);
+
 
   float scale_factor = std::pow(params->ctf.scale_factor, level);
 
@@ -135,11 +148,17 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
   // sanity check:
   // TODO
 
+
+  // image textures
+  i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
+  i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
+
+
   // constants
   constexpr float tau = 0.95f;
   constexpr float sigma = 0.95f;
   float lin_step = 0.5f;
-  Fragmentation<16,16> frag(size_);
+  Fragmentation<> frag(size_);
   constexpr float eta = 2.0f;
 
   // init
@@ -161,28 +180,9 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
   lambda_tex_ = lambda->genTexture(false,cudaFilterModePoint,
                                    cudaAddressModeClamp, cudaReadModeElementType);
 
-  // textures
-  i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
-  i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
-  u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
-  u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
-  u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
-  pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
-  q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
-  ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
-  it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
-  xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
-  g_tex_ =  g_->genTexture(false, cudaFilterModeLinear);
-  depth_proposal_tex_ =  depth_proposal_->genTexture(false, cudaFilterModeLinear);
-  depth_proposal_sigma2_tex_ =  depth_proposal_sigma2_->genTexture(false, cudaFilterModeLinear);
-
-
-
   // compute edge weight
   imp::cu::naturalEdges(*g_, *images.at(0),
                         params_->edge_sigma, params_->edge_alpha, params_->edge_q);
-
-
 
   // warping
   for (std::uint32_t warp = 0; warp < params_->ctf.warps; ++warp)

@@ -70,7 +70,7 @@ int main(int /*argc*/, char** /*argv*/)
 //      std::shared_ptr<imp::cu::ImageGpu32fC1> d_lena_denoised(
 //            new imp::cu::ImageGpu32fC1(d_lena->size()));
 
-//      std::unique_ptr<imp::cu::Texture2D> d_tex_lena =
+//      std::shared_ptr<imp::cu::Texture2D> d_tex_lena =
 //          d_lena->genTexture(false, cudaFilterModeLinear);
 
 //      imp::cu::filterGauss(*d_lena_denoised, *d_tex_lena, 10.0);

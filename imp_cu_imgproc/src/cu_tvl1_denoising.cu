@@ -25,7 +25,7 @@ __global__ void k_initTvL1Solver(Pixel32fC1* d_u, Pixel32fC1* d_u_prev, size_t s
 
   if (x<width && y<height)
   {
-    float val = f_tex.fetch<float>(x,y);
+    float val = tex2D<float>(f_tex, x+.5f, y+.5f);
     d_u[y*stride_u + x] = val;
     d_u_prev[y*stride_u + x] = val;
     d_p[y*stride_p + x] = Pixel32fC2(0.0f, 0.0f);
@@ -43,8 +43,8 @@ __global__ void k_tvL1PrimalUpdate(
 
   if (x<width && y<height)
   {
-    float f = f_tex.fetch<float>(x,y);
-    float u = u_tex.fetch<float>(x,y);
+    float f = tex2D<float>(f_tex, x+.5f, y+.5f);
+    float u = tex2D<float>(u_tex, x+.5f, y+.5f);
     float u_prev = u;
     float div = dpAd(p_tex, x, y, width, height);
     u += tau*div;
@@ -79,7 +79,7 @@ __global__ void k_tvL1DualUpdate(
 
   if (x<width && y<height)
   {
-    float2 p = p_tex.fetch<float2>(x,y);
+    float2 p = tex2D<float2>(p_tex, x+.5f, y+.5f);
     float2 dp_u = dp(u_prev_tex, x, y);
 
     p = p + sigma*dp_u;
@@ -100,7 +100,7 @@ __global__ void k_tvL1convertResult8uC1(Pixel8uC1* d_u, size_t stride_u,
   if (x<width && y<height)
   {
     d_u[y*stride_u + x] = static_cast<std::uint8_t>(
-          255.0f * u_tex.fetch<float>(x,y));
+          255.0f * tex2D<float>(u_tex, x+.5f, y+.5f));
   }
 }
 

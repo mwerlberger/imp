@@ -31,31 +31,16 @@ int main(int argc, char** argv)
       imp::cu::cvBridgeLoad(cu_im, in_filename, imp::PixelOrder::gray);
       imp::Pixel8uC1 min_pixel, max_pixel;
       imp::cu::minMax(*cu_im, min_pixel, max_pixel);
-      std::cout << "min: " << min_pixel << ", max: " << max_pixel << std::endl;
+      std::cout << "min: " << (int)min_pixel << ", max: " << (int)max_pixel << std::endl;
     }
 
-//    // ROF denoising 32fC1
-//    {
-//      std::shared_ptr<imp::cu::ImageGpu32fC1> cu_im;
-//      imp::cu::cvBridgeLoad(cu_im, in_filename, imp::PixelOrder::gray);
-//      std::shared_ptr<imp::cu::ImageGpu32fC1> cu_im_denoised(
-//            new imp::cu::ImageGpu32fC1(*cu_im));
-
-//      imp::cu::RofDenoising32fC1 rof;
-//      rof.denoise(cu_im_denoised, cu_im);
-
-//      imp::cu::cvBridgeShow("input 32f", *cu_im);
-//      imp::cu::cvBridgeShow("denoised 32f", *cu_im_denoised);
-//    }
-
-//    cv::waitKey();
   }
   catch (std::exception& e)
   {
     std::cout << "[exception] " << e.what() << std::endl;
+    cudaDeviceReset();
     assert(false);
   }
-
+  cudaDeviceReset();
   return EXIT_SUCCESS;
-
 }

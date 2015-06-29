@@ -72,9 +72,9 @@ __global__ void k_naturalEdges(EdgePixel *g, const size_type stride,
   if (x<width && y<height)
   {
     Pixel ic, ixp, iyp;
-    src_tex.fetch(ic, x, y);
-    src_tex.fetch(ixp, x+1.f, y);
-    src_tex.fetch(iyp, x, y+1.f);
+    tex2DFetch(ic, src_tex, x, y);
+    tex2DFetch(ixp, src_tex, x+1.f, y);
+    tex2DFetch(iyp, src_tex, x, y+1.f);
 
     // calculate finite derivatives
     Pixel dx = ixp - ic;
@@ -110,22 +110,21 @@ void naturalEdges(ImageGpu<Pixel, pixel_type>& dst,
 
   imp::cu::filterGauss(*tmp_denoised, src, sigma);
 
-  std::unique_ptr<Texture2D> src_tex =
-      tmp_denoised->genTexture(false, (tmp_denoised->bitDepth()<32) ? cudaFilterModePoint
-                                                            : cudaFilterModeLinear);
+  std::shared_ptr<Texture2D> src_tex =
+      tmp_denoised->genTexture(
+        false, (tmp_denoised->bitDepth()<32) ? cudaFilterModePoint
+                                             : cudaFilterModeLinear);
+  IMP_CUDA_CHECK();
 
-  constexpr std::uint16_t block_size = 16;
-  Fragmentation<block_size, block_size> frag(roi);
+  Fragmentation<> frag(roi);
 
   k_naturalEdges<Pixel, Pixel>
       <<<
         frag.dimGrid, frag.dimBlock
-      >>> (
-          dst.data(), dst.stride(),
-          alpha, q,
-          roi.x(), roi.y(), roi.width(), roi.height(), *src_tex);
+      >>> (dst.data(), dst.stride(),
+           alpha, q,
+           roi.x(), roi.y(), roi.width(), roi.height(), *src_tex);
 
-  (void) block_size;
   IMP_CUDA_CHECK();
 }
 
