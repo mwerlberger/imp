@@ -3,6 +3,8 @@
 
 #include <cuda_runtime.h>
 #include <imp/cu_core/cu_texture2d.cuh>
+#include <imp/cu_core/cu_image_gpu.cuh>
+#include <imp/cu_core/cu_pixel_conversion.hpp>
 
 namespace imp {
 namespace cu {
@@ -133,6 +135,22 @@ T tex2DFetch(
 //  tex2DFetch(val, tex, x, y, mul_x, mul_y, add_x, add_y);
 //  return val;
 //}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel, imp::PixelType pixel_type>
+__host__ __forceinline__
+Texture2D bindTexture2D(
+    const imp::cu::ImageGpu<Pixel,pixel_type>& image,
+    bool normalized_coords,
+    cudaTextureFilterMode filter_mode,
+    cudaTextureAddressMode address_mode,
+    cudaTextureReadMode read_mode)
+{
+  // don't blame me for doing a const_cast as binding textures needs a void* but
+  // we want genTexture to be a const function as we don't modify anything here!
+  return Texture2D(image.cuData(), image.pitch(), image.channelFormatDesc(), image.size(),
+                   normalized_coords, filter_mode, address_mode, read_mode);
+}
 
 
 

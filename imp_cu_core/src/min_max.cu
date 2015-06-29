@@ -118,16 +118,56 @@ void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min_val, Pixel& max_v
   IMP_CUDA_CHECK();
   imp::Roi2u roi = img.roi();
 
-//  std::shared_ptr<Texture2D> img_tex = img.genTexture(
-//        false, cudaFilterModePoint, cudaAddressModeClamp, cudaReadModeElementType);
+#if 0
+  cudaResourceDesc tex_res;
+  std::memset(&tex_res, 0, sizeof(tex_res));
+  tex_res.resType = cudaResourceTypePitch2D;
+  tex_res.res.pitch2D.width = img.width();
+  tex_res.res.pitch2D.height = img.height();
+  tex_res.res.pitch2D.pitchInBytes = img.pitch();
+  const void* data = img.cuData();
+  tex_res.res.pitch2D.devPtr = const_cast<void*>(data);
+  tex_res.res.pitch2D.desc = img.channelFormatDesc();
+
+  cudaTextureDesc tex_desc;
+  std::memset(&tex_desc, 0, sizeof(tex_desc));
+  tex_desc.normalizedCoords = 0;
+  tex_desc.filterMode = cudaFilterModePoint;
+  tex_desc.addressMode[0] = cudaAddressModeClamp;
+  tex_desc.addressMode[1] = cudaAddressModeClamp;
+  tex_desc.readMode = cudaReadModeElementType;
+
+  cudaTextureObject_t tex_object;
+  cudaError_t err = cudaCreateTextureObject(&tex_object, &tex_res, &tex_desc, 0);
+  if  (err != ::cudaSuccess)
+  {
+    throw imp::cu::Exception("Failed to create texture object", err,
+                             __FILE__, __FUNCTION__, __LINE__);
+  }
+  IMP_CUDA_CHECK();
+#endif
+
+#if 0
+  std::shared_ptr<Texture2D> img_tex = img.genTexture(
+        false, cudaFilterModePoint, cudaAddressModeClamp, cudaReadModeElementType);
+  IMP_CUDA_CHECK();
+#endif
+
+#if 0
+  Texture2D img_tex = imp::cu::bindTexture2D(img, false, cudaFilterModePoint, cudaAddressModeClamp,
+                                             cudaReadModeElementType);
+  IMP_CUDA_CHECK();
+#endif
 
 #if 0
   std::shared_ptr<Texture2D> img_tex = img.genTexture();
   IMP_CUDA_CHECK();
   imp::cu::minMax(*img_tex, min_val, max_val, roi);
   IMP_CUDA_CHECK();
-#else
+#endif
 
+
+#if 0
   imp::cu::LinearMemory<Pixel> d_col_mins(roi.width());
   imp::cu::LinearMemory<Pixel> d_col_maxs(roi.width());
   IMP_CUDA_CHECK();
@@ -161,7 +201,6 @@ void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min_val, Pixel& max_v
   }
 
   IMP_CUDA_CHECK();
-
 #endif
 }
 
