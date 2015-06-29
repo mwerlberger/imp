@@ -41,6 +41,36 @@ __global__ void k_minMax(Pixel* d_col_mins, Pixel* d_col_maxs,
   }
 }
 
+//-----------------------------------------------------------------------------
+template<typename Pixel, typename SrcPixel>
+__global__ void k_minMax(Pixel* d_col_mins, Pixel* d_col_maxs,
+                         SrcPixel* src, size_type src_stride,
+                         std::uint32_t roi_x, std::uint32_t roi_y,
+                         std::uint32_t roi_width, std::uint32_t roi_height)
+{
+  int x = blockIdx.x*blockDim.x + threadIdx.x;
+
+  if (x<roi_width)
+  {
+    int xx = x+roi_x;
+    int yy = roi_y;
+
+
+    Pixel cur_min, cur_max;
+    Pixel val = (Pixel)src[yy++*src_stride+xx];
+    cur_min = val;
+    cur_max = val;
+    for (; yy<roi_y+roi_height; ++yy)
+    {
+      val = (Pixel)src[yy*src_stride+xx];
+      cur_min = imp::cu::min(cur_min, val);
+      cur_max = imp::cu::max(cur_max, val);
+    }
+
+    d_col_mins[x] = cur_min;
+    d_col_maxs[x] = cur_max;
+  }
+}
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
@@ -86,12 +116,53 @@ template<typename Pixel, imp::PixelType pixel_type>
 void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min_val, Pixel& max_val)
 {
   IMP_CUDA_CHECK();
+  imp::Roi2u roi = img.roi();
 
+//  std::shared_ptr<Texture2D> img_tex = img.genTexture(
+//        false, cudaFilterModePoint, cudaAddressModeClamp, cudaReadModeElementType);
+
+#if 0
   std::shared_ptr<Texture2D> img_tex = img.genTexture();
   IMP_CUDA_CHECK();
-  imp::Roi2u roi = img.roi();
   imp::cu::minMax(*img_tex, min_val, max_val, roi);
   IMP_CUDA_CHECK();
+#else
+
+  imp::cu::LinearMemory<Pixel> d_col_mins(roi.width());
+  imp::cu::LinearMemory<Pixel> d_col_maxs(roi.width());
+  IMP_CUDA_CHECK();
+  d_col_mins.setValue(Pixel(0));
+  d_col_maxs.setValue(Pixel(0));
+
+  Fragmentation<512,1> frag(roi.width(), 1);
+  k_minMax
+      <<<
+        frag.dimGrid, frag.dimBlock
+      >>> (d_col_mins.data(), d_col_maxs.data(),
+           img.data(), img.stride(),
+           roi.x(), roi.y(), roi.width(), roi.height());
+  IMP_CUDA_CHECK();
+
+  imp::LinearMemory<Pixel> h_col_mins(d_col_mins.length());
+  imp::LinearMemory<Pixel> h_col_maxs(d_col_maxs.length());
+  h_col_mins.setValue(Pixel(0));
+  h_col_maxs.setValue(Pixel(0));
+
+  d_col_mins.copyTo(h_col_mins);
+  d_col_maxs.copyTo(h_col_maxs);
+
+  min_val = h_col_mins(0);
+  max_val = h_col_maxs(0);
+
+  for (auto i=1u; i<roi.width(); ++i)
+  {
+    min_val = imp::cu::min(min_val, h_col_mins(i));
+    max_val = imp::cu::max(max_val, h_col_maxs(i));
+  }
+
+  IMP_CUDA_CHECK();
+
+#endif
 }
 
 

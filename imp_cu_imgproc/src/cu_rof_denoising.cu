@@ -267,7 +267,7 @@ void RofDenoising<Pixel, pixel_type>::primalDualEnergy(
 
   // TODO sum
   primal_energy = 10.0;
-  //imp::cu::minMax(*primal_energies_, ep_min, ep_max);
+  imp::cu::minMax(*primal_energies_, ep_min, ep_max);
   IMP_CUDA_CHECK();
 
   k_rofDualEnergy
@@ -277,7 +277,7 @@ void RofDenoising<Pixel, pixel_type>::primalDualEnergy(
            size_.width(), size_.height(), params_.lambda,
            *f_tex_, *p_tex_);
   dual_energy = 20.0;
-  //imp::cu::minMax(*dual_energies_, ed_min, ed_max);
+  imp::cu::minMax(*dual_energies_, ed_min, ed_max);
 
   std::cout << "!!! primal: min: " << ep_min << "; max: " << ep_max << std::endl;
   std::cout << "!!! dual  : min: " << ed_min << "; max: " << ed_max << std::endl;
