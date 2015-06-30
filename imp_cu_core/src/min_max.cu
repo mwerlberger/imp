@@ -118,7 +118,7 @@ void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min_val, Pixel& max_v
   IMP_CUDA_CHECK();
   imp::Roi2u roi = img.roi();
 
-#if 0
+#if 1
   cudaResourceDesc tex_res;
   std::memset(&tex_res, 0, sizeof(tex_res));
   tex_res.resType = cudaResourceTypePitch2D;
