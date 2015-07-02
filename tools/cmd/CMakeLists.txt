@@ -20,26 +20,17 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs" )
 # find_package( OpenCV REQUIRED core highgui imgproc)
 # include_directories(${OpenCV_INCLUDE_DIRS})
 
-cs_cuda_add_executable(image_pyramid_test image_pyramid_test.cpp)
-# target_link_libraries(image_pyramid_test)
-
 cs_cuda_add_executable(image_filter_median3x3_test image_filter_median3x3_test.cpp)
 # target_link_libraries(image_filter_median3x3_test)
 
 cs_cuda_add_executable(image_filter_gauss_test image_filter_gauss_test.cpp)
 # target_link_libraries(image_filter_gauss_test)
 
-cs_cuda_add_executable(natural_edges_test natural_edges_test.cpp)
-# target_link_libraries(natural_edges_test)
-
 cs_cuda_add_executable(cu_rof_denoising_test cu_rof_denoising_test.cpp)
 # target_link_libraries(cu_rof_denoising_test)
 
-cs_cuda_add_executable(cu_tvl1_denoising_test cu_tvl1_denoising_test.cpp)
-# target_link_libraries(cu_tvl1_denoising_test)
-
-cuda_add_executable(cu_min_max_test cu_min_max_test.cpp)
-target_link_libraries(cu_min_max_test ${CUDA_LIBRARIES} ${catkin_LIBRARIES})
+cs_cuda_add_executable(cu_min_max_test cu_min_max_test.cpp)
+#target_link_libraries(cu_min_max_test ${CUDA_LIBRARIES} ${catkin_LIBRARIES})
 
 
 #cs_add_executable(example_executable src/main.cc)
