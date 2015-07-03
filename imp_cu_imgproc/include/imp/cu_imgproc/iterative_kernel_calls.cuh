@@ -1,22 +1,22 @@
-#ifndef IMP_CU_ROF_DENOISING_CUH
-#define IMP_CU_ROF_DENOISING_CUH
+#ifndef IMP_CU_IKC_DENOISING_CUH
+#define IMP_CU_IKC_DENOISING_CUH
 
 #include <memory>
 #include <cuda_runtime_api.h>
 
 #include <imp/cu_core/cu_image_gpu.cuh>
 #include <imp/cu_core/cu_utils.hpp>
+#include <imp/cu_imgproc/cu_variational_denoising.cuh>
 
 namespace imp {
 namespace cu {
 
-template<typename Pixel, imp::PixelType pixel_type>
 class IterativeKernelCalls  : public imp::cu::VariationalDenoising
 {
 public:
   using Base = VariationalDenoising;
-  using ImageGpu = imp::cu::ImageGpu<Pixel, pixel_type>;
-  using Ptr = std::shared_ptr<IterativeKernelCalls<Pixel,pixel_type>>;
+  using ImageGpu = imp::cu::ImageGpu32fC1;
+  using Ptr = std::shared_ptr<IterativeKernelCalls>;
 
 public:
   IterativeKernelCalls() = default;
@@ -27,7 +27,7 @@ public:
   virtual void denoise(const std::shared_ptr<imp::ImageBase>& dst,
                        const std::shared_ptr<imp::ImageBase>& src) override;
 
-  void primalDualEnergy(double& primal_energy, double& dual_energy);
+  void breakThings();
 
 protected:
   virtual void print(std::ostream &os) const override;
@@ -41,13 +41,7 @@ private:
 
 };
 
-//-----------------------------------------------------------------------------
-// convenience typedefs
-// (sync with explicit template class instantiations at the end of the cpp file)
-typedef IterativeKernelCalls<imp::Pixel8uC1, imp::PixelType::i8uC1> IterativeKernelCalls8uC1;
-typedef IterativeKernelCalls<imp::Pixel32fC1, imp::PixelType::i32fC1> IterativeKernelCalls32fC1;
-
 } // namespace cu
 } // namespace imp
 
-#endif // IMP_CU_ROF_DENOISING_CUH
+#endif // IMP_CU_IKC_DENOISING_CUH

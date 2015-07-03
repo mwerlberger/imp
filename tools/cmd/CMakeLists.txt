@@ -33,8 +33,8 @@ cs_cuda_add_executable(cu_min_max_test cu_min_max_test.cpp)
 #target_link_libraries(cu_min_max_test ${CUDA_LIBRARIES} ${catkin_LIBRARIES})
 
 
-#cs_add_executable(example_executable src/main.cc)
-#target_link_libraries(example_executable example_library)
+cs_cuda_add_executable(texture_issue texture_issue.cpp)
+# target_link_libraries(cu_rof_denoising_test)
 
 cs_install()
 cs_export()
