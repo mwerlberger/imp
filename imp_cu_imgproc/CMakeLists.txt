@@ -28,6 +28,7 @@ set(CU_HDRS
   include/imp/cu_imgproc/cu_variational_denoising.cuh
   include/imp/cu_imgproc/cu_rof_denoising.cuh
   include/imp/cu_imgproc/cu_tvl1_denoising.cuh
+  include/imp/cu_imgproc/iterative_kernel_calls.cuh
   )
 
 set(CU_SRCS
@@ -39,6 +40,7 @@ set(CU_SRCS
   src/cu_variational_denoising.cu
   src/cu_rof_denoising.cu
   src/cu_tvl1_denoising.cu
+  src/iterative_kernel_calls.cu
   )
 
 #cuda_compile(CU_OBJ ${CU_SRCS} ${CU_HDRS})

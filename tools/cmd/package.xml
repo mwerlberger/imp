@@ -20,7 +20,6 @@
   <depend>imp_cu_core</depend>
   <depend>imp_cu_imgproc</depend>
   <depend>imp_bridge_opencv</depend>
-  <depend>imp_bridge_pangolin</depend>
 
   <test_depend>gtest</test_depend>
 </package>
