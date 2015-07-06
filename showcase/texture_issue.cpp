@@ -15,65 +15,60 @@ int main(int argc, char** argv)
 {
   try
   {
-    if (argc < 2)
+    //std::cout << "usage: texture_issue [break_things_flag]";
+
+    // dummy test data
+    imp::Size2u sz(250,250);
+    imp::Roi2u roi(sz.width()/3, sz.height()/3, sz.width()/3, sz.height()/3);
+    imp::ImageRaw32fC1 image(sz);
+    imp::ImageRaw32fC1 result_image(sz);
+    image.setValue(0.0f);
+    result_image.setValue(0.0f);
+
+    for(size_t y=roi.y(); y<roi.y()+roi.height(); ++y)
     {
-      std::cout << "usage: texture_issue input_image_filename [break_things_flag]";
-      return EXIT_FAILURE;
+      for(size_t x=roi.x(); x<roi.x()+roi.width(); ++x)
+      {
+        image[y][x] = 1.0f;
+      }
     }
 
-    std::string in_filename(argv[1]);
+    imp::cu::ImageGpu32fC1::Ptr cu_image = std::make_shared<imp::cu::ImageGpu32fC1>(image.width(), image.height());//(image.cols, image.rows);
+    imp::cu::ImageGpu32fC1::Ptr cu_result_image = std::make_shared<imp::cu::ImageGpu32fC1>(image.width(), image.height());//(image.cols, image.rows);
+    image.copyTo(*cu_image);
+    IMP_CUDA_CHECK();
 
-    cv::Mat image_8u = cv::imread(in_filename, CV_LOAD_IMAGE_GRAYSCALE);
-    cv::Mat image(image_8u.rows, image_8u.cols, CV_32FC1);
-    image_8u.convertTo(image, CV_32F, 1./255.);
-    cv::Mat result_image(image.rows, image.cols, CV_32FC1);
+    //
+    //
+    imp::cu::IterativeKernelCalls ikc;
+    bool break_things = (argc>1) ? true : false;
+    ikc.run(cu_result_image, cu_image, break_things);
+    IMP_CUDA_CHECK();
+    //
+    //
 
-    cudaError cu_err;
+    cu_result_image->copyTo(result_image);
+    IMP_CUDA_CHECK();
 
+    float in_sum = 0.f;
+    float out_sum = 0.f;
+    for(size_t y=0; y<result_image.height(); ++y)
     {
-      imp::cu::ImageGpu32fC1::Ptr cu_image = std::make_shared<imp::cu::ImageGpu32fC1>(image.cols, image.rows);
-      imp::cu::ImageGpu32fC1::Ptr cu_result_image = std::make_shared<imp::cu::ImageGpu32fC1>(image.cols, image.rows);
-      IMP_CUDA_CHECK();
-      std::cout << "cu_image: " << cu_image->pitch() << std::endl;
-      std::cout << "image: " << image.step << std::endl;
-
-      // copy image data to device
-      cu_err = cudaMemcpy2D(cu_image->data(), cu_image->pitch(),
-                            (void*)image.data, image.step,
-                            image.cols*sizeof(float), image.rows,
-                            cudaMemcpyHostToDevice);
-      if (cu_err != cudaSuccess)
+      for(size_t x=0; x<result_image.width(); ++x)
       {
-        throw imp::cu::Exception("copy host -> device failed", cu_err, __FILE__, __FUNCTION__, __LINE__);
-        return EXIT_FAILURE;
+        in_sum += image[y][x];
+        out_sum += result_image[y][x];
       }
-      IMP_CUDA_CHECK();
-
-      //
-      //
-      imp::cu::IterativeKernelCalls ikc;
-      bool break_things = (argc>2) ? true : false;
-      ikc.denoise(cu_result_image, cu_image, break_things);
-      //
-      //
-
-
-      // copy image data to device
-      cu_err = cudaMemcpy2D((void*)result_image.data, result_image.step,
-                            cu_result_image->data(), cu_result_image->pitch(),
-                            cu_result_image->rowBytes(), cu_result_image->height(),
-                            cudaMemcpyDeviceToHost);
-      if (cu_err != cudaSuccess)
-      {
-        throw imp::cu::Exception("copy device -> host failed", cu_err, __FILE__, __FUNCTION__, __LINE__);
-        return EXIT_FAILURE;
-      }
-      IMP_CUDA_CHECK();
     }
+    std::cout << "in_sum: " << in_sum << "; out_sum: " << out_sum << std::endl;
 
-    cv::imshow("input image", image);
-    cv::imshow("roundtrip image", result_image);
+    cv::Mat vis_in(image.height(), image.width(), CV_32FC1, image.data(), image.pitch());
+    cv::Mat vis_out(result_image.height(), result_image.width(), CV_32FC1, result_image.data(), result_image.pitch());
+
+    cv::imshow("input", vis_in);
+    cv::imshow("output", vis_out);
     cv::waitKey();
+
   }
   catch (std::exception& e)
   {

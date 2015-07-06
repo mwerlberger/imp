@@ -154,14 +154,14 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_imgproc/include/)
 cuda_add_library(cu_imgproc ${CU_IMGPROC_SOURCES} ${CU_IMGPROC_HEADERS})
 target_link_libraries(cu_imgproc cu_core core ${CUDA_LIBRARIES})
 
-#############################################################################
-## combined library (all_and_everything)
-cuda_add_library(all_and_everything
-  ${CORE_SOURCES} ${CORE_HEADERS}
-  ${CU_CORE_CU_HDRS} ${CU_CORE_CU_SRCS} ${CU_CORE_SOURCES} ${CU_CORE_HEADERS}
-  ${CU_IMGPROC_SOURCES} ${CU_IMGPROC_HEADERS}
-)
-target_link_libraries(all_and_everything ${CUDA_LIBRARIES})
+##############################################################################
+### combined library (all_and_everything)
+#cuda_add_library(all_and_everything
+#  ${CORE_SOURCES} ${CORE_HEADERS}
+#  ${CU_CORE_CU_HDRS} ${CU_CORE_CU_SRCS} ${CU_CORE_SOURCES} ${CU_CORE_HEADERS}
+#  ${CU_IMGPROC_SOURCES} ${CU_IMGPROC_HEADERS}
+#)
+#target_link_libraries(all_and_everything ${CUDA_LIBRARIES})
 
 
 #############################################################################
