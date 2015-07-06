@@ -12,41 +12,18 @@ include(imp_finders)
 imp_setup()
 imp_find_cuda()
 
-set(HEADERS
-  include/imp/cu_imgproc/image_pyramid.hpp
-  )
-
-set(SOURCES
-  src/image_pyramid.cpp
-  )
-
 set(CU_HDRS
-  include/imp/cu_imgproc/cu_reduce.cuh
-  include/imp/cu_imgproc/cu_resample.cuh
-  include/imp/cu_imgproc/cu_image_filter.cuh
-  include/imp/cu_imgproc/edge_detectors.cuh
-  include/imp/cu_imgproc/cu_variational_denoising.cuh
-  include/imp/cu_imgproc/cu_rof_denoising.cuh
-  include/imp/cu_imgproc/cu_tvl1_denoising.cuh
   include/imp/cu_imgproc/iterative_kernel_calls.cuh
   )
 
 set(CU_SRCS
-  src/cu_reduce.cu
-  src/cu_resample.cu
-  src/cu_median3x3_filter.cu
-  src/cu_gauss_filter.cu
-  src/cu_natural_edges.cu
-  src/cu_variational_denoising.cu
-  src/cu_rof_denoising.cu
-  src/cu_tvl1_denoising.cu
   src/iterative_kernel_calls.cu
   )
 
 #cuda_compile(CU_OBJ ${CU_SRCS} ${CU_HDRS})
 
 cs_cuda_add_library(${PROJECT_NAME}
-   ${CU_SRCS} ${CU_HDRS} ${SOURCES} ${HEADERS}
+   ${CU_SRCS} ${CU_HDRS}
    )
 #target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES} ${catkin_LIBRARIES})
 

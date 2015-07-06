@@ -9,6 +9,7 @@
 #include <imp/cu_core/cu_texture.cuh>
 #include <imp/cu_core/cu_k_derivative.cuh>
 #include <imp/cu_core/cu_math.cuh>
+#include <imp/cu_core/cu_texture.cuh>
 
 
 namespace imp {
@@ -16,9 +17,9 @@ namespace cu {
 
 //-----------------------------------------------------------------------------
 __global__ void k_ikcInit(Pixel32fC1* d_u, Pixel32fC1* d_u_prev, size_t stride_u,
-                                Pixel32fC2* d_p, size_t stride_p,
-                                imp::cu::Texture2D f_tex,
-                                size_t width, size_t height)
+                          Pixel32fC2* d_p, size_t stride_p,
+                          imp::cu::Texture2D f_tex,
+                          size_t width, size_t height)
 {
   int x = blockIdx.x*blockDim.x + threadIdx.x;
   int y = blockIdx.y*blockDim.y + threadIdx.y;
@@ -74,47 +75,34 @@ __global__ void k_ikcTwo(
   }
 }
 
-//-----------------------------------------------------------------------------
-__global__ void k_ikcPrimalEnergy(Pixel32fC1* d_ep,  size_type stride,
-                                  std::uint32_t width, std::uint32_t height,
-                                  float lambda, Texture2D f_tex, Texture2D u_tex)
-{
-  int x = blockIdx.x*blockDim.x + threadIdx.x;
-  int y = blockIdx.y*blockDim.y + threadIdx.y;
-
-  if (x<width && y<height)
-  {
-    float2 dp_u = dp(u_tex, x, y);
-    float f = tex2DFetch<float>(f_tex, x, y);
-    float u = tex2DFetch<float>(u_tex, x, y);
-    d_ep[y*stride + x] = length(dp_u) + lambda/2.0f * imp::cu::sqr(u-f);
-  }
-}
-
-//-----------------------------------------------------------------------------
-__global__ void k_ikcDualEnergy(Pixel32fC1* d_ed,  size_type stride,
-                                std::uint32_t width, std::uint32_t height,
-                                float lambda, Texture2D f_tex, Texture2D p_tex)
-{
-  int x = blockIdx.x*blockDim.x + threadIdx.x;
-  int y = blockIdx.y*blockDim.y + threadIdx.y;
-
-  if (x<width && y<height)
-  {
-    float f = tex2DFetch<float>(f_tex, x, y);
-    float div = dpAd(p_tex, x, y, width, height);
-    d_ed[y*stride + x] = -imp::cu::sqr(div)/(2.0f*lambda) - div*f;
-  }
-}
-
-
-
 //#############################################################################
+
+//-----------------------------------------------------------------------------
+IterativeKernelCalls::IterativeKernelCalls()
+  : f_tex_(nullptr)
+  , u_tex_(nullptr)
+  , u_prev_tex_(nullptr)
+  , p_tex_(nullptr)
+{
+}
+
+//-----------------------------------------------------------------------------
+IterativeKernelCalls::~IterativeKernelCalls()
+{
+
+}
 
 //-----------------------------------------------------------------------------
 void IterativeKernelCalls::init(const Size2u& size)
 {
-  Base::init(size);
+  size_ = size;
+  fragmentation_.reset(new Fragmentation(size));
+
+  // setup internal memory
+  this->u_.reset(new ImageGpu32fC1(size));
+  this->u_prev_.reset(new ImageGpu32fC1(size));
+  this->p_.reset(new ImageGpu32fC2(size));
+
   IMP_CUDA_CHECK();
 
   // setup textures
@@ -136,8 +124,8 @@ void IterativeKernelCalls::init(const Size2u& size)
                                      *f_tex_, size_.width(), size_.height());
 
 
-  primal_energies_.reset(new ImageGpu32fC1(size_));
-  primal_energies_->setValue(0);
+  unrelated_.reset(new ImageGpu32fC1(size_));
+  unrelated_->setValue(0);
 
 
   IMP_CUDA_CHECK();
@@ -145,7 +133,8 @@ void IterativeKernelCalls::init(const Size2u& size)
 
 //-----------------------------------------------------------------------------
 void IterativeKernelCalls::denoise(const std::shared_ptr<ImageBase>& dst,
-                                              const std::shared_ptr<ImageBase>& src)
+                                   const std::shared_ptr<ImageBase>& src,
+                                   bool break_things)
 {
   if (params_.verbose)
   {
@@ -185,7 +174,10 @@ void IterativeKernelCalls::denoise(const std::shared_ptr<ImageBase>& dst,
                 << "; sigma: " << sigma << "; theta: " << theta << std::endl;
     }
 
-    //this->breakThings();
+    if (break_things)
+    {
+      this->breakThings();
+    }
 
     k_ikcTwo
         <<< dimGrid(), dimBlock() >>> (p_->data(), p_->stride(),
@@ -214,17 +206,11 @@ void IterativeKernelCalls::denoise(const std::shared_ptr<ImageBase>& dst,
 void IterativeKernelCalls::breakThings()
 {
   Pixel32fC1 val_min, val_max;
-  imp::cu::minMax(*primal_energies_, val_min, val_max);
+  imp::cu::minMax(*unrelated_, val_min, val_max);
 
   IMP_CUDA_CHECK();
 }
 
-//-----------------------------------------------------------------------------
-void IterativeKernelCalls::print(std::ostream& os) const
-{
-  os << "ROF Denoising:" << std::endl;
-  this->Base::print(os);
-}
 
 } // namespace cu
-              } // namespace imp
+} // namespace imp
