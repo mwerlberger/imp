@@ -4,12 +4,28 @@
 
 #include <cuda_runtime.h>
 
-#include <imp/cuda_toolkit/helper_math.h>
 #include <imp/core/pixel.hpp>
 #include <imp/cu_core/cu_texture.cuh>
 #include <imp/cu_core/cu_k_derivative.cuh>
 #include <imp/cu_core/cu_math.cuh>
 #include <imp/cu_core/cu_texture.cuh>
+
+inline __host__ __device__ float2 operator*(float b, float2 a)
+{
+  return make_float2(b * a.x, b * a.y);
+}
+inline __host__ __device__ float2 operator/(float2 a, float b)
+{
+  return make_float2(a.x / b, a.y / b);
+}
+inline __host__ __device__ float2 operator+(float2 a, float2 b)
+{
+  return make_float2(a.x + b.x, a.y + b.y);
+}
+inline __host__ __device__ float dot(float2 a, float2 b)
+{
+  return a.x * b.x + a.y * b.y;
+}
 
 
 namespace imp {
@@ -183,12 +199,15 @@ void IterativeKernelCalls::denoise(const std::shared_ptr<ImageBase>& dst,
         <<< dimGrid(), dimBlock() >>> (p_->data(), p_->stride(),
                                        *p_tex_, *u_prev_tex_,
                                        sigma, size_.width(), size_.height());
+    cudaThreadSynchronize();
 
     k_ikcOne
         <<< dimGrid(), dimBlock() >>> (u_->data(), u_prev_->data(), u_->stride(),
                                        *f_tex_, *u_tex_, *p_tex_,
                                        params_.lambda, tau, theta,
                                        size_.width(), size_.height());
+    cudaThreadSynchronize();
+
 
     sigma /= theta;
     tau *= theta;

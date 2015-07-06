@@ -31,14 +31,14 @@ int main(int argc, char** argv)
     cudaError cu_err;
 
     {
-      imp::cu::ImageGpu32fC1 cu_image(image.cols, image.rows);
-      imp::cu::ImageGpu32fC1 cu_result_image(image.cols, image.rows);
+      imp::cu::ImageGpu32fC1::Ptr cu_image = std::make_shared<imp::cu::ImageGpu32fC1>(image.cols, image.rows);
+      imp::cu::ImageGpu32fC1::Ptr cu_result_image = std::make_shared<imp::cu::ImageGpu32fC1>(image.cols, image.rows);
       IMP_CUDA_CHECK();
-      std::cout << "cu_image: " << cu_image.pitch() << std::endl;
+      std::cout << "cu_image: " << cu_image->pitch() << std::endl;
       std::cout << "image: " << image.step << std::endl;
 
       // copy image data to device
-      cu_err = cudaMemcpy2D(cu_image.data(), cu_image.pitch(),
+      cu_err = cudaMemcpy2D(cu_image->data(), cu_image->pitch(),
                             (void*)image.data, image.step,
                             image.cols*sizeof(float), image.rows,
                             cudaMemcpyHostToDevice);
@@ -53,15 +53,15 @@ int main(int argc, char** argv)
       //
       imp::cu::IterativeKernelCalls ikc;
       bool break_things = (argc>2) ? true : false;
-      ikc.denoise(cu_image, cu_result_image, break_things);
+      ikc.denoise(cu_result_image, cu_image, break_things);
       //
       //
 
 
       // copy image data to device
       cu_err = cudaMemcpy2D((void*)result_image.data, result_image.step,
-                            cu_result_image.data(), cu_result_image.pitch(),
-                            cu_result_image.rowBytes(), cu_result_image.height(),
+                            cu_result_image->data(), cu_result_image->pitch(),
+                            cu_result_image->rowBytes(), cu_result_image->height(),
                             cudaMemcpyDeviceToHost);
       if (cu_err != cudaSuccess)
       {
