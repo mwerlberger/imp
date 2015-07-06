@@ -70,44 +70,95 @@ else()
 endif()
 
 
+add_definitions(-DIMP_WITH_CUDA)
 add_definitions(-DIMP_THROW_ON_CUDA_ERROR)
 
 
 #############################################################################
-## library 1
+## library 1 (core)
 
 set(CORE_HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/macros.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/types.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/exception.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/timer.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/macros.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/types.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/exception.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/timer.hpp
 
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/size.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/roi.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/size.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/roi.hpp
 
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/pixel.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/pixel_enums.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/memory_storage.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/linearmemory_base.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/linearmemory.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/image_base.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/image.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/image_raw.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/include/imp/core/image_defs.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/pixel.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/pixel_enums.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/memory_storage.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/linearmemory_base.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/linearmemory.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/image_base.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/image.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/image_raw.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/image_defs.hpp
   )
 
 set(CORE_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/src/linearmemory.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/imp_core/src/image_raw.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/src/linearmemory.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/src/image_raw.cpp
   )
 
-cuda_add_library(core ${CORE_SOURCES} ${CORE_HEADERS})
-target_link_libraries(core ${CUDA_LIBRARIES})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/)
+add_library(core ${CORE_SOURCES} ${CORE_HEADERS})
+target_link_libraries(core)
    
 #############################################################################
-## library 2
+## library 2 (cu_core)
+
+set(CU_CORE_HEADERS
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_utils.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_exception.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_pixel_conversion.hpp
+  )
+
+set(CU_CORE_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/src/cu_pixel_conversion.cpp
+  )
+
+set(CU_CORE_CU_HDRS
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_memory_storage.cuh
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_linearmemory.cuh
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_image_gpu.cuh
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_texture2d.cuh
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_texture.cuh
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_math.cuh
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_k_setvalue.cuh
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_k_derivative.cuh
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_pinhole_camera.cuh
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_se3.cuh
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_matrix.cuh
+  )
+
+set(CU_CORE_CU_SRCS
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/src/cu_linearmemory.cu
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/src/cu_image_gpu.cu
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/src/min_max.cu
+  )
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/)
+cuda_add_library(cu_core ${CU_CORE_CU_HDRS} ${CU_CORE_CU_SRCS} ${CU_CORE_SOURCES} ${CU_CORE_HEADERS})
+target_link_libraries(cu_core core ${CUDA_LIBRARIES})
+
+#############################################################################
+## library 3 (cu_imgproc)
+
+set(CU_IMGPROC_HEADERS
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_imgproc/include/imp/cu_imgproc/iterative_kernel_calls.cuh
+  )
+
+set(CU_IMGPROC_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_imgproc/src/iterative_kernel_calls.cu
+  )
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_imgproc/include/)
+cuda_add_library(cu_imgproc ${CU_IMGPROC_SOURCES} ${CU_IMGPROC_HEADERS})
+target_link_libraries(cu_imgproc cu_core core ${CUDA_LIBRARIES})
 
 #############################################################################
 # executable
 cuda_add_executable(texture_issue_showcase texture_issue.cpp)
-target_link_libraries(texture_issue_showcase ${OpenCV_LIBS} ${CUDA_LIBRARIES})
+target_link_libraries(texture_issue_showcase cu_imgproc cu_core core ${OpenCV_LIBS} ${CUDA_LIBRARIES})
