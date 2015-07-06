@@ -65,7 +65,7 @@ int main(int argc, char** argv)
                             cudaMemcpyDeviceToHost);
       if (cu_err != cudaSuccess)
       {
-        throw imp::cu::Exception("copy host -> device failed", cu_err, __FILE__, __FUNCTION__, __LINE__);
+        throw imp::cu::Exception("copy device -> host failed", cu_err, __FILE__, __FUNCTION__, __LINE__);
         return EXIT_FAILURE;
       }
       IMP_CUDA_CHECK();

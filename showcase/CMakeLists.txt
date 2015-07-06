@@ -81,7 +81,6 @@ set(CORE_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/macros.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/types.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/exception.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/timer.hpp
 
   ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/size.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/imp/core/roi.hpp
@@ -105,7 +104,7 @@ set(CORE_SOURCES
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../imp_core/include/)
 add_library(core ${CORE_SOURCES} ${CORE_HEADERS})
 target_link_libraries(core)
-   
+
 #############################################################################
 ## library 2 (cu_core)
 
@@ -128,9 +127,6 @@ set(CU_CORE_CU_HDRS
   ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_math.cuh
   ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_k_setvalue.cuh
   ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_k_derivative.cuh
-  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_pinhole_camera.cuh
-  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_se3.cuh
-  ${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_core/include/imp/cu_core/cu_matrix.cuh
   )
 
 set(CU_CORE_CU_SRCS
@@ -157,6 +153,16 @@ set(CU_IMGPROC_SOURCES
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../imp_cu_imgproc/include/)
 cuda_add_library(cu_imgproc ${CU_IMGPROC_SOURCES} ${CU_IMGPROC_HEADERS})
 target_link_libraries(cu_imgproc cu_core core ${CUDA_LIBRARIES})
+
+#############################################################################
+## combined library (all_and_everything)
+cuda_add_library(all_and_everything
+  ${CORE_SOURCES} ${CORE_HEADERS}
+  ${CU_CORE_CU_HDRS} ${CU_CORE_CU_SRCS} ${CU_CORE_SOURCES} ${CU_CORE_HEADERS}
+  ${CU_IMGPROC_SOURCES} ${CU_IMGPROC_HEADERS}
+)
+target_link_libraries(all_and_everything ${CUDA_LIBRARIES})
+
 
 #############################################################################
 # executable
