@@ -18,6 +18,8 @@ cs_cuda_add_executable(variational_stereo_test variational_stereo_test.cpp)
 cs_cuda_add_executable(variational_epipolar_stereo_test variational_epipolar_stereo_test.cpp)
 #target_link_libraries(variational_epipolar_stereo_test ${CUDA_LIBRARIES} ${w})
 
+cs_cuda_add_executable(variational_epipolar_stereo_test_with_uncertainties variational_epipolar_stereo_test_with_uncertainties.cpp)
+
 
 cs_install()
 cs_export()
