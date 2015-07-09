@@ -29,12 +29,14 @@ int main(int /*argc*/, char** /*argv*/)
   {
     imp::ImageCv32fC1::Ptr cv_im0;
     imp::cvBridgeLoad(cv_im0,
-                      "/home/mwerlberger/data/epipolar_stereo_test/00000.png",
+                      //"/home/mwerlberger/data/epipolar_stereo_test/00000.png",
+                      "/home/mwerlberger/data/remode_1436355983/0_image_.png",
                       imp::PixelOrder::gray);
 
     imp::ImageCv32fC1::Ptr cv_im1;
     imp::cvBridgeLoad(cv_im1,
-                      "/home/mwerlberger/data/epipolar_stereo_test/00001.png",
+                      //"/home/mwerlberger/data/epipolar_stereo_test/00001.png",
+                      "/home/mwerlberger/data/remode_1436355983/1_image_.png",
                       imp::PixelOrder::gray);
 
     // rectify images for testing
@@ -43,10 +45,16 @@ int main(int /*argc*/, char** /*argv*/)
     imp::cu::ImageGpu32fC1::Ptr im1 = std::make_shared<imp::cu::ImageGpu32fC1>(*cv_im1);
 
 
-    Eigen::Quaterniond q_world_im0(0.14062777, 0.98558398, 0.02351040, -0.09107859);
-    Eigen::Quaterniond q_world_im1(0.14118687, 0.98569744, 0.01930722, -0.08996696);
-    Eigen::Vector3d t_world_im0(-0.12617580, 0.50447008, 0.15342121);
-    Eigen::Vector3d t_world_im1(-0.11031053, 0.50314023, 0.15158643);
+//    Eigen::Quaterniond q_world_im0(0.14062777, 0.98558398, 0.02351040, -0.09107859);
+//    Eigen::Quaterniond q_world_im1(0.14118687, 0.98569744, 0.01930722, -0.08996696);
+//    Eigen::Vector3d t_world_im0(-0.12617580, 0.50447008, 0.15342121);
+//    Eigen::Vector3d t_world_im1(-0.11031053, 0.50314023, 0.15158643);
+    Eigen::Quaterniond q_world_im0(-0.189093259866752489, 0.973026745106075341,
+                                   0.122442858311335945, -0.0497035092301516962);
+    Eigen::Quaterniond q_world_im1(-0.18906950845598447, 0.97263493728776107,
+                                   0.125280086688952852, -0.0503874946653839265);
+    Eigen::Vector3d t_world_im0(0.183387220147751662, -0.216931228877717486, -0.389589144279252619);
+    Eigen::Vector3d t_world_im1(0.17447576240725754, -0.218695106328406164, -0.389681016821063875);
 
     imp::cu::PinholeCamera cu_cam(414.09, 413.799, 355.567, 246.337);
 
@@ -126,7 +134,7 @@ int main(int /*argc*/, char** /*argv*/)
     stereo->setIntrinsics({cu_cam, cu_cam});
     stereo->setExtrinsics(T_mov_fix);
     stereo->setDepthProposal(cu_mu, cu_sigma2);
-    
+
     stereo->solve();
 
     std::shared_ptr<imp::cu::ImageGpu32fC1> d_disp = stereo->getDisparities();

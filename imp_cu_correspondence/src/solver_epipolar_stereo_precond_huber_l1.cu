@@ -180,9 +180,11 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
   lambda_tex_ = lambda->genTexture(false,cudaFilterModePoint,
                                    cudaAddressModeClamp, cudaReadModeElementType);
 
+#if USE_EDGES
   // compute edge weight
   imp::cu::naturalEdges(*g_, *images.at(0),
                         params_->edge_sigma, params_->edge_alpha, params_->edge_q);
+#endif
 
   // warping
   for (std::uint32_t warp = 0; warp < params_->ctf.warps; ++warp)
@@ -191,6 +193,7 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
       std::cout << "SOLVING warp iteration of Huber-L1 stereo model." << std::endl;
 
     u_->copyTo(*u0_);
+    IMP_CUDA_CHECK();
 
 
     // compute warped spatial and temporal gradients
@@ -201,6 +204,7 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
              cams_.at(0), cams_.at(1), F_, T_mov_fix_,
              *i1_tex_, *i2_tex_, *u0_tex_,
              *depth_proposal_tex_);
+    IMP_CUDA_CHECK();
 
     // compute preconditioner
 #if USE_EDGES
@@ -210,12 +214,14 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
           frag.dimGrid, frag.dimBlock
         >>> (xi_->data(), xi_->stride(), xi_->width(), xi_->height(),
              *lambda_tex_, *ix_tex_, *g_tex_);
+    IMP_CUDA_CHECK();
 #else
     k_preconditioner
         <<<
           frag.dimGrid, frag.dimBlock
         >>> (xi_->data(), xi_->stride(), xi_->width(), xi_->height(),
              params_->lambda, *ix_tex_);
+    IMP_CUDA_CHECK();
 #endif
 
     for (std::uint32_t iter = 0; iter < params_->ctf.iters; ++iter)
@@ -229,6 +235,7 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
                size_.width(), size_.height(),
                params_->eps_u, sigma, eta, *lambda_tex_,
                *u_prev_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *it_tex_, *g_tex_);
+      IMP_CUDA_CHECK();
 
       // and primal update kernel
       k_primalUpdateWeighted
@@ -238,6 +245,7 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
                size_.width(), size_.height(),
                tau, lin_step, *lambda_tex_,
                *u_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *xi_tex_, *g_tex_);
+      IMP_CUDA_CHECK();
 #else
       // dual update kernel
       k_dualUpdate
@@ -247,6 +255,7 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
                size_.width(), size_.height(),
                params_->eps_u, sigma, eta, *lambda_tex_,
                *u_prev_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *it_tex_);
+      IMP_CUDA_CHECK();
 
       // and primal update kernel
       k_primalUpdate
@@ -256,6 +265,7 @@ void SolverEpipolarStereoPrecondHuberL1::solve(std::vector<ImageGpu32fC1::Ptr> i
                size_.width(), size_.height(),
                tau, lin_step, *lambda_tex_,
                *u_tex_, *u0_tex_, *pu_tex_, *q_tex_, *ix_tex_, *xi_tex_);
+      IMP_CUDA_CHECK();
 #endif
     } // iters
     lin_step /= 1.2f;
