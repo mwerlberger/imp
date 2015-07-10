@@ -41,7 +41,6 @@ void VariationalEpipolarStereo::setDepthProposal(
   ctf_->setDepthProposal(depth_proposal, depth_proposal_sigma2);
 }
 
-
 } // namespace cu
 } // namespace imp
 

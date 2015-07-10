@@ -89,6 +89,9 @@ private:
 
   ImageGpu32fC1::Ptr depth_proposal_;
   ImageGpu32fC1::Ptr depth_proposal_sigma2_;
+  ImageGpu32fC1::Ptr a_;
+  ImageGpu32fC1::Ptr b_;
+
 };
 
 } // namespace cu

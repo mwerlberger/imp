@@ -23,6 +23,15 @@
 
 #include <imp/cu_correspondence/variational_epipolar_stereo.hpp>
 
+imp::ImageCv32fC1::Ptr loadUint4ToFloat(const std::string& filename)
+{
+  cv::Mat im_as_4uint = cv::imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+  cv::Mat im_32f(im_as_4uint.rows, im_as_4uint.cols/4, CV_32F, im_as_4uint.data);
+  imp::ImageCv32fC1::Ptr img(new imp::ImageCv32fC1(im_32f.clone()));
+  return img;
+  //img.reset(new imp::ImageCv32fC1(im_32f.clone()));
+}
+
 int main(int /*argc*/, char** /*argv*/)
 {
   try
@@ -43,6 +52,46 @@ int main(int /*argc*/, char** /*argv*/)
 
     imp::cu::ImageGpu32fC1::Ptr im0 = std::make_shared<imp::cu::ImageGpu32fC1>(*cv_im0);
     imp::cu::ImageGpu32fC1::Ptr im1 = std::make_shared<imp::cu::ImageGpu32fC1>(*cv_im1);
+
+    imp::ImageCv32fC1::Ptr cv_a = loadUint4ToFloat("/home/mwerlberger/data/remode_1436355983/47_a_.png");
+    imp::cu::ImageGpu32fC1::Ptr in_a = std::make_shared<imp::cu::ImageGpu32fC1>(*cv_a);
+    imp::ImageCv32fC1::Ptr cv_b = loadUint4ToFloat("/home/mwerlberger/data/remode_1436355983/47_b_.png");
+    imp::cu::ImageGpu32fC1::Ptr in_b = std::make_shared<imp::cu::ImageGpu32fC1>(*cv_b);
+    imp::ImageCv32fC1::Ptr cv_mu = loadUint4ToFloat("/home/mwerlberger/data/remode_1436355983/47_mu_.png");
+    imp::cu::ImageGpu32fC1::Ptr in_mu = std::make_shared<imp::cu::ImageGpu32fC1>(*cv_mu);
+
+    imp::ImageCv32fC1::Ptr cv_sigma2 = loadUint4ToFloat("/home/mwerlberger/data/remode_1436355983/47_sigma2_.png");
+    //imp::cu::ImageGpu32fC1::Ptr in_sigma2 = std::make_shared<imp::cu::ImageGpu32fC1>(*cv_sigma2);
+
+    double min_sigma2, max_sigma2;
+    cv::minMaxLoc(cv_sigma2->cvMat(), &min_sigma2, &max_sigma2);
+    double min_a, max_a;
+    cv::minMaxLoc(cv_a->cvMat(), &min_a, &max_a);
+    double min_b, max_b;
+    cv::minMaxLoc(cv_b->cvMat(), &min_b, &max_b);
+
+    std::cout << "sigma2: [" << min_sigma2 << ", " << max_sigma2 << "]; "
+              << "a: [" << min_a << ", " << max_a << "]; "
+              << "b: [" << min_b << ", " << max_b << "]; "
+              << std::endl;
+    imp::ImageCv32fC1::Ptr confidence = std::make_shared<imp::ImageCv32fC1>(cv_a->size());
+    for (std::uint32_t y=0; y<confidence->height(); ++y)
+    {
+      for (std::uint32_t x=0; x<confidence->width(); ++x)
+      {
+//        float sigma2 = (*cv_sigma2)[y][x];
+        float a = (*cv_a)[y][x];
+        float b = (*cv_b)[y][x];
+//        (*confidence)[y][x] = .5f * (max_sigma2-sigma2)/max_sigma2;
+//        (*confidence)[y][x] = 10.f* (a-min_a)/(max_a-min_a);
+        float ab = a/b;
+        (*confidence)[y][x] = std::max(.0f, std::exp(ab/1.4f)-1.f);
+      }
+    }
+
+    double min_confidence, max_confidence;
+    cv::minMaxLoc(confidence->cvMat(), &min_confidence, &max_confidence);
+    std::cout << "confidence: [" << min_confidence << ", " << max_confidence << "]; " << std::endl;
 
 
 //    Eigen::Quaterniond q_world_im0(0.14062777, 0.98558398, 0.02351040, -0.09107859);
@@ -117,17 +166,21 @@ int main(int /*argc*/, char** /*argv*/)
     stereo->parameters()->verbose = 1;
     stereo->parameters()->solver = imp::cu::StereoPDSolver::EpipolarPrecondHuberL1;
     stereo->parameters()->ctf.scale_factor = 0.8f;
-    stereo->parameters()->ctf.iters = 30;
-    stereo->parameters()->ctf.warps  = 5;
+    stereo->parameters()->ctf.iters = 20;
+    stereo->parameters()->ctf.warps  = 10;
     stereo->parameters()->ctf.apply_median_filter = true;
-    stereo->parameters()->lambda = 20;
+    //stereo->parameters()->lambda = 15;
+    // pointwise lambda with according to confidences
+    imp::cu::ImageGpu32fC1::Ptr lambda = std::make_shared<imp::cu::ImageGpu32fC1>(*confidence);
+    stereo->parameters()->lambda_pointwise = lambda;
+
 
     stereo->addImage(im0);
     stereo->addImage(im1);
 
     imp::cu::ImageGpu32fC1::Ptr cu_mu = std::make_shared<imp::cu::ImageGpu32fC1>(im0->size());
     imp::cu::ImageGpu32fC1::Ptr cu_sigma2 = std::make_shared<imp::cu::ImageGpu32fC1>(im0->size());
-    cu_mu->setValue(-5.f);
+    cu_mu->setValue(1.f);
     cu_sigma2->setValue(0.0f);
 
     stereo->setFundamentalMatrix(F_mov_fix);
@@ -155,8 +208,16 @@ int main(int /*argc*/, char** /*argv*/)
       std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
     }
 
-    imp::cu::cvBridgeShow("disparities", *d_disp, -18.0f, 11.0f);
+    imp::cu::cvBridgeShow("disparities", *d_disp, -3.0f, 6.0f);
     imp::cu::cvBridgeShow("disparities minmax", *d_disp, true);
+
+    imp::cu::cvBridgeShow("a (converged)", *in_a, true);
+    imp::cu::cvBridgeShow("b (converged)", *in_b, true);
+    imp::cu::cvBridgeShow("mu (converged)", *in_mu, true);
+    imp::cvBridgeShow("sigma2 (converged)", *cv_sigma2, true);
+    imp::cu::cvBridgeShow("lambda (converged)", *lambda, true);
+
+
     cv::waitKey();
   }
   catch (std::exception& e)

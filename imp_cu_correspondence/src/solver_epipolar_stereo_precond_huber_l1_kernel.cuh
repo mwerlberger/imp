@@ -11,7 +11,6 @@
 namespace imp {
 namespace cu {
 
-
 //-----------------------------------------------------------------------------
 template<typename Pixel>
 __global__ void k_preconditioner(Pixel* xi, size_type stride,

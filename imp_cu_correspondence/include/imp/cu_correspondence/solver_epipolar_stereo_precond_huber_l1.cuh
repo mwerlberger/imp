@@ -27,13 +27,14 @@ public:
   SolverEpipolarStereoPrecondHuberL1() = delete;
   virtual ~SolverEpipolarStereoPrecondHuberL1();
 
-  SolverEpipolarStereoPrecondHuberL1(const Parameters::Ptr& params,
-                                     imp::Size2u size, size_type level,
-                                     const std::vector<cu::PinholeCamera>& cams,
-                                     const cu::Matrix3f& F,
-                                     const cu::SE3<float>& T_mov_fix,
-                                     const ImageGpu32fC1& depth_proposal,
-                                     const imp::cu::ImageGpu32fC1& depth_proposal_sigma2);
+  SolverEpipolarStereoPrecondHuberL1(
+      const Parameters::Ptr& params,
+      imp::Size2u size, size_type level,
+      const std::vector<cu::PinholeCamera>& cams,
+      const cu::Matrix3f& F,
+      const cu::SE3<float>& T_mov_fix,
+      const ImageGpu32fC1& depth_proposal,
+      const ImageGpu32fC1& depth_proposal_sigma2);
 
   virtual void init();
   virtual void init(const SolverStereoAbstract& rhs);
@@ -60,6 +61,8 @@ protected:
   cu::SE3<float> T_mov_fix_;
   std::unique_ptr<ImageGpu32fC1> depth_proposal_;
   std::unique_ptr<ImageGpu32fC1> depth_proposal_sigma2_;
+  std::shared_ptr<ImageGpu32fC1> a_;
+  std::shared_ptr<ImageGpu32fC1> b_;
 
   // textures
   std::shared_ptr<Texture2D> lambda_tex_;
