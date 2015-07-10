@@ -10,7 +10,8 @@
 #include <imp/core/roi.hpp>
 #include <imp/core/image_raw.hpp>
 #include <imp/cu_core/cu_image_gpu.cuh>
-#include <imp/cu_imgproc/iterative_kernel_calls.cuh>
+
+#include "iterative_kernel_calls.cuh"
 
 //-----------------------------------------------------------------------------
 template <typename Pixel, int memaddr_align=32>
@@ -53,13 +54,6 @@ static Pixel* alignedAllocGpu(const size_t width, const size_t height,
   }
 
   size_t width_bytes = width * sizeof(Pixel);
-  //std::cout << "width_bytes: " << width_bytes << std::endl;
-  const int align_bytes = 1536;
-  if (pixel_type == imp::PixelType::i8uC3 && width_bytes % align_bytes)
-  {
-    width_bytes += (align_bytes-(width_bytes%align_bytes));
-  }
-  //std::cout << "width_bytes: " << width_bytes << std::endl;
 
   size_t intern_pitch;
   Pixel* p_data = nullptr;
@@ -108,11 +102,13 @@ int main(int argc, char** argv)
     size_t pitch_gpu, stride_gpu;
     float* image_gpu = alignedAllocGpu<float>(width,height,&pitch_gpu);
     float* result_gpu = alignedAllocGpu<float>(width,height,&pitch_gpu);
+    stride_gpu = pitch_gpu / sizeof(float);
 
     imp::cu::ImageGpu32fC1::Ptr cu_image = std::make_shared<imp::cu::ImageGpu32fC1>(width, height);//(cols, rows);
     imp::cu::ImageGpu32fC1::Ptr cu_result = std::make_shared<imp::cu::ImageGpu32fC1>(width, height);//(cols, rows);
 
     cudaMemcpy2D(cu_image->data(), cu_image->pitch(), image_cpu, pitch_cpu, width*sizeof(float), height, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(image_gpu, pitch_gpu, image_cpu, pitch_cpu, width*sizeof(float), height, cudaMemcpyHostToDevice);
     IMP_CUDA_CHECK();
 
     //
@@ -122,8 +118,11 @@ int main(int argc, char** argv)
     ikc.run(cu_result, cu_image, break_things);
     IMP_CUDA_CHECK();
     //
+    cudaMemcpy2D(result_gpu, pitch_gpu, image_gpu, pitch_gpu, width*sizeof(float), height, cudaMemcpyDeviceToDevice);
     //
-    cudaMemcpy2D(result_cpu, pitch_cpu, cu_result->data(), cu_result->pitch(), cu_result->rowBytes(), cu_result->height(), cudaMemcpyDeviceToHost);
+    //
+//    cudaMemcpy2D(result_cpu, pitch_cpu, cu_result->data(), cu_result->pitch(), cu_result->rowBytes(), cu_result->height(), cudaMemcpyDeviceToHost);
+    cudaMemcpy2D(result_cpu, pitch_cpu, result_gpu, pitch_gpu, width*sizeof(float), height, cudaMemcpyDeviceToHost);
     IMP_CUDA_CHECK();
 
     float in_sum = 0.f;
@@ -144,6 +143,8 @@ int main(int argc, char** argv)
     cv::imshow("input", vis_in);
     cv::imshow("output", vis_out);
     cv::waitKey();
+
+    (void)stride_gpu;
 
   }
   catch (std::exception& e)

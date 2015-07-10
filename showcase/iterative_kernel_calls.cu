@@ -1,4 +1,4 @@
-#include <imp/cu_imgproc/iterative_kernel_calls.cuh>
+#include "iterative_kernel_calls.cuh"
 
 #include <iostream>
 
