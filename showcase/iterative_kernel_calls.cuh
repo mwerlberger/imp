@@ -1,17 +1,56 @@
 #ifndef IMP_CU_IKC_DENOISING_CUH
 #define IMP_CU_IKC_DENOISING_CUH
 
+#include <sstream>
+
 #include <memory>
 #include <cstring>
 #include <cuda_runtime_api.h>
 
-#include <imp/cu_core/cu_image_gpu.cuh>
-#include <imp/cu_core/cu_utils.hpp>
 
 namespace imp {
 namespace cu {
 
-#if 0
+//------------------------------------------------------------------------------
+class Exception : public std::exception
+{
+public:
+  Exception() = default;
+  virtual ~Exception() throw() = default;
+
+  Exception(const std::string& msg, cudaError err,
+            const char* file=nullptr, const char* function=nullptr, int line=0) throw()
+    : msg_(msg)
+    , err_(err)
+    , file_(file)
+    , function_(function)
+    , line_(line)
+  {
+    std::ostringstream out_msg;
+
+    out_msg << "IMP Exception (CUDA): ";
+    out_msg << (msg_.empty() ? "unknown error" : msg_) << "\n";
+    out_msg << "      cudaError code: " << cudaGetErrorString(err_);
+    out_msg << " (" << err_ << ")" << "\n";
+    out_msg << "      where: ";
+    out_msg << (file_.empty() ? "no filename available" : file_) << " | ";
+    out_msg << (function_.empty() ? "unknown function" : function_) << ":" << line_;
+    msg_ = out_msg.str();
+  }
+
+  virtual const char* what() const throw()
+  {
+    return msg_.c_str();
+  }
+
+  std::string msg_;
+  cudaError err_;
+  std::string file_;
+  std::string function_;
+  int line_;
+};
+
+
 //------------------------------------------------------------------------------
 /**
  * @brief The Texture2D struct wrappes the cuda texture object
@@ -33,9 +72,9 @@ struct Texture2D
   {
   }
 
-  __host__ Texture2D(const void* data, size_type pitch,
+  __host__ Texture2D(const void* data, size_t pitch,
                      cudaChannelFormatDesc channel_desc,
-                     imp::Size2u size,
+                     std::uint32_t width, std::uint32_t height,
                      bool _normalized_coords = false,
                      cudaTextureFilterMode filter_mode = cudaFilterModePoint,
                      cudaTextureAddressMode address_mode = cudaAddressModeClamp,
@@ -44,8 +83,8 @@ struct Texture2D
     cudaResourceDesc tex_res;
     std::memset(&tex_res, 0, sizeof(tex_res));
     tex_res.resType = cudaResourceTypePitch2D;
-    tex_res.res.pitch2D.width = size.width();
-    tex_res.res.pitch2D.height = size.height();
+    tex_res.res.pitch2D.width = width;
+    tex_res.res.pitch2D.height = height;
     tex_res.res.pitch2D.pitchInBytes = pitch;
     tex_res.res.pitch2D.devPtr = const_cast<void*>(data);
     tex_res.res.pitch2D.desc = channel_desc;
@@ -61,8 +100,8 @@ struct Texture2D
     cudaError_t err = cudaCreateTextureObject(&tex_object, &tex_res, &tex_desc, 0);
     if  (err != ::cudaSuccess)
     {
-      throw imp::cu::Exception("Failed to create texture object", err,
-                               __FILE__, __FUNCTION__, __LINE__);
+      throw Exception("Failed to create texture object", err,
+                      __FILE__, __FUNCTION__, __LINE__);
     }
   }
 
@@ -92,16 +131,7 @@ struct Texture2D
     return *this;
   }
 };
-//-----------------------------------------------------------------------------
-template<typename T>
-__device__ __forceinline__
-T tex2DFetch(
-    const Texture2D& tex, float x, float y,
-    float mul_x=1.f, float mul_y=1.f, float add_x=0.f, float add_y=0.f)
-{
-  return ::tex2D<T>(tex.tex_object, x*mul_x+add_x+0.5f, y*mul_y+add_y+.5f);
-}
-#endif
+
 
 //-----------------------------------------------------------------------------
 class IterativeKernelCalls
@@ -110,22 +140,26 @@ public:
   IterativeKernelCalls();
   ~IterativeKernelCalls();
 
-  void init(const Size2u& size);
-  void run(const imp::cu::ImageGpu32fC1::Ptr& dst,
-           const imp::cu::ImageGpu32fC1::Ptr& src,
+  void run(float* dst, const float* src, size_t pitch,
+           std::uint32_t width, std::uint32_t height,
            bool break_things=false);
 
   void breakThings();
 
 private:
-  imp::cu::ImageGpu32fC1::Ptr in_;
-  imp::cu::ImageGpu32fC1::Ptr out_;
-  std::unique_ptr<ImageGpu32fC1> unrelated_;
+  void init();
+
+  const float* in_buffer_;
+  float* out_buffer_;
+  size_t pitch_;
+  float* unrelated_;
+  size_t unrelated_pitch_;
 
   // cuda textures
   std::shared_ptr<imp::cu::Texture2D> in_tex_;
 
-  Size2u size_;
+  std::uint32_t width_;
+  std::uint32_t height_;
 };
 
 } // namespace cu
