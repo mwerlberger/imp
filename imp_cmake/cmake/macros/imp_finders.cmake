@@ -59,8 +59,10 @@ include_directories(
 # Checking cuda version
 if(CUDA_VERSION_STRING STREQUAL "7.0")
    # CUDA 7.0
-   #imp_debug("IMP library compiled with CUDA 7.0")
    add_definitions(-DCUDA_VERSION_70)
+elseif(CUDA_VERSION_STRING STREQUAL "7.5")
+   # CUDA 7.5
+   add_definitions(-DCUDA_VERSION_75)
 else()
    message(FATAL_ERROR "unknown CUDA version. some things might not be tested.")
 endif()
