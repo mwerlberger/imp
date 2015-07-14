@@ -1,9 +1,6 @@
 #include "iterative_kernel_calls.cuh"
-
-#include <iostream>
 #include <cuda_runtime.h>
 
-namespace imp {
 namespace cu {
 
 //##############################################################################
@@ -22,37 +19,27 @@ std::uint32_t divUp(std::uint32_t a, std::uint32_t b)
 }
 
 //------------------------------------------------------------------------------
-template <std::uint16_t block_size_x=32,
-          std::uint16_t block_size_y=32,
-          std::uint16_t block_size_z=1>
-struct Fragmentation
+static inline void checkCudaErrorState(const char* file, const char* function,
+                                       const int line)
 {
-  //  imp::Size2u size;
-  //  imp::Roi2u roi;
-  dim3 dimBlock = dim3(block_size_x, block_size_y, block_size_z);
-  dim3 dimGrid;
-
-
-  Fragmentation() = delete;
-
-  Fragmentation(size_t length)
-    : dimGrid(divUp(length, dimBlock.x), dimBlock.x, dimBlock.y)
+  cudaDeviceSynchronize();
+  cudaError_t err = cudaGetLastError();
+  if( err != ::cudaSuccess )
   {
+    std::cerr << "cuda error: " << cudaGetErrorString(err)
+              << " [" << file << ", " << function << ", " << line << "]" << std::endl;
   }
+}
 
-  Fragmentation(std::uint32_t width, std::uint32_t height)
-    : dimGrid(divUp(width, dimBlock.x), divUp(height, dimBlock.y))
-  {
-  }
+//------------------------------------------------------------------------------
+#ifdef IMP_THROW_ON_CUDA_ERROR
+#  define CU_CHECK_ERROR() checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__)
+#else
+#  define CU_CHECK_ERROR() cudaDeviceSynchronize()
+#endif
 
-  Fragmentation(dim3 _dimGrid, dim3 _dimBlock)
-    : dimGrid(_dimGrid)
-    , dimBlock(_dimBlock)
-  {
-  }
-};
-
-//-----------------------------------------------------------------------------
+//#############################################################################
+// texture fetch wrapper
 template<typename T>
 __device__ __forceinline__
 T tex2DFetch(
@@ -62,22 +49,6 @@ T tex2DFetch(
   return ::tex2D<T>(tex.tex_object, x*mul_x+add_x+0.5f, y*mul_y+add_y+.5f);
 }
 
-//------------------------------------------------------------------------------
-static inline void checkCudaErrorState(const char* file, const char* function,
-                                       const int line)
-{
-  cudaDeviceSynchronize();
-  cudaError_t err = cudaGetLastError();
-  if( err != ::cudaSuccess )
-    throw Exception("error state check", err, file, function, line);
-}
-
-//------------------------------------------------------------------------------
-#ifdef IMP_THROW_ON_CUDA_ERROR
-#  define IMP_CUDA_CHECK() checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__)
-#else
-#  define IMP_CUDA_CHECK() cudaDeviceSynchronize()
-#endif
 
 //#############################################################################
 // KERNELS
@@ -119,19 +90,18 @@ void IterativeKernelCalls::init()
   in_tex_.reset(new Texture2D(
                   in_buffer_, pitch_, cudaCreateChannelDesc<float>(), width_, height_,
                   false, cudaFilterModeLinear, cudaAddressModeClamp, cudaReadModeElementType));
-  IMP_CUDA_CHECK();
+  CU_CHECK_ERROR();
 
-  // init internal vars
-  Fragmentation<> fragmentation(width_, height_);
+  dim3 dim_block = dim3(32,32);
+  dim3 dim_grid(divUp(width_, dim_block.x), divUp(height_, dim_block.y));
   kernelCall
-      <<< fragmentation.dimGrid, fragmentation.dimBlock
+      <<< dim_grid, dim_block
       >>> (out_buffer_, pitch_/sizeof(float), *in_tex_, width_, height_);
-  IMP_CUDA_CHECK();
+  CU_CHECK_ERROR();
 
 
   cudaMallocPitch((void**)&unrelated_, &unrelated_pitch_, width_*sizeof(float), height_);
-
-  IMP_CUDA_CHECK();
+  CU_CHECK_ERROR();
 }
 
 //-----------------------------------------------------------------------------
@@ -147,7 +117,8 @@ void IterativeKernelCalls::run(float* dst, const float* src, size_t pitch,
 
   this->init();
 
-  Fragmentation<> fragmentation(width, height);
+  dim3 dim_block = dim3(32,32);
+  dim3 dim_grid(divUp(width_, dim_block.x), divUp(height_, dim_block.y));
 
   // if this is called textured are messed up
   if (break_things)
@@ -155,11 +126,10 @@ void IterativeKernelCalls::run(float* dst, const float* src, size_t pitch,
     this->breakThings();
   }
 
-  // dummy copy kernel
   kernelCall
-      <<< fragmentation.dimGrid, fragmentation.dimBlock
+      <<< dim_grid, dim_block
       >>> (out_buffer_, pitch_/sizeof(float), *in_tex_, width_, height_);
-  IMP_CUDA_CHECK();
+  CU_CHECK_ERROR();
 }
 
 //-----------------------------------------------------------------------------
@@ -190,13 +160,12 @@ void IterativeKernelCalls::breakThings()
   cudaError_t err = cudaCreateTextureObject(&tex_object, &tex_res, &tex_desc, 0);
   if  (err != ::cudaSuccess)
   {
-    throw Exception("Failed to create texture object", err,
-                             __FILE__, __FUNCTION__, __LINE__);
+    std::cerr << "Failed to create texture object: " << cudaGetErrorString(err)
+              << " [" << __FILE__ << ", " << __FUNCTION__ << ", " << __LINE__ << "]" << std::endl;
   }
 
-  IMP_CUDA_CHECK();
+  CU_CHECK_ERROR();
 }
 
 
 } // namespace cu
-} // namespace imp

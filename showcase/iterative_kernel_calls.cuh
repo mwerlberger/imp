@@ -1,55 +1,15 @@
 #ifndef IMP_CU_IKC_DENOISING_CUH
 #define IMP_CU_IKC_DENOISING_CUH
 
-#include <sstream>
 
+#include <iostream>
+#include <sstream>
 #include <memory>
 #include <cstring>
 #include <cuda_runtime_api.h>
 
 
-namespace imp {
 namespace cu {
-
-//------------------------------------------------------------------------------
-class Exception : public std::exception
-{
-public:
-  Exception() = default;
-  virtual ~Exception() throw() = default;
-
-  Exception(const std::string& msg, cudaError err,
-            const char* file=nullptr, const char* function=nullptr, int line=0) throw()
-    : msg_(msg)
-    , err_(err)
-    , file_(file)
-    , function_(function)
-    , line_(line)
-  {
-    std::ostringstream out_msg;
-
-    out_msg << "IMP Exception (CUDA): ";
-    out_msg << (msg_.empty() ? "unknown error" : msg_) << "\n";
-    out_msg << "      cudaError code: " << cudaGetErrorString(err_);
-    out_msg << " (" << err_ << ")" << "\n";
-    out_msg << "      where: ";
-    out_msg << (file_.empty() ? "no filename available" : file_) << " | ";
-    out_msg << (function_.empty() ? "unknown function" : function_) << ":" << line_;
-    msg_ = out_msg.str();
-  }
-
-  virtual const char* what() const throw()
-  {
-    return msg_.c_str();
-  }
-
-  std::string msg_;
-  cudaError err_;
-  std::string file_;
-  std::string function_;
-  int line_;
-};
-
 
 //------------------------------------------------------------------------------
 /**
@@ -100,8 +60,8 @@ struct Texture2D
     cudaError_t err = cudaCreateTextureObject(&tex_object, &tex_res, &tex_desc, 0);
     if  (err != ::cudaSuccess)
     {
-      throw Exception("Failed to create texture object", err,
-                      __FILE__, __FUNCTION__, __LINE__);
+      std::cerr << "Failed to create texture object: " << cudaGetErrorString(err)
+                << " [" << __FILE__ << ", " << __FUNCTION__ << ", " << __LINE__ << "]" << std::endl;
     }
   }
 
@@ -110,8 +70,8 @@ struct Texture2D
     cudaError_t err = cudaDestroyTextureObject(tex_object);
     if  (err != ::cudaSuccess)
     {
-      throw imp::cu::Exception("Failed to destroy texture object", err,
-                               __FILE__, __FUNCTION__, __LINE__);
+      std::cerr << "Failed to destroy texture object: " << cudaGetErrorString(err)
+                << " [" << __FILE__ << ", " << __FUNCTION__ << ", " << __LINE__ << "]" << std::endl;
     }
   }
 
@@ -156,13 +116,12 @@ private:
   size_t unrelated_pitch_;
 
   // cuda textures
-  std::shared_ptr<imp::cu::Texture2D> in_tex_;
+  std::shared_ptr<cu::Texture2D> in_tex_;
 
   std::uint32_t width_;
   std::uint32_t height_;
 };
 
 } // namespace cu
-} // namespace imp
 
 #endif // IMP_CU_IKC_DENOISING_CUH

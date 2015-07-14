@@ -85,8 +85,21 @@ int main(int argc, char** argv)
     float* image_cpu = alignedAllocCpu<float,32>(width, height, &pitch_cpu);
     float* result_cpu = alignedAllocCpu<float,32>(width, height, &pitch_cpu);
     stride_cpu = pitch_cpu/sizeof(float);
+    // init host memory with 0 (used for init device memory)
     std::fill(image_cpu, image_cpu+(stride_cpu*height), 0.f);
 
+    // alloc gpu memory
+    size_t pitch_gpu;
+    float* image_gpu = alignedAllocGpu<float>(width,height,&pitch_gpu);
+    float* result_gpu = alignedAllocGpu<float>(width,height,&pitch_gpu);
+
+    // init both gpu memory buffers with 0s
+    cudaMemcpy2D(image_gpu, pitch_gpu, image_cpu, pitch_cpu,
+                 width*sizeof(float), height, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(result_gpu, pitch_gpu, image_cpu, pitch_cpu,
+                 width*sizeof(float), height, cudaMemcpyHostToDevice);
+
+    // draw a white square in the middle of the buffer
     for(size_t y=y_off; y<y_off+roi_height; ++y)
     {
       for(size_t x=x_off; x<x_off+roi_width; ++x)
@@ -95,21 +108,20 @@ int main(int argc, char** argv)
       }
     }
 
-    // alloc gpu memory
-    size_t pitch_gpu;
-    float* image_gpu = alignedAllocGpu<float>(width,height,&pitch_gpu);
-    float* result_gpu = alignedAllocGpu<float>(width,height,&pitch_gpu);
-
     // copy cpu -> gpu
-    cudaMemcpy2D(image_gpu, pitch_gpu, image_cpu, pitch_cpu, width*sizeof(float), height, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(image_gpu, pitch_gpu, image_cpu, pitch_cpu,
+                 width*sizeof(float), height, cudaMemcpyHostToDevice);
 
+    //--------------------------------------------------------------------------
     // do stuff
-    imp::cu::IterativeKernelCalls ikc;
+    cu::IterativeKernelCalls ikc;
     bool break_things = (argc>1) ? true : false;
     ikc.run(result_gpu, image_gpu, pitch_gpu, width, height, break_things);
+    //--------------------------------------------------------------------------
 
     // copy gpu -> cpu
-    cudaMemcpy2D(result_cpu, pitch_cpu, result_gpu, pitch_gpu, width*sizeof(float), height, cudaMemcpyDeviceToHost);
+    cudaMemcpy2D(result_cpu, pitch_cpu, result_gpu, pitch_gpu,
+                 width*sizeof(float), height, cudaMemcpyDeviceToHost);
 
     // evaluate
     float in_sum = 0.f;
