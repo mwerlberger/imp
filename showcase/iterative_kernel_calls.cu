@@ -137,7 +137,6 @@ void IterativeKernelCalls::breakThings()
 {
   std::cout << "!!!! breaking things" << std::endl;
 
-
   cudaTextureObject_t tex_object;
 
   cudaResourceDesc tex_res;
