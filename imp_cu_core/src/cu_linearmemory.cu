@@ -85,6 +85,20 @@ const Pixel* LinearMemory<Pixel>::data() const
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
+auto LinearMemory<Pixel>::cuData() -> decltype(imp::cu::toCudaVectorType(this->data()))
+{
+  return imp::cu::toCudaVectorType(this->data());
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel>
+auto LinearMemory<Pixel>::cuData() const -> decltype(imp::cu::toConstCudaVectorType(this->data()))
+{
+  return imp::cu::toConstCudaVectorType(this->data());
+}
+
+//-----------------------------------------------------------------------------
+template<typename Pixel>
 void LinearMemory<Pixel>::setValue(const Pixel& value)
 {
   if (sizeof(Pixel) == 1)
