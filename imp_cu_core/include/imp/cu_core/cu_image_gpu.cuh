@@ -9,8 +9,6 @@
 #include <imp/cu_core/cu_exception.hpp>
 #include <imp/cu_core/cu_memory_storage.cuh>
 #include <imp/core/image.hpp>
-//#include <imp/cu_core/cu_gpu_data.cuh>
-
 #include <imp/cu_core/cu_pixel_conversion.hpp>
 
 
