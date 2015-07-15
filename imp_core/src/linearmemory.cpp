@@ -85,7 +85,8 @@ template<typename Pixel>
 void LinearMemory<Pixel>::setValue(const Pixel& value)
 {
   std::fill(data_.get()+roi_.x(),
-            data_.get()+this->roi().x()+this->roi().length(), value);
+            data_.get()+this->roi().x()+this->roi().length(),
+            value);
 }
 
 //-----------------------------------------------------------------------------

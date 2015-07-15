@@ -17,7 +17,7 @@ template<class T>
 typename std::enable_if<std::is_integral<T>::value, std::function<T()> >::type
 getRandomGenerator()
 {
-  std::default_random_engine generator;
+  std::default_random_engine generator(std::random_device{}());
   std::uniform_int_distribution<T> distribution(std::numeric_limits<T>::lowest(),
                                                 std::numeric_limits<T>::max());
   auto random_val = std::bind(distribution, generator);
@@ -28,7 +28,7 @@ template<class T>
 typename std::enable_if<!std::is_integral<T>::value, std::function<T()> >::type
 getRandomGenerator()
 {
-  std::default_random_engine generator;
+  std::default_random_engine generator(std::random_device{}());
   std::uniform_real_distribution<T> distribution(std::numeric_limits<T>::lowest(),
                                                  std::numeric_limits<T>::max());
   auto random_val = std::bind(distribution, generator);
