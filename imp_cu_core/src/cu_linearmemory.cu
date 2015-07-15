@@ -10,7 +10,7 @@ namespace cu {
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
-LinearMemory<Pixel>::LinearMemory(const size_t& length)
+LinearMemory<Pixel>::LinearMemory(const std::uint32_t& length)
   : LinearMemoryBase(length)
   , data_(Memory::alloc(this->length()))
 {
@@ -39,35 +39,6 @@ LinearMemory<Pixel>::LinearMemory(const imp::LinearMemory<Pixel>& from)
   }
   this->copyFrom(from);
 }
-
-
-////-----------------------------------------------------------------------------
-//template<typename Pixel>
-//LinearMemory<Pixel>::LinearMemory(Pixel* host_data,
-//                                  const size_t& length,
-//                                  bool use_ext_data_pointer)
-//  : LinearMemoryBase(length)
-//{
-//  if (host_data == nullptr)
-//  {
-//    throw imp::cu::Exception("input data not valid", __FILE__, __FUNCTION__, __LINE__);
-//  }
-
-//  if(use_ext_data_pointer)
-//  {
-//    // This uses the external data pointer and stores it as a 'reference':
-//    // memory won't be managed by us!
-//    auto dealloc_nop = [](Pixel*) { ; };
-//    data_ = std::unique_ptr<Pixel, Deallocator>(
-//          host_data, Deallocator(dealloc_nop));
-//  }
-//  else
-//  {
-//    // allocates an internal data pointer and copies the external data it.
-//    data_.reset(CuMemory::alignedAlloc(this->length()));
-//    std::copy(host_data, host_data+length, data_.get());
-//  }
-//}
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>

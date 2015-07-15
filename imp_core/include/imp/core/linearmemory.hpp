@@ -22,9 +22,9 @@ public:
 public:
   LinearMemory() = delete;
   virtual ~LinearMemory() { }
-  LinearMemory(const size_t& length);
+  LinearMemory(const std::uint32_t& length);
   LinearMemory(const LinearMemory<Pixel>& from);
-  LinearMemory(Pixel* host_data, const size_t& length,
+  LinearMemory(Pixel* host_data, const std::uint32_t& length,
                bool use_ext_data_pointer = false);
 
   /**
@@ -35,13 +35,13 @@ public:
    * @note The pointer can be offset to position \a offset.
    *
    */
-  Pixel* data(int offset = 0);
+  Pixel* data(std::uint32_t offset = 0);
 
   /** Returns a const pointer to the device buffer.
    * @param[in] offset Desired offset within the array.
    * @return Const pointer to the device buffer.
    */
-  const Pixel* data(int offset = 0) const;
+  const Pixel* data(std::uint32_t offset = 0) const;
 
   /** Sets a certain value to all pixels in the data vector.
    */

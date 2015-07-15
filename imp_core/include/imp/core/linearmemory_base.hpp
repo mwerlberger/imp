@@ -2,6 +2,8 @@
 #define IMP_LINEARMEMORY_HPP
 
 #include <cstdint>
+#include <imp/core/size.hpp>
+#include <imp/core/roi.hpp>
 
 namespace imp {
 
@@ -12,22 +14,36 @@ class LinearMemoryBase
 protected:
   LinearMemoryBase() = delete;
 
-  LinearMemoryBase(const LinearMemoryBase& from) :
-    length_(from.length_)
+  LinearMemoryBase(const LinearMemoryBase& from)
+    : size_(from.size_)
+    , roi_(from.roi_)
   { }
 
-  LinearMemoryBase(const size_t& length) :
-    length_(length)
+  LinearMemoryBase(const std::uint32_t& length)
+    : size_(length)
+    , roi_(0, length)
   { }
+
 
 public:
   virtual ~LinearMemoryBase()
   { }
 
-  /** Returns the number of elements saved in the device buffer. (length of device buffer) */
-  size_t length() const
+  /** Returns the number of elements available in the internal buffer. */
+  std::uint32_t length() const
   {
-    return length_;
+    return size_.length();
+  }
+
+  inline imp::Size1u size() const { return size_; }
+  inline imp::Roi1u roi() const { return roi_; }
+
+  /** Sets a region-of-interest (clamps towards boundaries [0, length[) */
+  void setRoi(const imp::Roi1u& roi)
+  {
+    roi_.x() = std::max(0u, std::min(this->length()-1, roi.x()));
+    std::uint32_t remaining_elements = this->length()-roi_.x();
+    roi_.length() = std::max(1u, std::min(remaining_elements, roi.length()));
   }
 
   /** Returns the total amount of bytes saved in the data buffer. */
@@ -40,7 +56,8 @@ public:
   virtual bool isGpuMemory() const = 0;
 
 protected:
-  size_t length_;
+  imp::Size1u size_;
+  imp::Roi1u roi_;
 
 };
 
