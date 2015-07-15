@@ -196,6 +196,33 @@ struct Size
 
 //------------------------------------------------------------------------------
 /**
+ * @brief The Size<T, 1> is a special size for an 1D array shape defining its length
+ */
+template<typename T>
+struct Size<T, 1>
+    : public SizeBase<T, 1, Size<T, 1> >
+{
+  using Base = SizeBase<T, 1, Size<T, 1> >;
+  using Base::Base;
+  Size() = default;
+  virtual ~Size() = default;
+
+  Size(const T& length)
+    : Base({length})
+  {
+  }
+
+  /** @brief Operator that returns the length of the 1d array. */
+  constexpr operator T() const {return this->sz[0];}
+
+  /**
+   * @brief length returns the length of the 1D array
+   */
+  constexpr T length() const {return this->sz[0];}
+};
+
+//------------------------------------------------------------------------------
+/**
  * @brief The Size<T, 2> is a special size for a 2D shape defining its width and height
  */
 template<typename T>
@@ -274,6 +301,11 @@ struct Size<T, 3>
 //------------------------------------------------------------------------------
 // some convencience typedefs
 
+// 1D
+typedef Size<std::uint32_t, 1> Size1u;
+typedef Size<std::int32_t, 1> Size1i;
+typedef Size<float, 1> Size1f;
+typedef Size<double, 1> Size1d;
 // 2D
 typedef Size<std::uint32_t, 2> Size2u;
 typedef Size<std::int32_t, 2> Size2i;

@@ -10,7 +10,7 @@ namespace cu {
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
-LinearMemory<Pixel>::LinearMemory(const size_t& length)
+LinearMemory<Pixel>::LinearMemory(const std::uint32_t& length)
   : LinearMemoryBase(length)
   , data_(Memory::alloc(this->length()))
 {
@@ -39,35 +39,6 @@ LinearMemory<Pixel>::LinearMemory(const imp::LinearMemory<Pixel>& from)
   }
   this->copyFrom(from);
 }
-
-
-////-----------------------------------------------------------------------------
-//template<typename Pixel>
-//LinearMemory<Pixel>::LinearMemory(Pixel* host_data,
-//                                  const size_t& length,
-//                                  bool use_ext_data_pointer)
-//  : LinearMemoryBase(length)
-//{
-//  if (host_data == nullptr)
-//  {
-//    throw imp::cu::Exception("input data not valid", __FILE__, __FUNCTION__, __LINE__);
-//  }
-
-//  if(use_ext_data_pointer)
-//  {
-//    // This uses the external data pointer and stores it as a 'reference':
-//    // memory won't be managed by us!
-//    auto dealloc_nop = [](Pixel*) { ; };
-//    data_ = std::unique_ptr<Pixel, Deallocator>(
-//          host_data, Deallocator(dealloc_nop));
-//  }
-//  else
-//  {
-//    // allocates an internal data pointer and copies the external data it.
-//    data_.reset(CuMemory::alignedAlloc(this->length()));
-//    std::copy(host_data, host_data+length, data_.get());
-//  }
-//}
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
@@ -103,17 +74,17 @@ void LinearMemory<Pixel>::setValue(const Pixel& value)
 {
   if (sizeof(Pixel) == 1)
   {
-    cudaMemset((void*)this->data(), (int)value.c[0], this->bytes());
+    cudaMemset((void*)(this->data()+this->roi().x()), (int)value.c[0], this->roiBytes());
   }
   else
   {
     // fragmentation
-    cu::Fragmentation<32,1> frag(this->length());
+    cu::Fragmentation<32,1> frag(this->roi().length());
 
     // todo add roi to kernel!
     imp::cu::k_setValue
         <<< frag.dimGrid, frag.dimBlock
-        >>> (this->data(), this->length(), value);
+        >>> (this->data(), this->roi().x(), this->roi().length(), value);
   }
   IMP_CUDA_CHECK();
 }
@@ -124,11 +95,12 @@ void LinearMemory<Pixel>::copyTo(imp::cu::LinearMemory<Pixel>& dst)
 {
   if (dst.data() == 0 || !data_)
     IMP_THROW_EXCEPTION("'from' or 'to' data is not valid");
-  if (this->bytes() != dst.bytes())
-    IMP_THROW_EXCEPTION("source and destination array are of different length (byte length checked)");
+  if (this->roiBytes() != dst.roiBytes())
+    IMP_THROW_EXCEPTION("source and destination array region of interests are of different length (byte length checked)");
 
   const cudaError cu_err =
-      cudaMemcpy(dst.data(), this->data(), this->bytes(), cudaMemcpyDeviceToDevice);
+      cudaMemcpy(dst.data()+dst.roi().x(), this->data()+this->roi().x(),
+                 this->roiBytes(), cudaMemcpyDeviceToDevice);
 
   if (cu_err != cudaSuccess)
     IMP_CU_THROW_EXCEPTION("cudaMemcpy returned error code", cu_err);
@@ -140,11 +112,12 @@ void LinearMemory<Pixel>::copyFrom(const imp::cu::LinearMemory<Pixel>& from)
 {
   if (from.data() == 0 || !data_)
     IMP_THROW_EXCEPTION("'from' or 'to' data is not valid");
-  if (this->bytes() != from.bytes())
-    IMP_THROW_EXCEPTION("source and destination array are of different length (byte length checked)");
+  if (this->roiBytes() != from.roiBytes())
+    IMP_THROW_EXCEPTION("source and destination array region of interests are of different length (byte length checked)");
 
   const cudaError cu_err =
-      cudaMemcpy(this->data(), from.data(), from.bytes(), cudaMemcpyDeviceToDevice);
+      cudaMemcpy(this->data()+this->roi().x(), from.data()+from.roi().x(),
+                 from.roiBytes(), cudaMemcpyDeviceToDevice);
 
   if (cu_err != cudaSuccess)
     IMP_CU_THROW_EXCEPTION("cudaMemcpy returned error code", cu_err);
@@ -156,11 +129,12 @@ void LinearMemory<Pixel>::copyTo(imp::LinearMemory<Pixel>& dst)
 {
   if (dst.data() == 0 || !data_)
     IMP_THROW_EXCEPTION("'from' or 'to' data is not valid");
-  if (this->bytes() != dst.bytes())
-    IMP_THROW_EXCEPTION("source and destination array are of different length (byte length checked)");
+  if (this->roiBytes() != dst.roiBytes())
+    IMP_THROW_EXCEPTION("source and destination array region of interests are of different length (byte length checked)");
 
   const cudaError cu_err =
-      cudaMemcpy(dst.data(), this->data(), this->bytes(), cudaMemcpyDeviceToHost);
+      cudaMemcpy(dst.data()+dst.roi().x(), this->data()+this->roi().x(),
+                 this->roiBytes(), cudaMemcpyDeviceToHost);
 
   if (cu_err != cudaSuccess)
     IMP_CU_THROW_EXCEPTION("cudaMemcpy returned error code", cu_err);
@@ -172,11 +146,12 @@ void LinearMemory<Pixel>::copyFrom(const imp::LinearMemory<Pixel>& from)
 {
   if (from.data() == 0 || !data_)
     IMP_THROW_EXCEPTION("'from' or 'to' data is not valid");
-  if (this->bytes() != from.bytes())
-    IMP_THROW_EXCEPTION("source and destination array are of different length (byte length checked)");
+  if (this->roiBytes() != from.roiBytes())
+    IMP_THROW_EXCEPTION("source and destination array region of interests are of different length (byte length checked)");
 
   const cudaError cu_err =
-      cudaMemcpy(this->data(), from.data(), from.bytes(), cudaMemcpyHostToDevice);
+      cudaMemcpy(this->data()+this->roi().x(), from.data()+from.roi().x(),
+                 from.roiBytes(), cudaMemcpyHostToDevice);
 
   if (cu_err != cudaSuccess)
     IMP_CU_THROW_EXCEPTION("cudaMemcpy returned error code", cu_err);

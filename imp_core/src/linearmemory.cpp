@@ -10,7 +10,7 @@ namespace imp {
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
-LinearMemory<Pixel>::LinearMemory(const size_t& length)
+LinearMemory<Pixel>::LinearMemory(const std::uint32_t& length)
   : LinearMemoryBase(length)
   , data_(Memory::alignedAlloc(this->length()))
 {
@@ -32,7 +32,7 @@ LinearMemory<Pixel>::LinearMemory(const LinearMemory<Pixel>& from)
 //-----------------------------------------------------------------------------
 template<typename Pixel>
 LinearMemory<Pixel>::LinearMemory(Pixel* host_data,
-                                  const size_t& length,
+                                  const std::uint32_t& length,
                                   bool use_ext_data_pointer)
   : LinearMemoryBase(length)
 {
@@ -59,9 +59,9 @@ LinearMemory<Pixel>::LinearMemory(Pixel* host_data,
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
-Pixel* LinearMemory<Pixel>::data(int offset)
+Pixel* LinearMemory<Pixel>::data(std::uint32_t offset)
 {
-  if ((size_t)offset > this->length())
+  if (offset > this->length())
   {
     throw imp::Exception("offset not in range", __FILE__, __FUNCTION__, __LINE__);
   }
@@ -71,9 +71,9 @@ Pixel* LinearMemory<Pixel>::data(int offset)
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
-const Pixel* LinearMemory<Pixel>::data(int offset) const
+const Pixel* LinearMemory<Pixel>::data(std::uint32_t offset) const
 {
-  if ((size_t)offset > this->length())
+  if (offset > this->length())
   {
     throw imp::Exception("offset not in range", __FILE__, __FUNCTION__, __LINE__);
   }
@@ -84,7 +84,9 @@ const Pixel* LinearMemory<Pixel>::data(int offset) const
 template<typename Pixel>
 void LinearMemory<Pixel>::setValue(const Pixel& value)
 {
-  std::fill(data_.get(), data_.get()+this->length(), value);
+  std::fill(data_.get()+roi_.x(),
+            data_.get()+this->roi().x()+this->roi().length(),
+            value);
 }
 
 //-----------------------------------------------------------------------------
