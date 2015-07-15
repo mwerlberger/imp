@@ -8,9 +8,9 @@
 
 #include <imp/core/linearmemory_base.hpp>
 #include <imp/core/linearmemory.hpp>
-
 #include <imp/core/pixel.hpp>
 #include <imp/cu_core/cu_memory_storage.cuh>
+#include <imp/cu_core/cu_pixel_conversion.hpp>
 
 namespace imp {
 namespace cu {
@@ -41,12 +41,13 @@ public:
    *
    */
   Pixel* data();
-
-  /** Returns a const pointer to the device buffer.
-   * @param[in] offset Desired offset within the array.
-   * @return Const pointer to the device buffer.
-   */
   const Pixel* data() const;
+
+  /** Returns the buffer as respective cuda vector type that is pointing to the beginning for the data buffer.
+   * @note this is mainly for convenience when calling cuda functions / kernels.
+   */
+  auto cuData() -> decltype(imp::cu::toCudaVectorType(this->data()));
+  auto cuData() const -> decltype(imp::cu::toConstCudaVectorType(this->data()));
 
   /** Sets a certain value to all pixels in the data vector.
    */
