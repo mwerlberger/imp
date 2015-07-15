@@ -133,6 +133,40 @@ struct Roi
 
 //------------------------------------------------------------------------------
 /**
+ * @brief The Roi<T, 1> is a special Roi for e.g. an 1D array defining its start element and length
+ */
+template<typename T>
+struct Roi<T, 1>
+    : public RoiBase<T, 1, Roi<T, 1> >
+{
+  using Base = RoiBase<T, 1, Roi<T, 1> >;
+  using Base::Base;
+
+  Roi() = default;
+  virtual ~Roi() = default;
+
+  Roi(const T& x, const T& length)
+    : Base({x}, {length})
+  {
+  }
+
+  /**
+   * @brief x returns the ROI's x coordinate of the left-upper corner
+   */
+  T& x() noexcept {return this->pt[0];}
+  constexpr const T& x() const noexcept {return this->pt[0];}
+
+  /**
+   * @brief width returns the width of the 2d Roi
+   */
+  T& length() noexcept {return this->sz[0];}
+  constexpr const T& length() const noexcept {return this->sz[0];}
+
+};
+
+
+//------------------------------------------------------------------------------
+/**
  * @brief The Roi<T, 2> is a special Roi for a 2D shape defining its width and height
  */
 template<typename T>
@@ -182,6 +216,11 @@ struct Roi<T, 2>
 //------------------------------------------------------------------------------
 // some convencience typedefs
 
+// 1D
+using Roi1u = Roi<std::uint32_t, 1>;
+using Roi1i = Roi<std::int32_t, 1>;
+using Roi1f = Roi<float, 1>;
+using Roi1d = Roi<float, 1>;
 // 2D
 using Roi2u = Roi<std::uint32_t, 2>;
 using Roi2i = Roi<std::int32_t, 2>;

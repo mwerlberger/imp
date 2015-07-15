@@ -26,19 +26,14 @@ public:
   __host__ LinearMemory() = delete;
   virtual ~LinearMemory() { }
 
-  __host__ LinearMemory(const size_t& length);
+  __host__ LinearMemory(const std::uint32_t& length);
   __host__ LinearMemory(const imp::cu::LinearMemory<Pixel>& from);
   __host__ LinearMemory(const imp::LinearMemory<Pixel>& from);
-  __host__ LinearMemory(Pixel* host_data, const size_t& length,
-                        bool use_ext_data_pointer = false);
+//  __host__ LinearMemory(Pixel* host_data, const std::uint32_t& length,
+//                        bool use_ext_data_pointer = false);
 
   /**
    * @brief Returns a pointer to the device buffer.
-   * @param[in] offset Offset of the pointer array.
-   * @return Pointer to the device buffer.
-   *
-   * @note The pointer can be offset to position \a offset.
-   *
    */
   Pixel* data();
   const Pixel* data() const;
@@ -69,11 +64,12 @@ public:
    */
   void copyFrom(const imp::LinearMemory<Pixel>& dst);
 
-//  //! @todo (MWE) operator= for copyTo/copyFrom?
-//  LinearMem& operator=(Pixel rhs);
-
   /** Returns the total amount of bytes saved in the data buffer. */
   virtual size_t bytes() const override { return this->length()*sizeof(Pixel); }
+
+  /** Returns the total amount of bytes for the region-of-interest saved in the data buffer. */
+  virtual size_t roiBytes() const override { return this->roi().length()*sizeof(Pixel); }
+
 
   /** Returns the bit depth of the data pointer. */
   virtual std::uint8_t bitDepth() const override { return 8*sizeof(Pixel); }
