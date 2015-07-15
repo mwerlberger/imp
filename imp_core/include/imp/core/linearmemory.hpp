@@ -67,9 +67,9 @@ public:
   virtual bool isGpuMemory() const  override { return false; }
 
   /** Pixel access with (idx). */
-   Pixel& operator()(size_t idx) {return *this->data(idx);}
+   inline Pixel& operator()(std::uint32_t idx) {return *this->data(idx);}
    /** Pixel access with [idx]. */
-   Pixel& operator[](size_t idx) {return *this->data(idx);}
+   inline Pixel& operator[](std::uint32_t idx) {return *this->data(idx);}
 
 private:
   std::unique_ptr<Pixel, Deallocator> data_;

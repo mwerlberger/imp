@@ -46,6 +46,11 @@ public:
     roi_.length() = std::max(1u, std::min(remaining_elements, roi.length()));
   }
 
+  void resetRoi()
+  {
+    roi_ = imp::Roi1u(size_);
+  }
+
   /** Returns the total amount of bytes saved in the data buffer. */
   virtual size_t bytes() const = 0;
 
