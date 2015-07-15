@@ -49,6 +49,9 @@ public:
   /** Returns the total amount of bytes saved in the data buffer. */
   virtual size_t bytes() const = 0;
 
+  /** Returns the total amount of bytes for the region-of-interest saved in the data buffer. */
+  virtual size_t roiBytes() const = 0;
+
   /** Returns the bit depth of the data pointer. */
   virtual std::uint8_t bitDepth() const = 0;
 

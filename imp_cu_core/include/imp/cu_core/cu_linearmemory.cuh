@@ -67,6 +67,10 @@ public:
   /** Returns the total amount of bytes saved in the data buffer. */
   virtual size_t bytes() const override { return this->length()*sizeof(Pixel); }
 
+  /** Returns the total amount of bytes for the region-of-interest saved in the data buffer. */
+  virtual size_t roiBytes() const override { return this->roi().length()*sizeof(Pixel); }
+
+
   /** Returns the bit depth of the data pointer. */
   virtual std::uint8_t bitDepth() const override { return 8*sizeof(Pixel); }
 
