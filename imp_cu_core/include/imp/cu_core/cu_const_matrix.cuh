@@ -20,11 +20,24 @@ class ConstMatrix
   using Deallocator = imp::cu::MemoryDeallocator<Type>;
 
 public:
-  __host__ __device__
-  ConstMatrix();
+  __host__
+  ConstMatrix() { }
 
-  __host__ __device__
-  ~ConstMatrix();
+  __host__
+  ~ConstMatrix() { }
+
+//  __host__ __device__
+//  ConstMatrix(const ConstMatrix& other)
+//  {
+//    // TODO
+//  }
+
+//  __host__ __device__
+//  ConstMatrix& operator=(const ConstMatrix& other)
+//  {
+//    // TODO
+//    return this;
+//  }
 
   __host__ __device__ __forceinline__
   size_t rows() const { return rows_; }
