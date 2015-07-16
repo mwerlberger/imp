@@ -16,11 +16,11 @@
     }
 
 int main() {
-  //float* data = new float[12];
+  float* data = new float[12];
   //imp::cu::Transformationf myTransform(data);
   //imp::cu::Matrix<imp::Vec32fC1,4,5> myTransform;
   //imp::cu::Matrix3f test;
-  imp::cu::ConstMatrix<imp::Vec32fC1,3,4> myTransform;
+  imp::cu::Transformationf myTransform(data);
   std::cout << "Rows/Cols "<< myTransform.rows() << "/" << myTransform.cols() << std::endl;
   //float3 myFloat = make_float3(3.0,2.0,1.0);
   //float3 myfloat;

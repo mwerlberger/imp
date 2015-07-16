@@ -6,6 +6,8 @@
 #include <imp/core/pixel.hpp>
 #include <imp/cu_core/cu_memory_storage.cuh> // Deallocator
 #include <memory> // std::unique_ptr
+#include <Eigen/Dense>
+
 
 namespace imp{
 namespace cu{
@@ -70,7 +72,7 @@ protected:
   size_t cols_ = _cols;
 };
 
-#if 0
+
 template<typename Type>
 class ConstMatrix3X4: public ConstMatrix<Type,3,4>
 {
@@ -78,16 +80,43 @@ class ConstMatrix3X4: public ConstMatrix<Type,3,4>
   using Base::data_;
   using Memory = imp::cu::MemoryStorage<Type>;
 
-public:
-  ConstMatrix3X4();
-  ~ConstMatrix3X4();
-
+private:
   static constexpr int kSizeMatrix3x4 = 12;
+public:
+  ConstMatrix3X4() { }
+  ~ConstMatrix3X4() { }
+
   ConstMatrix3X4(Type* transformation_row_maj_3x4)
   {
     data_.reset(Memory::alloc(kSizeMatrix3x4));
     const cudaError cu_err =
         cudaMemcpy(data_.get(),transformation_row_maj_3x4,kSizeMatrix3x4*sizeof(Type)
+                   ,cudaMemcpyHostToDevice);
+
+    if (cu_err != cudaSuccess)
+      IMP_CU_THROW_EXCEPTION("cudaMemcpy returned error code", cu_err);
+  }
+
+  ConstMatrix3X4(Eigen::Matrix3f rot, Eigen::Vector3f trans)
+  {
+    Eigen::Matrix<float,3,4> T;
+    T.block<3,3>(0,0) = rot;
+    T.col(3) = trans;
+
+    data_.reset(Memory::alloc(kSizeMatrix3x4));
+    const cudaError cu_err =
+        cudaMemcpy(data_.get(),T.data(),kSizeMatrix3x4*sizeof(Type)
+                   ,cudaMemcpyHostToDevice);
+
+    if (cu_err != cudaSuccess)
+      IMP_CU_THROW_EXCEPTION("cudaMemcpy returned error code", cu_err);
+  }
+
+  ConstMatrix3X4(Eigen::Matrix<float,3,4> T)
+  {
+    data_.reset(Memory::alloc(kSizeMatrix3x4));
+    const cudaError cu_err =
+        cudaMemcpy(data_.get(),T.data(),kSizeMatrix3x4*sizeof(Type)
                    ,cudaMemcpyHostToDevice);
 
     if (cu_err != cudaSuccess)
@@ -108,9 +137,23 @@ public:
   }
 };
 
-// convenience typedef
-//typedef ConstMatrix3X4<float> Transformationf;
 
+// convenience typedef
+typedef ConstMatrix3X4<float> Transformationf;
+
+
+// matrix vector multiplication
+__device__ __forceinline__
+float3 transform(const Transformationf& T, const float3& v)
+{
+  return make_float3(
+        T(0,0)*v.x + T(0,1)*v.y + T(0,2)*v.z + T(0,3),
+        T(1,0)*v.x + T(1,1)*v.y + T(1,2)*v.z + T(1,3),
+        T(2,0)*v.x + T(2,1)*v.y + T(2,2)*v.z + T(2,3)
+        );
+}
+
+#if 0
 
 //template<typename Type>
 //__host__
