@@ -35,6 +35,7 @@ set(CU_HDRS
   include/imp/cu_core/cu_pinhole_camera.cuh
   include/imp/cu_core/cu_se3.cuh
   include/imp/cu_core/cu_matrix.cuh
+  include/imp/cu_core/cu_const_matrix.cuh
   )
 
 set(CU_SRCS

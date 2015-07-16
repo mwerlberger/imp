@@ -4,15 +4,20 @@
 #include <ostream>
 #include <cuda_runtime.h>
 #include <imp/core/pixel.hpp>
-#include <Eigen/Core>
+#include <imp/cu_core/cu_memory_storage.cuh> // Deallocator
+#include <memory> // std::unique_ptr
 
 namespace imp{
 namespace cu{
+
+// This class is used for __shfl operations. Therefore sizeof(ConstMatrix) has to be a multiple of 4.
+// Furthermore, the default constructor has to be used.
 
 template<typename _Type, size_t _rows, size_t _cols>
 class ConstMatrix
 {
   using Type = _Type;
+  using Deallocator = imp::cu::MemoryDeallocator<Type>;
 
 public:
   __host__ __device__
@@ -20,25 +25,6 @@ public:
 
   __host__ __device__
   ~ConstMatrix();
-
-//  // copy and asignment operator
-//  __host__ __device__
-//  Matrix(const Matrix& other)
-//    : f_(other.f())
-//    , c_(other.c())
-//  {
-//  }
-//  __host__ __device__
-//  Matrix& operator=(const Matrix& other)
-//  {
-//    if  (this != &other)
-//    {
-//      f_ = other.f();
-//      c_ = other.c();
-//    }
-//    return *this;
-//  }
-
 
   __host__ __device__ __forceinline__
   size_t rows() const { return rows_; }
@@ -55,15 +41,6 @@ public:
     return data_[row*cols_ + col];
   }
 
-  /** Data access operator given a \a row and a \a col
-   * @return changable value at \a (row,col)
-   */
-  __host__ __device__ __forceinline__
-  Type& operator()(int row, int col)
-  {
-    return data_[row*cols_ + col];
-  }
-
   /** Data access operator given an \a index
    * @return unchangable value at \a (row,col)
    */
@@ -73,26 +50,63 @@ public:
     return data_[ind];
   }
 
-  /** Data access operator given an \a index
-   * @return changable value at \a (row,col)
-   */
-  __host__ __device__ __forceinline__
-  Type & operator[](int ind)
-  {
-    return data_[ind];
-  }
-
-private:
-  std::unique_ptr<Pixel, Deallocator> data_;
-  Type data_[_rows*_cols];
+protected:
+  //std::unique_ptr<Pixel, Deallocator> data_;
+  std::unique_ptr<Type[], Deallocator> data_;
   size_t rows_ = _rows;
   size_t cols_ = _cols;
 };
 
+#if 0
+template<typename Type>
+class ConstMatrix3X4: public ConstMatrix<Type,3,4>
+{
+  using Base = ConstMatrix<Type,3,4>;
+  using Base::data_;
+  using Memory = imp::cu::MemoryStorage<Type>;
+
+public:
+  ConstMatrix3X4();
+  ~ConstMatrix3X4();
+
+  static constexpr int kSizeMatrix3x4 = 12;
+  ConstMatrix3X4(Type* transformation_row_maj_3x4)
+  {
+    data_.reset(Memory::alloc(kSizeMatrix3x4));
+    const cudaError cu_err =
+        cudaMemcpy(data_.get(),transformation_row_maj_3x4,kSizeMatrix3x4*sizeof(Type)
+                   ,cudaMemcpyHostToDevice);
+
+    if (cu_err != cudaSuccess)
+      IMP_CU_THROW_EXCEPTION("cudaMemcpy returned error code", cu_err);
+  }
+
+
+  __host__
+  void resetData(Type* transformation_row_maj_3x4)
+  {
+    data_.reset(Memory::alloc(kSizeMatrix3x4));
+    const cudaError cu_err =
+        cudaMemcpy(data_.get(),transformation_row_maj_3x4,kSizeMatrix3x4*sizeof(Type)
+                   ,cudaMemcpyHostToDevice);
+
+    if (cu_err != cudaSuccess)
+      IMP_CU_THROW_EXCEPTION("cudaMemcpy returned error code", cu_err);
+  }
+};
+
+// convenience typedef
+//typedef ConstMatrix3X4<float> Transformationf;
+
+
+//template<typename Type>
+//__host__
+//void init(Type* rotation)
+
 //------------------------------------------------------------------------------
 // convenience typedefs
-using Matrix3f = Matrix<float,3,3>;
-using Vector3f = Matrix<float,1,3>;
+using Matrix3f = Transformation<float>;
+using Vector3f = ConstMatrix<float,1,3>;
 
 //==============================================================================
 
@@ -100,10 +114,10 @@ using Vector3f = Matrix<float,1,3>;
 //------------------------------------------------------------------------------
 template<typename Type, size_t _rows, size_t CR, size_t _cols>
 __host__ __device__ __forceinline__
-Matrix<Type, _rows, _cols> operator*(const Matrix<Type, _rows, CR> & lhs,
-                                     const Matrix<Type, CR, _cols> & rhs)
+ConstMatrix<Type, _rows, _cols> operator*(const ConstMatrix<Type, _rows, CR> & lhs,
+                                          const ConstMatrix<Type, CR, _cols> & rhs)
 {
-  Matrix<Type, _rows, _cols> result;
+  ConstMatrix<Type, _rows, _cols> result;
   for(size_t row=0; row<_rows; ++row)
   {
     for(size_t col=0; col<_cols; ++col)
@@ -121,9 +135,9 @@ Matrix<Type, _rows, _cols> operator*(const Matrix<Type, _rows, CR> & lhs,
 //------------------------------------------------------------------------------
 template<typename Type>
 __host__ __device__ __forceinline__
-Matrix<Type, 2, 2> invert(const Matrix<Type, 2, 2> & in)
+ConstMatrix<Type, 2, 2> invert(const ConstMatrix<Type, 2, 2> & in)
 {
-  Matrix<Type, 2, 2> out;
+  ConstMatrix<Type, 2, 2> out;
   float det = in[0]*in[3] - in[1]*in[2];
   out[0] =  in[3] / det;
   out[1] = -in[1] / det;
@@ -161,7 +175,7 @@ Vec32fC3 operator*(const Matrix3f& mat, const Vec32fC3& v)
 template<typename T, size_t rows, size_t cols>
 __host__
 inline std::ostream& operator<<(std::ostream &os,
-                                const cu::Matrix<T, rows, cols>& m)
+                                const cu::ConstMatrix<T, rows, cols>& m)
 {
   os << "[";
   for (int r=0; r<rows; ++r)
@@ -177,6 +191,7 @@ inline std::ostream& operator<<(std::ostream &os,
   os << "]";
   return os;
 }
+#endif
 
 }
 }
