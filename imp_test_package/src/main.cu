@@ -23,12 +23,12 @@
 //  test = input.cast<Type>();
 //}
 
-__global__ void const_memory_kernel(imp::cu::TransformationStatic trans,float3 in,float3* out) {
+__global__ void const_memory_kernel_single(imp::cu::TransformationStatic trans,float3 in,float3* out) {
 
   *out = transform(trans,in);
 }
 
-__global__ void global_memory_kernel(imp::cu::TransformationDynamic trans,float3 in,float3* out) {
+__global__ void global_memory_kernel_single(imp::cu::TransformationDynamic trans,float3 in,float3* out) {
 
   *out = transform(trans,in);
 }
@@ -76,13 +76,32 @@ int main() {
   cudaMalloc((void**)& out4_dev,sizeof(float3));
   std::cout << in.x << " " << in.y << " " << in.z << std::endl <<  input << std::endl << out.x << " " << out.y << " " << out.z << std::endl << out2.x << " " << out2.y << " " << out2.z << std::endl;
 
-  const_memory_kernel<<< 1, 1 >>>(test_static,in,out3_dev);
+  const_memory_kernel_single<<< 1, 1 >>>(test_static,in,out3_dev);
   cudaMemcpy(&out3_host,out3_dev,sizeof(float3),cudaMemcpyDeviceToHost);
-  global_memory_kernel<<< 1, 1 >>>(test_dynamic_device,in,out4_dev);
+  global_memory_kernel_single<<< 1, 1 >>>(test_dynamic_device,in,out4_dev);
   cudaMemcpy(&out4_host,out4_dev,sizeof(float3),cudaMemcpyDeviceToHost);
   std::cout << "GPU result static "<< out3_host.x << " " << out3_host.y << " " << out3_host.z << std::endl;
   std::cout << "GPU result dynamic "<< out4_host.x << " " << out4_host.y << " " << out4_host.z << std::endl;
 
+
+  //----------
+  size_t kNumElements = 1000;
+  float3 vec_array_host[kNumElements];
+
+  for(size_t ii=0;ii<kNumElements;ii++)
+  {
+    vec_array_host[ii] = make_float3(ii%2,ii%3,ii%4);
+    std::cout << vec_array_host[ii].x << " " << vec_array_host[ii].y << " " << vec_array_host[ii].z << std::endl;
+  }
+
+  float3* vec_array_dev;
+  cudaMalloc((void**)& vec_array_dev,kNumElements*sizeof(float3));
+
+  for(size_t ii=0;ii<kNumElements;ii++)
+  {
+    vec_array_host[ii] = make_float3(ii%2,ii%3,ii%4);
+    std::cout << vec_array_host[ii].x << " " << vec_array_host[ii].y << " " << vec_array_host[ii].z << std::endl;
+  }
   cudaCheckError();
   return 0;
 }
