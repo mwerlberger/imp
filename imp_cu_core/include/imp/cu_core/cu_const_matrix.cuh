@@ -7,7 +7,7 @@
 #include <imp/cu_core/cu_memory_storage.cuh> // Deallocator
 #include <memory> // std::unique_ptr
 #include <Eigen/Dense>
-
+#include <kindr/minimal/quat-transformation.h>
 
 namespace imp{
 namespace cu{
@@ -16,30 +16,98 @@ namespace cu{
 // Furthermore, the default constructor has to be used.
 
 template<typename _Type, size_t _rows, size_t _cols>
-class ConstMatrix
+class ConstMatrixMemoryHandler
+{
+public:
+  using Type = _Type;
+  using Memory = imp::cu::MemoryStorage<Type>;
+
+  enum class MemoryType {HOST_MEMORY,DEVICE_MEMORY};
+
+  ConstMatrixMemoryHandler(Type* src, MemoryType mem_type_ = MemoryType::DEVICE_MEMORY)
+    :mem_type_(mem_type_)
+  {
+    setupMemory(src);
+  }
+
+  ConstMatrixMemoryHandler(Eigen::Matrix<Type,_rows,_cols> mat_col_major,
+                           MemoryType mem_type_ = MemoryType::DEVICE_MEMORY)
+    :mem_type_(mem_type_)
+  {
+    setupMemory(mat_col_major.data());
+  }
+
+  ConstMatrixMemoryHandler(kindr::minimal::QuatTransformationTemplate<Type> T_quat,
+                           MemoryType mem_type_ = MemoryType::DEVICE_MEMORY)
+    :mem_type_(mem_type_)
+  {
+    if(_rows!=3||_cols!=4)
+      IMP_THROW_EXCEPTION("matrix  has to be of size 3x4 to hold a transformation matrix");
+    Eigen::Matrix<Type,3,4> T_eig = T_quat.getTransformationMatrix();
+    setupMemory(T_eig.data());
+  }
+
+  ~ConstMatrixMemoryHandler()
+  {
+    if(mem_type_ == MemoryType::HOST_MEMORY)
+    {
+      free(data_);
+      std::cout << "free memory CPU" << std::endl;
+    }
+    else if(mem_type_ == MemoryType::DEVICE_MEMORY)
+    {
+      cudaFree(data_);
+      std::cout << "free memory GPU" << std::endl;
+    }
+  }
+
+  inline Type* get() const { return data_;}
+
+private:
+  void setupMemory(const Type* src)
+  {
+    if(mem_type_ == MemoryType::HOST_MEMORY)
+    {
+      data_ = (Type*) malloc (sizeof(Type)*_rows*_cols);
+      memcpy(data_,src,_rows*_cols*sizeof(Type));
+      std::cout << "copy memory CPU" << std::endl;
+    }
+    else if(mem_type_ == MemoryType::DEVICE_MEMORY)
+    {
+      data_ = Memory::alloc(_rows*_cols);
+      const cudaError cu_err =
+          cudaMemcpy(data_,src,_rows*_cols*sizeof(Type)
+                     ,cudaMemcpyHostToDevice);
+
+      if (cu_err != cudaSuccess)
+        IMP_CU_THROW_EXCEPTION("cudaMemcpy returned error code", cu_err);
+      std::cout << "copy memory GPU" << std::endl;
+    }
+  }
+
+  size_t rows_ = _rows;
+  size_t cols_ = _cols;
+  MemoryType mem_type_;
+  Type* data_;
+};
+
+template<typename _Type, size_t _rows, size_t _cols>
+class ConstMatrixDynamic
 {
   using Type = _Type;
-  using Deallocator = imp::cu::MemoryDeallocator<Type>;
 
 public:
   __host__
-  ConstMatrix() { }
+  ConstMatrixDynamic() { }
 
   __host__
-  ~ConstMatrix() { }
+  ~ConstMatrixDynamic() { }
 
-//  __host__ __device__
-//  ConstMatrix(const ConstMatrix& other)
-//  {
-//    // TODO
-//  }
-
-//  __host__ __device__
-//  ConstMatrix& operator=(const ConstMatrix& other)
-//  {
-//    // TODO
-//    return this;
-//  }
+  __host__
+  ConstMatrixDynamic(ConstMatrixMemoryHandler<Type,_rows,_cols>& mem_handler)
+  {
+    data_ = mem_handler.get();
+  }
 
   __host__ __device__ __forceinline__
   size_t rows() const { return rows_; }
@@ -66,8 +134,179 @@ public:
   }
 
 protected:
-  //std::unique_ptr<Pixel, Deallocator> data_;
-  std::unique_ptr<Type[], Deallocator> data_;
+protected:
+  size_t rows_ = _rows;
+  size_t cols_ = _cols;
+  Type* data_;
+};
+
+template<typename _Type, size_t _rows, size_t _cols>
+class ConstMatrixStatic
+{
+  using Type = _Type;
+
+public:
+  __host__
+  ConstMatrixStatic() { }
+
+  __host__
+  ~ConstMatrixStatic() { }
+
+  __host__
+  ConstMatrixStatic(Eigen::Matrix<float,_rows,_cols>& input_col_major)
+  {
+    for(int ii=0; ii < _rows*_cols;ii++)
+    {
+      data_[ii] = input_col_major(ii);
+    }
+  }
+
+  __host__ __device__ __forceinline__
+  size_t rows() const { return rows_; }
+
+  __host__ __device__ __forceinline__
+  size_t cols() const { return cols_; }
+
+  /** Data access operator given a \a row and a \a col
+   * @return unchangable value at \a (row,col)
+   */
+  __host__ __device__ __forceinline__
+  const Type& operator()(int row, int col) const
+  {
+    return data_[row*cols_ + col];
+  }
+
+  /** Data access operator given an \a index
+   * @return unchangable value at \a (row,col)
+   */
+  __host__ __device__ __forceinline__
+  const Type& operator[](int ind) const
+  {
+    return data_[ind];
+  }
+
+protected:
+protected:
+  size_t rows_ = _rows;
+  size_t cols_ = _cols;
+  Type data_[_rows*_cols];
+};
+
+//matrix vector multiplication
+__host__ __device__ __forceinline__
+float3 transform(const ConstMatrixStatic<float,3,4>& T, const float3& v)
+{
+  return make_float3(
+        T(0,0)*v.x + T(0,1)*v.y + T(0,2)*v.z + T(0,3),
+        T(1,0)*v.x + T(1,1)*v.y + T(1,2)*v.z + T(1,3),
+        T(2,0)*v.x + T(2,1)*v.y + T(2,2)*v.z + T(2,3)
+        );
+}
+
+__host__ __device__ __forceinline__
+float3 transform(const ConstMatrixDynamic<float,3,4>& T, const float3& v)
+{
+  return make_float3(
+        T(0,0)*v.x + T(0,1)*v.y + T(0,2)*v.z + T(0,3),
+        T(1,0)*v.x + T(1,1)*v.y + T(1,2)*v.z + T(1,3),
+        T(2,0)*v.x + T(2,1)*v.y + T(2,2)*v.z + T(2,3)
+        );
+}
+
+
+// convenient typedefs
+typedef ConstMatrixMemoryHandler<float,3,4> TransformationMemoryHdlr;
+typedef ConstMatrixDynamic<float,3,4> TransformationDynamic;
+typedef ConstMatrixStatic<float,3,4> TransformationStatic;
+
+#if 0
+template<typename _Type, size_t _rows, size_t _cols>
+class ConstMatrixStatic: public ConstMatrixBase<_Type,_rows,_cols,ConstMatrixStatic>
+{
+  using Type = _Type;
+
+public:
+  __host__
+  ConstMatrixStatic() { }
+
+  __host__
+  ~ConstMatrixStatic() { }
+
+  /** Data access operator given a \a row and a \a col
+   * @return unchangable value at \a (row,col)
+   */
+  __host__ __device__ __forceinline__
+  const Type& operator()(int row, int col) const
+  {
+    return data_[row*cols_ + col];
+  }
+
+  /** Data access operator given an \a index
+   * @return unchangable value at \a (row,col)
+   */
+  __host__ __device__ __forceinline__
+  const Type& operator[](int ind) const
+  {
+    return data_[ind];
+  }
+
+protected:
+  Type data_[_rows*_cols];
+};
+
+
+template<typename _Type, size_t _rows, size_t _cols>
+class ConstMatrix
+{
+  using Type = _Type;
+  using Deallocator = imp::cu::MemoryDeallocator<Type>;
+
+public:
+  __host__
+  ConstMatrix() { }
+
+  __host__
+  ~ConstMatrix() { }
+
+  //  __host__ __device__
+  //  ConstMatrix(const ConstMatrix& other)
+  //  {
+  //    // TODO
+  //  }
+
+  //  __host__ __device__
+  //  ConstMatrix& operator=(const ConstMatrix& other)
+  //  {
+  //    // TODO
+  //    return this;
+  //  }
+
+  __host__ __device__ __forceinline__
+  size_t rows() const { return rows_; }
+
+  __host__ __device__ __forceinline__
+  size_t cols() const { return cols_; }
+
+  /** Data access operator given a \a row and a \a col
+   * @return unchangable value at \a (row,col)
+   */
+  __host__ __device__ __forceinline__
+  const Type& operator()(int row, int col) const
+  {
+    return data_[row*cols_ + col];
+  }
+
+  /** Data access operator given an \a index
+   * @return unchangable value at \a (row,col)
+   */
+  __host__ __device__ __forceinline__
+  const Type& operator[](int ind) const
+  {
+    return data_[ind];
+  }
+
+protected:
+  std::unique_ptr<Type,Deallocator> data_;
   size_t rows_ = _rows;
   size_t cols_ = _cols;
 };
@@ -97,9 +336,9 @@ public:
       IMP_CU_THROW_EXCEPTION("cudaMemcpy returned error code", cu_err);
   }
 
-  ConstMatrix3X4(Eigen::Matrix3f rot, Eigen::Vector3f trans)
+  ConstMatrix3X4(Eigen::Matrix<Type,3,3> rot, Eigen::Matrix<Type,3,1> trans)
   {
-    Eigen::Matrix<float,3,4> T;
+    Eigen::Matrix<Type,3,4> T;
     T.block<3,3>(0,0) = rot;
     T.col(3) = trans;
 
@@ -112,11 +351,23 @@ public:
       IMP_CU_THROW_EXCEPTION("cudaMemcpy returned error code", cu_err);
   }
 
-  ConstMatrix3X4(Eigen::Matrix<float,3,4> T)
+  ConstMatrix3X4(Eigen::Matrix<Type,3,4> T)
   {
     data_.reset(Memory::alloc(kSizeMatrix3x4));
     const cudaError cu_err =
         cudaMemcpy(data_.get(),T.data(),kSizeMatrix3x4*sizeof(Type)
+                   ,cudaMemcpyHostToDevice);
+
+    if (cu_err != cudaSuccess)
+      IMP_CU_THROW_EXCEPTION("cudaMemcpy returned error code", cu_err);
+  }
+
+  ConstMatrix3X4(kindr::minimal::QuatTransformationTemplate<Type> T_quat)
+  {
+    Eigen::Matrix<Type,3,4> T_eig = T_quat.getTransformationMatrix();
+    data_.reset(Memory::alloc(T_eig.data()));
+    const cudaError cu_err =
+        cudaMemcpy(data_.get(),T_eig.data(),kSizeMatrix3x4*sizeof(Type)
                    ,cudaMemcpyHostToDevice);
 
     if (cu_err != cudaSuccess)
@@ -138,20 +389,30 @@ public:
 };
 
 
-// convenience typedef
-typedef ConstMatrix3X4<float> Transformationf;
+// convenient typedefs
+typedef ConstMatrix3X4<float> Transformation;
+typedef ConstMatrix3X4<double> TransformationDouble;
+#endif
 
+//matrix vector multiplication
+//__device__ __forceinline__
+//float3 transform(const Transformation& T, const float3& v)
+//{
+//  return make_float3(
+//        T(0,0)*v.x + T(0,1)*v.y + T(0,2)*v.z + T(0,3),
+//        T(1,0)*v.x + T(1,1)*v.y + T(1,2)*v.z + T(1,3),
+//        T(2,0)*v.x + T(2,1)*v.y + T(2,2)*v.z + T(2,3)
+//        );
+//}
 
-// matrix vector multiplication
-__device__ __forceinline__
-float3 transform(const Transformationf& T, const float3& v)
-{
-  return make_float3(
-        T(0,0)*v.x + T(0,1)*v.y + T(0,2)*v.z + T(0,3),
-        T(1,0)*v.x + T(1,1)*v.y + T(1,2)*v.z + T(1,3),
-        T(2,0)*v.x + T(2,1)*v.y + T(2,2)*v.z + T(2,3)
-        );
-}
+//double3 transform(const TransformationDouble& T, const double3& v)
+//{
+//  return make_double3(
+//        T(0,0)*v.x + T(0,1)*v.y + T(0,2)*v.z + T(0,3),
+//        T(1,0)*v.x + T(1,1)*v.y + T(1,2)*v.z + T(1,3),
+//        T(2,0)*v.x + T(2,1)*v.y + T(2,2)*v.z + T(2,3)
+//        );
+//}
 
 #if 0
 
