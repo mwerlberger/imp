@@ -69,6 +69,10 @@ private:
     if(mem_type_ == MemoryType::HOST_MEMORY)
     {
       data_ = (Type*) malloc (sizeof(Type)*_rows*_cols);
+      if(data_ == NULL)
+      {
+        throw std::bad_alloc();;
+      }
       memcpy(data_,src,_rows*_cols*sizeof(Type));
       std::cout << "copy memory CPU" << std::endl;
     }
@@ -121,7 +125,7 @@ public:
   __host__ __device__ __forceinline__
   const Type& operator()(int row, int col) const
   {
-    return data_[row*cols_ + col];
+    return data_[col*rows_ + row];
   }
 
   /** Data access operator given an \a index
@@ -153,7 +157,7 @@ public:
   ~ConstMatrixStatic() { }
 
   __host__
-  ConstMatrixStatic(Eigen::Matrix<float,_rows,_cols>& input_col_major)
+  ConstMatrixStatic(Eigen::Matrix<Type,_rows,_cols,Eigen::ColMajor>& input_col_major)
   {
     for(int ii=0; ii < _rows*_cols;ii++)
     {
@@ -173,7 +177,7 @@ public:
   __host__ __device__ __forceinline__
   const Type& operator()(int row, int col) const
   {
-    return data_[row*cols_ + col];
+    return data_[col*rows_ + row];
   }
 
   /** Data access operator given an \a index
@@ -203,7 +207,7 @@ float3 transform(const ConstMatrixStatic<float,3,4>& T, const float3& v)
         );
 }
 
-__host__ __device__ __forceinline__
+__host__ __device__  __forceinline__
 float3 transform(const ConstMatrixDynamic<float,3,4>& T, const float3& v)
 {
   return make_float3(
