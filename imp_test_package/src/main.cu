@@ -28,8 +28,8 @@
 //  test = input.cast<Type>();
 //}
 
-__device__ int kKernelIterations = 100;
-int kKernelIterationsCpu = 100;
+__device__ int kKernelIterations = 1;
+int kKernelIterationsCpu = 1;
 
 float normFloat3(float3 in)
 {
@@ -112,7 +112,7 @@ int main() {
   imp::cu::TransformationMemoryHdlr mem_Hdl(eigen_transform,imp::cu::TransformationMemoryHdlr::MemoryType::DEVICE_MEMORY);
   imp::cu::TransformationDynamic dynamic_transform(mem_Hdl);
 
-  size_t kNumElements = 32*100;
+  size_t kNumElements = 32*10;
   size_t kNumKernelCalls = 1000;
   float3 data_host[kNumElements];
   float3 data_transformed_host[kNumElements];
@@ -130,7 +130,6 @@ int main() {
 
   dim3 threads(32);
   dim3 blocks((kNumElements+threads.x-1)/threads.x);
-
 
   cudaMalloc((void**)& data_dev,kNumElements*sizeof(float3));
   cudaMalloc((void**)& data_transformed_dev,kNumElements*sizeof(float3));

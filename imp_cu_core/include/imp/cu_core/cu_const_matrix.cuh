@@ -37,6 +37,14 @@ public:
     setupMemory(mat_row_major.data());
   }
 
+//  ConstMatrixMemoryHandler(Eigen::Matrix<float,_rows,_cols,Eigen::ColMajor> mat_col_major,
+//                           MemoryType mem_type_ = MemoryType::DEVICE_MEMORY)
+//    :mem_type_(mem_type_)
+//  {
+//    Eigen::Matrix<float,_rows,_cols,Eigen::RowMajor> mat_col_major.transpose();
+//    setupMemory(mat_row_major.data());
+//  }
+
   ConstMatrixMemoryHandler(kindr::minimal::QuatTransformationTemplate<Type> T_quat,
                            MemoryType mem_type_ = MemoryType::DEVICE_MEMORY)
     :mem_type_(mem_type_)
