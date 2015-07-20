@@ -62,7 +62,6 @@ public:
   }
 
   inline Type* get() const { return data_;}
-  inline size_t pitch() const { return pitch_;}
 
 private:
   void setupMemory(const Type* src)
@@ -70,7 +69,6 @@ private:
     if(mem_type_ == MemoryType::HOST_MEMORY)
     {
       data_ = (Type*) malloc (sizeof(Type)*_rows*_cols);
-      pitch_ = cols_;
       if(data_ == NULL)
       {
         throw std::bad_alloc();;
@@ -80,11 +78,10 @@ private:
     }
     else if(mem_type_ == MemoryType::DEVICE_MEMORY)
     {
-      std::uint32_t pitch_temp;
-      data_ = Memory::alignedAlloc(_cols, _rows,(std::uint32_t*) &pitch_temp);
-      pitch_ = static_cast<size_t>(pitch_temp)/sizeof(Type);
-      const cudaError cu_err = cudaMemcpy2D(data_,pitch_*sizeof(Type),src, _cols*sizeof(Type),
-                                         _cols*sizeof(Type),_rows,cudaMemcpyHostToDevice);
+      data_ = Memory::alloc(_rows*_cols);
+      const cudaError cu_err =
+          cudaMemcpy(data_,src,_rows*_cols*sizeof(Type)
+                     ,cudaMemcpyHostToDevice);
 
       if (cu_err != cudaSuccess)
         IMP_CU_THROW_EXCEPTION("cudaMemcpy returned error code", cu_err);
@@ -92,9 +89,8 @@ private:
     }
   }
 
-  size_t pitch_;
-  const size_t rows_ = _rows;
-  const size_t cols_ = _cols;
+  size_t rows_ = _rows;
+  size_t cols_ = _cols;
   MemoryType mem_type_;
   Type* data_;
 };
@@ -115,7 +111,6 @@ public:
   ConstMatrixDynamic(ConstMatrixMemoryHandler<Type,_rows,_cols>& mem_handler)
   {
     data_ = mem_handler.get();
-    pitch_ = mem_handler.pitch();
   }
 
   __host__ __device__ __forceinline__
@@ -127,19 +122,17 @@ public:
   /** Data access operator given a \a row and a \a col
    * @return unchangable value at \a (row,col)
    */
-  //  __device__ __forceinline__
-  //  const Type& ldg(int row, int col) const
-  //  {
-  //    return __ldg(&data_[col*rows_ + row]);
-  //  }
+//  __device__ __forceinline__
+//  const Type& ldg(int row, int col) const
+//  {
+//    return __ldg(&data_[col*rows_ + row]);
+//  }
 
   __device__ __forceinline__
   const Type& operator()(int row, int col) const
   {
-    return __ldg(&data_[row*pitch_ + col]);
-    //return data_[row*pitch_ + col];
     //return __ldg(&data_[row*cols_ + col]);
-    //return data_[row*cols_ + col];
+    return data_[row*cols_ + col];
   }
 
   /** Data access operator given an \a index
@@ -155,7 +148,6 @@ protected:
 protected:
   size_t rows_ = _rows;
   size_t cols_ = _cols;
-  size_t pitch_;
   Type* data_;
 };
 
