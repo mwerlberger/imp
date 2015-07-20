@@ -30,11 +30,11 @@ public:
     setupMemory(src);
   }
 
-  ConstMatrixMemoryHandler(Eigen::Matrix<Type,_rows,_cols> mat_col_major,
+  ConstMatrixMemoryHandler(Eigen::Matrix<Type,_rows,_cols,Eigen::RowMajor> mat_row_major,
                            MemoryType mem_type_ = MemoryType::DEVICE_MEMORY)
     :mem_type_(mem_type_)
   {
-    setupMemory(mat_col_major.data());
+    setupMemory(mat_row_major.data());
   }
 
   ConstMatrixMemoryHandler(kindr::minimal::QuatTransformationTemplate<Type> T_quat,
@@ -43,7 +43,7 @@ public:
   {
     if(_rows!=3||_cols!=4)
       IMP_THROW_EXCEPTION("matrix  has to be of size 3x4 to hold a transformation matrix");
-    Eigen::Matrix<Type,3,4> T_eig = T_quat.getTransformationMatrix();
+    Eigen::Matrix<Type,3,4,Eigen::RowMajor> T_eig = T_quat.getTransformationMatrix();
     setupMemory(T_eig.data());
   }
 
@@ -62,6 +62,7 @@ public:
   }
 
   inline Type* get() const { return data_;}
+  inline size_t pitch() const { return pitch_;}
 
 private:
   void setupMemory(const Type* src)
@@ -69,6 +70,7 @@ private:
     if(mem_type_ == MemoryType::HOST_MEMORY)
     {
       data_ = (Type*) malloc (sizeof(Type)*_rows*_cols);
+      pitch_ = cols_;
       if(data_ == NULL)
       {
         throw std::bad_alloc();;
@@ -78,10 +80,11 @@ private:
     }
     else if(mem_type_ == MemoryType::DEVICE_MEMORY)
     {
-      data_ = Memory::alloc(_rows*_cols);
-      const cudaError cu_err =
-          cudaMemcpy(data_,src,_rows*_cols*sizeof(Type)
-                     ,cudaMemcpyHostToDevice);
+      std::uint32_t pitch_temp;
+      data_ = Memory::alignedAlloc(_cols, _rows,(std::uint32_t*) &pitch_temp);
+      pitch_ = static_cast<size_t>(pitch_temp)/sizeof(Type);
+      const cudaError cu_err = cudaMemcpy2D(data_,pitch_*sizeof(Type),src, _cols*sizeof(Type),
+                                         _cols*sizeof(Type),_rows,cudaMemcpyHostToDevice);
 
       if (cu_err != cudaSuccess)
         IMP_CU_THROW_EXCEPTION("cudaMemcpy returned error code", cu_err);
@@ -89,8 +92,9 @@ private:
     }
   }
 
-  size_t rows_ = _rows;
-  size_t cols_ = _cols;
+  size_t pitch_;
+  const size_t rows_ = _rows;
+  const size_t cols_ = _cols;
   MemoryType mem_type_;
   Type* data_;
 };
@@ -111,6 +115,7 @@ public:
   ConstMatrixDynamic(ConstMatrixMemoryHandler<Type,_rows,_cols>& mem_handler)
   {
     data_ = mem_handler.get();
+    pitch_ = mem_handler.pitch();
   }
 
   __host__ __device__ __forceinline__
@@ -122,10 +127,19 @@ public:
   /** Data access operator given a \a row and a \a col
    * @return unchangable value at \a (row,col)
    */
-  __host__ __device__ __forceinline__
+  //  __device__ __forceinline__
+  //  const Type& ldg(int row, int col) const
+  //  {
+  //    return __ldg(&data_[col*rows_ + row]);
+  //  }
+
+  __device__ __forceinline__
   const Type& operator()(int row, int col) const
   {
-    return data_[col*rows_ + row];
+    return __ldg(&data_[row*pitch_ + col]);
+    //return data_[row*pitch_ + col];
+    //return __ldg(&data_[row*cols_ + col]);
+    //return data_[row*cols_ + col];
   }
 
   /** Data access operator given an \a index
@@ -141,6 +155,7 @@ protected:
 protected:
   size_t rows_ = _rows;
   size_t cols_ = _cols;
+  size_t pitch_;
   Type* data_;
 };
 
@@ -157,11 +172,11 @@ public:
   ~ConstMatrixStatic() { }
 
   __host__
-  ConstMatrixStatic(Eigen::Matrix<Type,_rows,_cols,Eigen::ColMajor>& input_col_major)
+  ConstMatrixStatic(Eigen::Matrix<Type,_rows,_cols,Eigen::RowMajor>& input_row_major)
   {
     for(int ii=0; ii < _rows*_cols;ii++)
     {
-      data_[ii] = input_col_major(ii);
+      data_[ii] = input_row_major(ii);
     }
   }
 
@@ -177,7 +192,7 @@ public:
   __host__ __device__ __forceinline__
   const Type& operator()(int row, int col) const
   {
-    return data_[col*rows_ + row];
+    return data_[row*cols_ + col];
   }
 
   /** Data access operator given an \a index
@@ -207,7 +222,7 @@ float3 transform(const ConstMatrixStatic<float,3,4>& T, const float3& v)
         );
 }
 
-__host__ __device__  __forceinline__
+__device__  __forceinline__
 float3 transform(const ConstMatrixDynamic<float,3,4>& T, const float3& v)
 {
   return make_float3(
@@ -216,6 +231,16 @@ float3 transform(const ConstMatrixDynamic<float,3,4>& T, const float3& v)
         T(2,0)*v.x + T(2,1)*v.y + T(2,2)*v.z + T(2,3)
         );
 }
+
+//__device__  __forceinline__
+//float3 transformLdg(const ConstMatrixDynamic<float,3,4>& T, const float3& v)
+//{
+//  return make_float3(
+//        T.ldg(0,0)*v.x + T.ldg(0,1)*v.y + T.ldg(0,2)*v.z + T.ldg(0,3),
+//        T.ldg(1,0)*v.x + T.ldg(1,1)*v.y + T.ldg(1,2)*v.z + T.ldg(1,3),
+//        T.ldg(2,0)*v.x + T.ldg(2,1)*v.y + T.ldg(2,2)*v.z + T.ldg(2,3)
+//        );
+//}
 
 
 // convenient typedefs
