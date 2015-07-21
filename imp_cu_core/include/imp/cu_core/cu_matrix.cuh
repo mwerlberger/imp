@@ -171,6 +171,18 @@ Vec32fC3 operator*(const Matrix3f& mat, const Vec32fC3& v)
 }
 
 //------------------------------------------------------------------------------
+// transformation matrix three-vector multiplication
+__host__ __device__ __forceinline__
+float3 transform(const Matrix<float,3,4>& T, const float3& v)
+{
+  return make_float3(
+        T(0,0)*v.x + T(0,1)*v.y + T(0,2)*v.z + T(0,3),
+        T(1,0)*v.x + T(1,1)*v.y + T(1,2)*v.z + T(1,3),
+        T(2,0)*v.x + T(2,1)*v.y + T(2,2)*v.z + T(2,3)
+        );
+}
+
+//------------------------------------------------------------------------------
 template<typename T, size_t rows, size_t cols>
 __host__
 inline std::ostream& operator<<(std::ostream &os,

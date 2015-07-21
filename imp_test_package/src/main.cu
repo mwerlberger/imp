@@ -9,6 +9,7 @@
 #include <imp/core/pixel.hpp>
 #include <math.h>       /* sqrt */
 #include <ctime>
+#include <vikit/math_utils.h>
 
 #define cudaCheckError() {                                                                       \
   cudaError_t e=cudaGetLastError();                                                        \
@@ -81,6 +82,148 @@ __global__ void const_memory_kernel_multi(imp::cu::TransformationStatic trans,fl
   }
 }
 
+__host__ __device__ __forceinline__ void setGx(imp::cu::Matrix<float,3,6>& __restrict__ g_x,const float3& __restrict__ p_in_imu)
+{
+  g_x(0,0) = 1.0;
+  g_x(0,1) = 0.0;
+  g_x(0,2) = 0.0;
+  g_x(0,3) = 0.0;
+  g_x(0,4) = p_in_imu.z;
+  g_x(0,5) = -p_in_imu.y;
+  g_x(1,0) = 0.0;
+  g_x(1,1) = 1.0;
+  g_x(1,2) = 0.0;
+  g_x(1,3) = -p_in_imu.z;
+  g_x(1,4) = 0.0;
+  g_x(1,5) = p_in_imu.x;
+  g_x(2,0) = 0.0;
+  g_x(2,1) = 0.0;
+  g_x(2,2) = 1.0;
+  g_x(2,3) = p_in_imu.y;
+  g_x(2,4) = -p_in_imu.x;
+  g_x(2,5) = 0.0;
+}
+
+//Todo: This function should be a member function of the CPU camera
+__host__ __device__ __forceinline__ void setPinholeJacobian(imp::cu::Matrix<float,2,3>& __restrict__ jac_cam,
+                                                            const float3& __restrict__ p_in_cam, const float& __restrict__ focal_length)
+{
+  float ratio_p_x_z_cam = p_in_cam.x/p_in_cam.z;
+  float ratio_p_y_z_cam = p_in_cam.y/p_in_cam.z;
+  float ratio_fl_p_z_cam = focal_length/p_in_cam.z;
+
+  jac_cam(0,0) = ratio_fl_p_z_cam;
+  jac_cam(0,1) = 0.0;
+  jac_cam(0,2) = -ratio_fl_p_z_cam*ratio_p_x_z_cam;
+  jac_cam(1,0) = 0.0;
+  jac_cam(1,1) = ratio_fl_p_z_cam;
+  jac_cam(1,2) = -ratio_fl_p_z_cam*ratio_p_y_z_cam;
+}
+
+
+__global__ void kernelBaseCachesGeneric(const imp::cu::Matrix<float,3,4> T_imu_cam,const imp::cu::Matrix<float,3,3> R_imu_cam,const float focal_length,
+                                        const float3* __restrict__  p_in_cam, float* __restrict__ jac_proj_cache,int nrElements)
+{
+
+  int i = blockIdx.x*blockDim.x+threadIdx.x;
+
+  if(i < nrElements)
+  {
+    const float3 p_in_imu = transform(T_imu_cam,p_in_cam[i]);
+    imp::cu::Matrix<float,3,6> g_x;
+    setGx(g_x,p_in_imu);
+
+    imp::cu::Matrix<float,2,3> jac_cam;
+    setPinholeJacobian(jac_cam,p_in_cam[i],focal_length);
+
+    imp::cu::Matrix<float,2,6> jac_proj = ((jac_cam*R_imu_cam)*g_x);
+
+    // wite to buffer
+    int offset = 2*6*i;
+#pragma unroll
+    for(int row = 0; row < 2;++row)
+    {
+#pragma unroll
+      for(int col = 0; col < 6; ++col)
+      {
+        jac_proj_cache[offset + col] = -1.0*jac_proj(row,col); // times (-1) because of our definition of the photometric error
+      }
+      offset +=6;
+    }
+  }
+}
+
+
+__global__ void kernelBaseCachesPinhole(const imp::cu::Matrix<float,3,4> T_imu_cam, const imp::cu::Matrix<float,3,3> R_cam_imu, const float focal_length,
+                                        const float3* __restrict__  p_in_cam, float* __restrict__ jac_proj_cache, int nrElements)
+{
+  int i = blockIdx.x*blockDim.x+threadIdx.x;
+  if(i < nrElements)
+  {
+    float3 p_in_imu = transform(T_imu_cam,p_in_cam[i]);
+    float ratio_p_x_z_cam = p_in_cam[i].x/p_in_cam[i].z;
+    float ratio_p_y_z_cam = p_in_cam[i].y/p_in_cam[i].z;
+    float ratio_fl_p_z_cam = (-1.0)*focal_length/p_in_cam[i].z; // times (-1) because of our definition of the photometric error
+
+    float r00 = ratio_fl_p_z_cam*(R_cam_imu(0,0) - R_cam_imu(2,0)*ratio_p_x_z_cam);
+    float r01 = ratio_fl_p_z_cam*(R_cam_imu(0,1) - R_cam_imu(2,1)*ratio_p_x_z_cam);
+    float r02 = ratio_fl_p_z_cam*(R_cam_imu(0,2) - R_cam_imu(2,2)*ratio_p_x_z_cam);
+    float r10 = ratio_fl_p_z_cam*(R_cam_imu(1,0) - R_cam_imu(2,0)*ratio_p_y_z_cam);
+    float r11 = ratio_fl_p_z_cam*(R_cam_imu(1,1) - R_cam_imu(2,1)*ratio_p_y_z_cam);
+    float r12 = ratio_fl_p_z_cam*(R_cam_imu(1,2) - R_cam_imu(2,2)*ratio_p_y_z_cam);
+
+    int offset = 2*6*i;
+    jac_proj_cache[offset] = r00;
+    jac_proj_cache[offset + 1] = r01;
+    jac_proj_cache[offset + 2] = r02;
+    jac_proj_cache[offset + 3] = -p_in_imu.z*r01 + p_in_imu.y*r02;
+    jac_proj_cache[offset + 4] = p_in_imu.z*r00 - p_in_imu.x*r02;
+    jac_proj_cache[offset + 5] = -p_in_imu.y*r00 + p_in_imu.x*r01;
+    jac_proj_cache[offset + 6] = r10;
+    jac_proj_cache[offset + 7] = r11;
+    jac_proj_cache[offset + 8] = r12;
+    jac_proj_cache[offset + 9] = -p_in_imu.z*r11 + p_in_imu.y*r12;
+    jac_proj_cache[offset + 10] = p_in_imu.z*r10 - p_in_imu.x*r12;
+    jac_proj_cache[offset + 11] = -p_in_imu.y*r10 + p_in_imu.x*r11;
+  }
+}
+
+void cpuBaseCachesPinhole(const imp::cu::Matrix<float,3,4> T_imu_cam, const imp::cu::Matrix<float,3,3> R_cam_imu, const float focal_length,
+                          const float3* __restrict__  p_in_cam, float* __restrict__ jac_proj_cache, int nrElements)
+{
+  for(int i=0;i<nrElements;++i)
+  {
+    float3 p_in_imu = transform(T_imu_cam,p_in_cam[i]);
+    float ratio_p_x_z_cam = p_in_cam[i].x/p_in_cam[i].z;
+    float ratio_p_y_z_cam = p_in_cam[i].y/p_in_cam[i].z;
+    float ratio_fl_p_z_cam = (-1.0)*focal_length/p_in_cam[i].z; // times (-1) because of our definition of the photometric error
+
+    float r00 = ratio_fl_p_z_cam*(R_cam_imu(0,0) - R_cam_imu(2,0)*ratio_p_x_z_cam);
+    float r01 = ratio_fl_p_z_cam*(R_cam_imu(0,1) - R_cam_imu(2,1)*ratio_p_x_z_cam);
+    float r02 = ratio_fl_p_z_cam*(R_cam_imu(0,2) - R_cam_imu(2,2)*ratio_p_x_z_cam);
+    float r10 = ratio_fl_p_z_cam*(R_cam_imu(1,0) - R_cam_imu(2,0)*ratio_p_y_z_cam);
+    float r11 = ratio_fl_p_z_cam*(R_cam_imu(1,1) - R_cam_imu(2,1)*ratio_p_y_z_cam);
+    float r12 = ratio_fl_p_z_cam*(R_cam_imu(1,2) - R_cam_imu(2,2)*ratio_p_y_z_cam);
+
+    int offset = 2*6*i;
+    jac_proj_cache[offset] = r00;
+    jac_proj_cache[offset + 1] = r01;
+    jac_proj_cache[offset + 2] = r02;
+    jac_proj_cache[offset + 3] = -p_in_imu.z*r01 + p_in_imu.y*r02;
+    jac_proj_cache[offset + 4] = p_in_imu.z*r00 - p_in_imu.x*r02;
+    jac_proj_cache[offset + 5] = -p_in_imu.y*r00 + p_in_imu.x*r01;
+    jac_proj_cache[offset + 6] = r10;
+    jac_proj_cache[offset + 7] = r11;
+    jac_proj_cache[offset + 8] = r12;
+    jac_proj_cache[offset + 9] = -p_in_imu.z*r11 + p_in_imu.y*r12;
+    jac_proj_cache[offset + 10] = p_in_imu.z*r10 - p_in_imu.x*r12;
+    jac_proj_cache[offset + 11] = -p_in_imu.y*r10 + p_in_imu.x*r11;
+  }
+}
+
+
+
+
 //to compare
 void host_transform_multi(imp::cu::TransformationStatic trans,float3* in,float3* out, int nrElements){
   for(int i = 0; i < nrElements;i++)
@@ -92,8 +235,240 @@ void host_transform_multi(imp::cu::TransformationStatic trans,float3* in,float3*
   }
 }
 
+// -------------------- test splitting---------------------------------------------------------------
+void experiment3()
+{
+  size_t numFeatures = 20;
+  //size_t nrKernelCalls = 1000;
+  imp::cu::Matrix<float,3,4> T_imu_cam;
+  T_imu_cam(0,0) = 1.0;
+  T_imu_cam(1,0) = 0.0;
+  T_imu_cam(2,0) = 0.0;
+  T_imu_cam(0,1) = 0.0;
+  T_imu_cam(1,1) = 1.0;
+  T_imu_cam(2,1) = 0.0;
+  T_imu_cam(0,2) = 0.0;
+  T_imu_cam(1,2) = 0.0;
+  T_imu_cam(2,2) = 1.0;
+  T_imu_cam(0,3) = 1.0;
+  T_imu_cam(1,3) = 2.0;
+  T_imu_cam(2,3) = 3.0;
 
-int main() {
+  imp::cu::Matrix<float,3,3> R_cam_imu;
+  R_cam_imu(0,0) = 1.0;
+  R_cam_imu(1,0) = 0.0;
+  R_cam_imu(2,0) = 0.0;
+  R_cam_imu(0,1) = 0.0;
+  R_cam_imu(1,1) = 1.0;
+  R_cam_imu(2,1) = 0.0;
+  R_cam_imu(0,2) = 0.0;
+  R_cam_imu(1,2) = 0.0;
+  R_cam_imu(2,2) = 1.0;
+
+  float focal_length = 125.0;
+  float3 p_in_cam_host[numFeatures];
+  for(size_t ii=0;ii<numFeatures;ii++)
+  {
+    p_in_cam_host[ii] = make_float3(ii%2,ii%3,ii%4+1);
+    //std::cout << p_in_cam_host[ii].x << " " << p_in_cam_host[ii].y << " " << p_in_cam_host[ii].z << std::endl;
+  }
+
+  float3* p_in_cam_dev;
+  float* jacobian_dev_pinhole;
+  float* jacobian_dev_generic;
+  float jacobian_host_pinhole[12*numFeatures];
+  float jacobian_host_generic[12*numFeatures];
+
+  cudaMalloc((void**)& p_in_cam_dev,numFeatures*sizeof(float3));
+  cudaMalloc((void**)& jacobian_dev_pinhole,numFeatures*12*sizeof(float));
+  cudaMalloc((void**)& jacobian_dev_generic,numFeatures*12*sizeof(float));
+  cudaMemcpy(p_in_cam_dev,p_in_cam_host,numFeatures*sizeof(float3),cudaMemcpyHostToDevice);
+
+
+  // split processing into 2 kernel calls
+  size_t nr_first_half = numFeatures/2 - 6;
+  size_t nr_second_half = numFeatures/2 + 6;
+  dim3 threads_jacobian(32);
+  dim3 blocks_jacobian((numFeatures+threads_jacobian.x-1)/threads_jacobian.x);
+  dim3 blocks_jacobian_first((nr_first_half+threads_jacobian.x-1)/threads_jacobian.x);
+  dim3 blocks_jacobian_second((nr_second_half+threads_jacobian.x-1)/threads_jacobian.x);
+
+  kernelBaseCachesPinhole<<<blocks_jacobian_first,threads_jacobian>>>(T_imu_cam,R_cam_imu,focal_length,
+                                                                p_in_cam_dev,jacobian_dev_pinhole,nr_first_half);
+  cudaDeviceSynchronize();
+  // second half
+  kernelBaseCachesPinhole<<<blocks_jacobian_second,threads_jacobian>>>(T_imu_cam,R_cam_imu,focal_length,
+                                                                &p_in_cam_dev[nr_first_half],&jacobian_dev_pinhole[12*nr_first_half],nr_second_half);
+  cudaDeviceSynchronize();
+
+
+  kernelBaseCachesGeneric<<<blocks_jacobian,threads_jacobian>>>(T_imu_cam,R_cam_imu,focal_length,
+                                                                p_in_cam_dev,jacobian_dev_generic,numFeatures);
+  cudaDeviceSynchronize();
+
+
+  //retrieve result
+  cudaMemcpy(jacobian_host_pinhole,jacobian_dev_pinhole,numFeatures*12*sizeof(float),cudaMemcpyDeviceToHost);
+  cudaMemcpy(jacobian_host_generic,jacobian_dev_generic,numFeatures*12*sizeof(float),cudaMemcpyDeviceToHost);
+
+  //Verify results
+  bool result_jacobian_ok = true;
+  for(size_t ii=0; ii < 12*numFeatures;++ii)
+  {
+    //std::cout << jacobian_host_generic[ii] << "    " << jacobian_host_pinhole[ii] <<std::endl;
+    if((jacobian_host_generic[ii]-jacobian_host_pinhole[ii]) > 0.0001||isnan(jacobian_host_generic[ii]-jacobian_host_pinhole[ii]))
+    {
+      std::cout << ii/12 << std::endl;
+      result_jacobian_ok = false;
+    }
+  }
+
+  std::cout << std::endl;
+  std::cout << "--------Result Experiment 3-----------" << std::endl;
+
+  if(!result_jacobian_ok)
+    std::cout << "Error:  " << __FUNCTION__ << std::endl;
+  else
+    std::cout << "Success: " << __FUNCTION__ << std::endl;
+
+  std::cout<< std::endl;
+  std::cout<< std::endl;
+
+  cudaFree(p_in_cam_dev);
+  cudaFree(jacobian_dev_pinhole);
+  cudaFree(jacobian_dev_generic);
+  cudaCheckError();
+}
+
+// -------------------- test base cache---------------------------------------------------------------
+void experiment1()
+{
+
+  size_t numFeatures = 480*640/1000;
+  size_t nrKernelCalls = 1000;
+  imp::cu::Matrix<float,3,4> T_imu_cam;
+  T_imu_cam(0,0) = 1.0;
+  T_imu_cam(1,0) = 0.0;
+  T_imu_cam(2,0) = 0.0;
+  T_imu_cam(0,1) = 0.0;
+  T_imu_cam(1,1) = 1.0;
+  T_imu_cam(2,1) = 0.0;
+  T_imu_cam(0,2) = 0.0;
+  T_imu_cam(1,2) = 0.0;
+  T_imu_cam(2,2) = 1.0;
+  T_imu_cam(0,3) = 1.0;
+  T_imu_cam(1,3) = 2.0;
+  T_imu_cam(2,3) = 3.0;
+
+  imp::cu::Matrix<float,3,3> R_cam_imu;
+  R_cam_imu(0,0) = 1.0;
+  R_cam_imu(1,0) = 0.0;
+  R_cam_imu(2,0) = 0.0;
+  R_cam_imu(0,1) = 0.0;
+  R_cam_imu(1,1) = 1.0;
+  R_cam_imu(2,1) = 0.0;
+  R_cam_imu(0,2) = 0.0;
+  R_cam_imu(1,2) = 0.0;
+  R_cam_imu(2,2) = 1.0;
+
+  float focal_length = 125.0;
+  float3 p_in_cam_host[numFeatures];
+  for(size_t ii=0;ii<numFeatures;ii++)
+  {
+    p_in_cam_host[ii] = make_float3(ii%2,ii%3,ii%4+1);
+    //std::cout << p_in_cam_host[ii].x << " " << p_in_cam_host[ii].y << " " << p_in_cam_host[ii].z << std::endl;
+  }
+
+  float3* p_in_cam_dev;
+  float* jacobian_dev_pinhole;
+  float* jacobian_dev_generic;
+  float jacobian_host_pinhole[12*numFeatures];
+  float jacobian_host_generic[12*numFeatures];
+  float jacobian_host_cpu[12*numFeatures];
+
+  cudaMalloc((void**)& p_in_cam_dev,numFeatures*sizeof(float3));
+  cudaMalloc((void**)& jacobian_dev_pinhole,numFeatures*12*sizeof(float));
+  cudaMalloc((void**)& jacobian_dev_generic,numFeatures*12*sizeof(float));
+  cudaMemcpy(p_in_cam_dev,p_in_cam_host,numFeatures*sizeof(float3),cudaMemcpyHostToDevice);
+
+  dim3 threads_jacobian(32);
+  dim3 blocks_jacobian((numFeatures+threads_jacobian.x-1)/threads_jacobian.x);
+
+  // not evaluated kernel to initialize cuda
+  kernelBaseCachesPinhole<<<blocks_jacobian,threads_jacobian>>>(T_imu_cam,R_cam_imu,focal_length,
+                                                                p_in_cam_dev,jacobian_dev_pinhole,numFeatures);
+  cudaDeviceSynchronize();
+
+  std::clock_t c_start_pinhole = std::clock();
+  for(size_t tt = 0; tt < nrKernelCalls;tt++)
+  {
+    kernelBaseCachesPinhole<<<blocks_jacobian,threads_jacobian>>>(T_imu_cam,R_cam_imu,focal_length,
+                                                                  p_in_cam_dev,jacobian_dev_pinhole,numFeatures);
+    cudaDeviceSynchronize();
+  }
+  std::clock_t c_end_pinhole = std::clock();
+  double time_pinhole = CLOCK_TO_MS(c_start_pinhole,c_end_pinhole);
+
+  std::clock_t c_start_generic = std::clock();
+  for(size_t tt = 0; tt < nrKernelCalls;tt++)
+  {
+    kernelBaseCachesGeneric<<<blocks_jacobian,threads_jacobian>>>(T_imu_cam,R_cam_imu,focal_length,
+                                                                  p_in_cam_dev,jacobian_dev_generic,numFeatures);
+    cudaDeviceSynchronize();
+  }
+  std::clock_t c_end_generic = std::clock();
+  double time_generic = CLOCK_TO_MS(c_start_generic,c_end_generic);
+
+  std::clock_t c_start_cpu = std::clock();
+  for(size_t tt = 0; tt < nrKernelCalls;tt++)
+  {
+    cpuBaseCachesPinhole(T_imu_cam,R_cam_imu,focal_length,p_in_cam_host,jacobian_host_cpu,numFeatures);
+  }
+  std::clock_t c_end_cpu = std::clock();
+  double time_cpu = CLOCK_TO_MS(c_start_cpu,c_end_cpu);
+
+
+
+  //retrieve result
+  cudaMemcpy(jacobian_host_pinhole,jacobian_dev_pinhole,numFeatures*12*sizeof(float),cudaMemcpyDeviceToHost);
+  cudaMemcpy(jacobian_host_generic,jacobian_dev_generic,numFeatures*12*sizeof(float),cudaMemcpyDeviceToHost);
+
+  //Verify results
+  bool result_jacobian_ok = true;
+  for(size_t ii=0; ii < 12*numFeatures;++ii)
+  {
+    //std::cout << jacobian_host_generic[ii] << "    " << jacobian_host_pinhole[ii] <<std::endl;
+    if((jacobian_host_generic[ii]-jacobian_host_pinhole[ii]) > 0.0001||isnan(jacobian_host_generic[ii]-jacobian_host_pinhole[ii]))
+    {
+      result_jacobian_ok = false;
+    }
+  }
+
+  std::cout << std::endl;
+  std::cout << "--------Result Experiment 1-----------" << std::endl;
+  std::cout << "Nr Features = " << numFeatures << std::endl;
+  std::cout << "Time Pinhole " << time_pinhole << std::endl;
+  std::cout << "Time Generic " << time_generic << std::endl;
+  std::cout << "Time CPU " << time_cpu << std::endl;
+
+  if(!result_jacobian_ok)
+    std::cout << "Error:  " << __FUNCTION__ << std::endl;
+  else
+    std::cout << "Success: " << __FUNCTION__ << std::endl;
+
+  std::cout<< std::endl;
+  std::cout<< std::endl;
+
+  cudaFree(p_in_cam_dev);
+  cudaFree(jacobian_dev_pinhole);
+  cudaFree(jacobian_dev_generic);
+  cudaCheckError();
+}
+
+
+// --------------------test const matrix---------------------------------------------------------------
+void experiment2()
+{
   Eigen::Matrix<float,3,4,Eigen::RowMajor> eigen_transform;
   eigen_transform(0,0) = 1.0;
   eigen_transform(1,0) = 0.0;
@@ -112,7 +487,7 @@ int main() {
   imp::cu::TransformationMemoryHdlr mem_Hdl(eigen_transform,imp::cu::TransformationMemoryHdlr::MemoryType::DEVICE_MEMORY);
   imp::cu::TransformationDynamic dynamic_transform(mem_Hdl);
 
-  size_t kNumElements = 32*10;
+  size_t kNumElements = 32*100;
   size_t kNumKernelCalls = 1000;
   float3 data_host[kNumElements];
   float3 data_transformed_host[kNumElements];
@@ -128,21 +503,32 @@ int main() {
   float3* data_dev;
   float3* data_transformed_dev;
 
-  dim3 threads(32);
-  dim3 blocks((kNumElements+threads.x-1)/threads.x);
-
   cudaMalloc((void**)& data_dev,kNumElements*sizeof(float3));
   cudaMalloc((void**)& data_transformed_dev,kNumElements*sizeof(float3));
   cudaMemcpy(data_dev,data_host,kNumElements*sizeof(float3),cudaMemcpyHostToDevice);
 
+  dim3 threads_transform(32);
+  dim3 blocks_transform((kNumElements+threads_transform.x-1)/threads_transform.x);
+
+
   //first kernel execution initialize gpu
-  global_memory_kernel_multi<<<blocks,threads>>>(dynamic_transform,data_dev,data_transformed_dev,kNumElements);
+  global_memory_kernel_multi<<<blocks_transform,threads_transform>>>(dynamic_transform,data_dev,data_transformed_dev,kNumElements);
+
+  //test global memory
+  std::clock_t c_start_gpu_global = std::clock();
+  for(size_t ii=0;ii<kNumKernelCalls;ii++)
+  {
+    global_memory_kernel_multi<<<blocks_transform,threads_transform>>>(dynamic_transform,data_dev,data_transformed_dev,kNumElements);
+    cudaDeviceSynchronize();
+  }
+  std::clock_t c_end_gpu_global = std::clock();
+  double time_global = CLOCK_TO_MS(c_start_gpu_global,c_end_gpu_global);
 
   //test static memory
   std::clock_t c_start_gpu_const = std::clock();
   for(size_t ii=0;ii<kNumKernelCalls;ii++)
   {
-    const_memory_kernel_multi<<<blocks,threads>>>(static_transform,data_dev,data_transformed_dev,kNumElements);
+    const_memory_kernel_multi<<<blocks_transform,threads_transform>>>(static_transform,data_dev,data_transformed_dev,kNumElements);
     cudaDeviceSynchronize();
   }
   std::clock_t c_end_gpu_const = std::clock();
@@ -157,20 +543,6 @@ int main() {
   std::clock_t c_end_cpu = std::clock();
   double time_cpu = CLOCK_TO_MS(c_start_cpu,c_end_cpu);
 
-  //test global memory
-  std::clock_t c_start_gpu_global = std::clock();
-  for(size_t ii=0;ii<kNumKernelCalls;ii++)
-  {
-    global_memory_kernel_multi<<<blocks,threads>>>(dynamic_transform,data_dev,data_transformed_dev,kNumElements);
-    cudaDeviceSynchronize();
-  }
-  std::clock_t c_end_gpu_global = std::clock();
-  double time_global = CLOCK_TO_MS(c_start_gpu_global,c_end_gpu_global);
-
-
-  std::cout << "Global   Const   CPU" << std::endl;
-  std::cout << std::fixed << std::setprecision(3) << time_global << "   "<< time_const << "   " << time_cpu << std::endl;
-
   //compare results
   cudaMemcpy(data_transformed_by_device_host,data_transformed_dev,kNumElements*sizeof(float3),cudaMemcpyDeviceToHost);
 
@@ -183,14 +555,38 @@ int main() {
     //std::cout << data_transformed_by_device_host[ii].x << " " << data_transformed_by_device_host[ii].y << " " << data_transformed_by_device_host[ii].z << std::endl;
   }
 
+  std::cout << std::endl;
+  std::cout << "--------Result Experiment 2-----------" << std::endl;
+
+  std::cout << "Global   Const   CPU" << std::endl;
+  std::cout << std::fixed << std::setprecision(3) << time_global << "   "<< time_const << "   " << time_cpu << std::endl;
+
   if(result_ok)
     std::cout << "test passed" << std::endl;
   else
     std::cout << "error" << std::endl;
 
+  std::cout << std::endl;
+  std::cout << std::endl;
+
   cudaFree(data_dev);
   cudaFree(data_transformed_dev);
   cudaCheckError();
+}
+
+
+int main() {
+
+  experiment1();
+  experiment2();
+  experiment3();
+  //------- - -  -  -test skew
+  Eigen::Vector3d vec_test;
+  vec_test(0) = 1; vec_test(1)= 2; vec_test(2) = 3;
+  Eigen::Matrix3d skewMatrix = -vk::skew(vec_test);
+  std::cout << skewMatrix << std::endl;
+
+
   return 0;
 }
 
