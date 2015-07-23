@@ -639,10 +639,10 @@ void testBlockOperations()
 
 
 int main() {
-  experiment1();
-  //experiment2();
+  //experiment1();
+  experiment2();
   //experiment3();
-  testBlockOperations();
+  //testBlockOperations();
   return 0;
 }
 
