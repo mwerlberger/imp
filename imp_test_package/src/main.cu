@@ -343,8 +343,15 @@ void experiment3()
 // -------------------- test base cache---------------------------------------------------------------
 void experiment1()
 {
+  //size_t numFeatures = 480*640/300;
+  // Output in release build:
+  //Nr Features = 1024
+  //Time Pinhole 12.882
+  //Time Generic 15.656
+  //Time CPU 12.382
+  //Success: experiment1
 
-  size_t numFeatures = 480*640/1000;
+  size_t numFeatures = 480*640/300;
   size_t nrKernelCalls = 1000;
   imp::cu::Matrix<float,3,4> T_imu_cam;
   T_imu_cam(0,0) = 1.0;
@@ -574,19 +581,68 @@ void experiment2()
   cudaCheckError();
 }
 
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+void testBlockOperations()
+{
+  imp::cu::Matrix<float,3,4> mat34;
+  mat34(0,0) = 1.0;
+  mat34(1,0) = 2.0;
+  mat34(2,0) = 3.0;
+  mat34(0,1) = 4.0;
+  mat34(1,1) = 5.0;
+  mat34(2,1) = 6.0;
+  mat34(0,2) = 7.0;
+  mat34(1,2) = 8.0;
+  mat34(2,2) = 9.0;
+  mat34(0,3) = 10.0;
+  mat34(1,3) = 11.0;
+  mat34(2,3) = 12.0;
+
+  //  template<size_t block_rows,size_t block_cols>
+  //  __host__ __device__ __forceinline__
+  //  Matrix<Type,block_rows,block_cols> blockLoop(size_t top_left_row, size_t top_left_col)
+  //  {
+  //    Matrix<Type,block_rows,block_cols> out;
+  //    for(size_t rr = 0; rr < block_rows; ++rr)
+  //    {
+  //      for(size_t cc = 0; cc < block_cols; ++cc)
+  //      {
+  //        out(rr,cc) = (*this)(rr+top_left_row,cc+top_left_col);
+  //      }
+  //    }
+  //    return out;
+  //  }
+  imp::cu::Matrix<float,3,4> mat33;
+  std::clock_t c_start_block= std::clock();
+
+  for(int ii=0; ii< 10000; ++ii)
+  {
+    mat33 = mat34.block<3,4>(0,0);
+  }
+
+  std::clock_t c_end_block = std::clock();
+  double time_block = CLOCK_TO_MS(c_start_block,c_end_block);
+  std::clock_t c_start_block_memcpy= std::clock();
+  for(int ii=0; ii< 10000; ++ii)
+  {
+    mat33 = mat34.block<3,4>(0,0);
+  }
+  std::clock_t c_end_block_memcpy = std::clock();
+  double time_block_memcpy = CLOCK_TO_MS(c_start_block_memcpy,c_end_block_memcpy);
+  std::cout << "Time block " << time_block << std::endl;
+  std::cout << "Time block memcpy " << time_block_memcpy << std::endl;
+  std::cout << mat34 << std::endl;
+  std::cout << mat33 << std::endl;
+}
+#pragma GCC pop_options
+
 
 int main() {
-
   experiment1();
-  experiment2();
-  experiment3();
-  //------- - -  -  -test skew
-  Eigen::Vector3d vec_test;
-  vec_test(0) = 1; vec_test(1)= 2; vec_test(2) = 3;
-  Eigen::Matrix3d skewMatrix = -vk::skew(vec_test);
-  std::cout << skewMatrix << std::endl;
-
-
+  //experiment2();
+  //experiment3();
+  testBlockOperations();
   return 0;
 }
 

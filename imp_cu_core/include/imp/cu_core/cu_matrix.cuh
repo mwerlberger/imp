@@ -4,6 +4,7 @@
 #include <ostream>
 #include <cuda_runtime.h>
 #include <imp/core/pixel.hpp>
+#include <Eigen/Dense>
 
 namespace imp{
 namespace cu{
@@ -21,23 +22,29 @@ public:
   __host__ __device__
   ~Matrix() = default;
 
-//  // copy and asignment operator
-//  __host__ __device__
-//  Matrix(const Matrix& other)
-//    : f_(other.f())
-//    , c_(other.c())
-//  {
-//  }
-//  __host__ __device__
-//  Matrix& operator=(const Matrix& other)
-//  {
-//    if  (this != &other)
-//    {
-//      f_ = other.f();
-//      c_ = other.c();
-//    }
-//    return *this;
-//  }
+  __host__
+  Matrix(Eigen::Matrix<Type,_rows,_cols,Eigen::RowMajor> from)
+  {
+    memcpy(data_,from.data(),_rows*_cols*sizeof(Type));
+  }
+
+  //  // copy and asignment operator
+  //  __host__ __device__
+  //  Matrix(const Matrix& other)
+  //    : f_(other.f())
+  //    , c_(other.c())
+  //  {
+  //  }
+  //  __host__ __device__
+  //  Matrix& operator=(const Matrix& other)
+  //  {
+  //    if  (this != &other)
+  //    {
+  //      f_ = other.f();
+  //      c_ = other.c();
+  //    }
+  //    return *this;
+  //  }
 
 
   __host__ __device__ __forceinline__
@@ -80,6 +87,19 @@ public:
   Type & operator[](int ind)
   {
     return data_[ind];
+  }
+
+  template<size_t block_rows,size_t block_cols>
+  __host__ __device__ __forceinline__
+  Matrix<Type,block_rows,block_cols> block(size_t top_left_row, size_t top_left_col)
+  {
+    Matrix<Type,block_rows,block_cols> out;
+    size_t data_offset = top_left_row*cols_ + top_left_col;
+    for(size_t rr = 0; rr < block_rows; ++rr)
+    {
+      memcpy(&out[rr*block_cols],&data_[data_offset+rr*cols_],block_cols*sizeof(Type));
+    }
+    return out;
   }
 
 #if 0
