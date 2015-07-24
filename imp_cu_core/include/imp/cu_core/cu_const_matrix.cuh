@@ -186,6 +186,8 @@ public:
   __host__ __device__ __forceinline__
   size_t cols() const { return cols_; }
 
+  size_t area() const { return rows_*cols_;}
+
   /** Data access operator given a \a row and a \a col
    * @return unchangable value at \a (row,col)
    */

@@ -6,10 +6,16 @@
 #include <cuda_runtime.h>
 #include <imp/cu_core/cu_const_matrix.cuh>
 #include <imp/cu_core/cu_matrix.cuh>
+#include <imp/cu_core/cu_image_gpu.cuh>
 #include <imp/core/pixel.hpp>
 #include <math.h>       /* sqrt */
 #include <ctime>
 #include <vikit/math_utils.h>
+
+#include <imp/cu_core/cu_texture.cuh>
+#include <imp/cu_core/cu_texture2d.cuh>
+#include <imp/bridge/opencv/image_cv.hpp>
+#include <imp/bridge/opencv/cu_cv_bridge.hpp>
 
 #define cudaCheckError() {                                                                       \
   cudaError_t e=cudaGetLastError();                                                        \
@@ -186,6 +192,71 @@ __global__ void kernelBaseCachesPinhole(const imp::cu::Matrix<float,3,4> T_imu_c
     jac_proj_cache[offset + 10] = p_in_imu.z*r10 - p_in_imu.x*r12;
     jac_proj_cache[offset + 11] = -p_in_imu.y*r10 + p_in_imu.x*r11;
   }
+}
+
+__global__ void k_jacobianAndRefPatches(imp::cu::Texture2D ref_tex, const float2* __restrict__  uv,const float* __restrict__ jac_proj_cache,
+                                        int patch_size, int level,int nrFeatures,
+                                        float* __restrict__ jacobian_cache,float* __restrict__ ref_patch_cache)
+{
+  const int i = blockIdx.x*blockDim.x+threadIdx.x;
+
+  if(i < nrFeatures)
+  {
+    const float upper_left_coord_x = uv[i].x - (patch_size - 1)/2.0f;
+    const float upper_left_coord_y = uv[i].y - (patch_size - 1)/2.0f;
+    size_t ref_patch_index_offset = patch_size*patch_size*i;
+    size_t jacobian_index_offset = patch_size*patch_size*8*i;
+    size_t jac_proj_cache_index_offset = 12*i;
+    int pixel_counter = 0;
+
+#pragma unroll 4
+    for(int rr = 0; rr < patch_size; ++rr)
+    {
+#pragma unroll 4
+      for(int cc = 0; cc < patch_size; ++cc)
+      {
+        float centerTexel;
+        imp::cu::tex2DFetch(centerTexel, ref_tex,upper_left_coord_x + cc, upper_left_coord_y + rr);
+        ref_patch_cache[ref_patch_index_offset] = centerTexel;
+        float dx_left,dx_right,dy_up,dy_down;
+        imp::cu::tex2DFetch(dx_left, ref_tex,upper_left_coord_x + cc - 1, upper_left_coord_y + rr);
+        imp::cu::tex2DFetch(dx_right, ref_tex,upper_left_coord_x + cc + 1, upper_left_coord_y + rr);
+        imp::cu::tex2DFetch(dy_up, ref_tex,upper_left_coord_x + cc, upper_left_coord_y + rr - 1);
+        imp::cu::tex2DFetch(dy_down, ref_tex,upper_left_coord_x + cc, upper_left_coord_y + rr + 1);
+        const float dx = 0.5f*(dx_right - dx_left);
+        const float dy = 0.5f*(dy_down - dy_up);
+
+
+#pragma unroll
+        for(int ii = 0; ii < 6; ++ii)
+        {
+          jacobian_cache[jacobian_index_offset + ii] = dx*(jac_proj_cache[jac_proj_cache_index_offset + ii]) + dy*(jac_proj_cache[jac_proj_cache_index_offset + 6 + ii]);
+        }
+        jacobian_cache[jacobian_index_offset + 6] = -centerTexel;
+        jacobian_cache[jacobian_index_offset + 7] = -1;
+        jacobian_index_offset += 8;
+        ++ref_patch_index_offset;
+      }
+    }
+  }
+}
+
+void jacobianExperiment()
+{
+  // generate test data
+  cv::Mat testImage = cv::imread("/home/michael/LennaGray.png", CV_LOAD_IMAGE_GRAYSCALE);
+  imp::cu::ImageGpu8uC1::Ptr refImage = std::make_shared<imp::cu::ImageGpu8uC1>(imp::ImageCv8uC1(testImage));
+  //imp::cu::ImageGpu8uC1 refImage2(imp::ImageCv8uC1(testImage));
+  //std::shared_ptr<imp::cu::Texture2D> ref_tex  = std::dynamic_pointer_cast<imp::cu::ImageGpu8uC1>(refImage)
+  //    ->genTexture(false,cudaFilterModeLinear,cudaAddressModeWrap,cudaReadModeNormalizedFloat);
+
+  cv::namedWindow("Lenna");
+  imp::cu::cvBridgeShow<imp::Pixel8uC1,imp::PixelType::i8uC1>("Lenna",*refImage.get());
+  //imp::cu::cvBridgeShow<imp::Pixel8uC1,imp::PixelType::i8uC1>("Lenna",refImage2);
+
+  //imp::cu::cvBridgeShow("Lenna",refImage);
+  //cv::imshow("Lenna",testImage);
+  cv::waitKey(0);
 }
 
 void cpuBaseCachesPinhole(const imp::cu::Matrix<float,3,4> T_imu_cam, const imp::cu::Matrix<float,3,3> R_cam_imu, const float focal_length,
@@ -639,8 +710,9 @@ void testBlockOperations()
 
 
 int main() {
+  jacobianExperiment();
   //experiment1();
-  experiment2();
+  //experiment2();
   //experiment3();
   //testBlockOperations();
   return 0;
