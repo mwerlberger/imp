@@ -241,8 +241,34 @@ __global__ void k_jacobianAndRefPatches(imp::cu::Texture2D ref_tex, const float2
   }
 }
 
+__global__ void k_test_texture(imp::cu::Texture2D ref_tex, float * output, int rows, int cols)
+{
+  const int i = blockIdx.x*blockDim.x+threadIdx.x;
+
+  if(i==0)
+  {
+    int pixel = 0;
+    for(int row = 0; row < rows; ++row)
+    {
+      for(int col = 0; col < cols; ++col)
+      {
+        imp::cu::tex2DFetch(output[pixel], ref_tex,col, row);
+        ++pixel;
+      }
+    }
+  }
+}
+
 void jacobianExperiment()
 {
+  cv::Mat test(8,8,CV_32FC1);
+
+  test.at<float>(0,0) = 1.0;
+  test.at<float>(1,0) = 2.0;
+  test.at<float>(0,1) = 3.0;
+
+  std::cout << test << std::endl;
+
   // generate test data
   cv::Mat testImage = cv::imread("/home/michael/LennaGray.png", CV_LOAD_IMAGE_GRAYSCALE);
   imp::cu::ImageGpu8uC1::Ptr refImage = std::make_shared<imp::cu::ImageGpu8uC1>(imp::ImageCv8uC1(testImage));
@@ -254,8 +280,188 @@ void jacobianExperiment()
   imp::cu::cvBridgeShow<imp::Pixel8uC1,imp::PixelType::i8uC1>("Lenna",*refImage.get());
   //imp::cu::cvBridgeShow<imp::Pixel8uC1,imp::PixelType::i8uC1>("Lenna",refImage2);
 
+  std::shared_ptr<imp::cu::Texture2D> ref_tex  = refImage->genTexture(false,cudaFilterModeLinear,cudaAddressModeWrap,cudaReadModeNormalizedFloat);
+  cv::waitKey(0);
+
+  int rows = 1000;
+  int cols = 1000;
+  int area = rows*cols;
+  float picture[rows*cols];
+  float* device_ptr;
+
+  cudaMalloc((void**)&device_ptr,area*sizeof(float));
+
+  k_test_texture<<<1,1>>>(*ref_tex, device_ptr,rows,cols);
+
+  cudaMemcpy(picture,device_ptr,area*sizeof(float),cudaMemcpyDeviceToHost);
+
+  std::cout << "top left   " << static_cast<int>(testImage.at<uint8_t>(0,50)) << std::endl;
+  std::cout << "top left 1 " << static_cast<int>(testImage.at<uint8_t>(1,200)) << std::endl;
+  std::cout << "top left 2 " << static_cast<int>(testImage.at<uint8_t>(2,100)) << std::endl;
+
+  cv::Mat zoom_float = 255.0f*cv::Mat(rows,cols, CV_32FC1, picture);
+
+  std::cout << "top left zoom   " << static_cast<int>(zoom_float.at<float>(0,50)) << std::endl;
+  std::cout << "top left zoom 1 " << static_cast<int>(zoom_float.at<float>(1,200)) << std::endl;
+  std::cout << "top left zoom 2 " << static_cast<int>(zoom_float.at<float>(2,100)) << std::endl;
+
+  //std::cout << zoom_float << std::endl;
+  cv::Mat zoom_char;
+  zoom_float.convertTo(zoom_char, CV_8UC1);
+  cv::imshow("Lenna",zoom_char);
+
   //imp::cu::cvBridgeShow("Lenna",refImage);
   //cv::imshow("Lenna",testImage);
+  cv::waitKey(0);
+}
+
+__global__ void k_test_interpolation(imp::cu::Texture2D ref_tex, float * output, int patch_size, float u, float v)
+{
+
+  const int i = blockIdx.x*blockDim.x+threadIdx.x;
+
+  if(i == 0)
+  {
+    const float upper_left_coord_x = u- (patch_size - 1)/2.0f;
+    const float upper_left_coord_y = v - (patch_size - 1)/2.0f;
+    int pixel = 0;
+#pragma unroll 4
+    for(int rr = 0; rr < patch_size; ++rr)
+    {
+#pragma unroll 4
+      for(int cc = 0; cc < patch_size; ++cc)
+      {
+        float centerTexel;
+        imp::cu::tex2DFetch(centerTexel, ref_tex,upper_left_coord_x + cc, upper_left_coord_y + rr);
+        output[pixel] = 255.0f*centerTexel;
+        ++pixel;
+      }
+    }
+  }
+}
+
+void interpolationTest(float u_, float v_, int patch_size_)
+{
+  // generate test data
+  cv::Mat refImageCv = cv::imread("/home/michael/LennaGray.png", CV_LOAD_IMAGE_GRAYSCALE);
+  imp::cu::ImageGpu8uC1::Ptr refImage = std::make_shared<imp::cu::ImageGpu8uC1>(imp::ImageCv8uC1(refImageCv));
+  //imp::cu::ImageGpu8uC1 refImage2(imp::ImageCv8uC1(testImage));
+  //std::shared_ptr<imp::cu::Texture2D> ref_tex  = std::dynamic_pointer_cast<imp::cu::ImageGpu8uC1>(refImage)
+  //    ->genTexture(false,cudaFilterModeLinear,cudaAddressModeWrap,cudaReadModeNormalizedFloat);
+
+  cv::namedWindow("Lenna");
+  imp::cu::cvBridgeShow<imp::Pixel8uC1,imp::PixelType::i8uC1>("Lenna",*refImage.get());
+
+  std::shared_ptr<imp::cu::Texture2D> ref_tex  = refImage->genTexture(false,cudaFilterModeLinear,cudaAddressModeBorder,cudaReadModeNormalizedFloat);
+
+  int patch_size = patch_size_;
+  float u = u_;
+  float v = v_;
+  int patch_area = patch_size*patch_size;
+  float patch_gpu[patch_area];
+  float* device_ptr;
+
+  cudaMalloc((void**)&device_ptr,patch_area*sizeof(float));
+
+  k_test_interpolation<<<1,1>>>(*ref_tex, device_ptr,patch_size,u,v);
+
+  cudaMemcpy(patch_gpu,device_ptr,patch_area*sizeof(float),cudaMemcpyDeviceToHost);
+
+  cv::namedWindow("Patch",cv::WINDOW_NORMAL);
+  cv::Mat patch_gpu_cv = cv::Mat(patch_size,patch_size, CV_32FC1, patch_gpu);
+  cv::Mat patch_gpu_cv_char;
+  patch_gpu_cv.convertTo(patch_gpu_cv_char, CV_8UC1);
+  cv::imshow("Patch",patch_gpu_cv_char);
+  float patch_cpu[patch_area];
+
+  if(0)
+  {
+    const int u_ref_i = std::floor(u);
+    const int v_ref_i = std::floor(v);
+
+    const int patch_center_ceil = (patch_size - 1)%2 ? (patch_size - 1)/2 + 1 : (patch_size - 1)/2;
+    const int stride = refImageCv.step;
+
+    // compute bilateral interpolation weights for reference image
+    const float subpix_u_ref = u-u_ref_i;
+    const float subpix_v_ref = v-v_ref_i;
+    const float wtl = (1.0-subpix_u_ref) * (1.0-subpix_v_ref);
+    const float wtr = subpix_u_ref * (1.0-subpix_v_ref);
+    const float wbl = (1.0-subpix_u_ref) * subpix_v_ref;
+    const float wbr = subpix_u_ref * subpix_v_ref;
+
+    // interpolate patch with border
+    size_t pixel_counter = 0;
+    for(int y = 0; y < patch_size; ++y)
+    {
+      // reference image pointer (openCv stores data in row major format)
+      uint8_t* r =
+          (uint8_t*) refImageCv.data
+          + (v_ref_i-patch_center_ceil+y)*stride
+          + (u_ref_i-patch_center_ceil);
+      for(int x = 0; x < patch_size; ++x, ++r, ++pixel_counter)
+      {
+        // precompute interpolated reference patch color
+        patch_cpu[pixel_counter] = wtl*r[0] + wtr*r[1] + wbl*r[stride] + wbr*r[stride+1];
+      }
+    }
+  }
+  else
+  {
+    float patch_center = (patch_size - 1)/2.0f;
+    float u_tl = u - patch_center;
+    float v_tl = v - patch_center;
+    const int u_tl_i = std::floor(u_tl);
+    const int v_tl_i = std::floor(v_tl);
+    const int stride = refImageCv.step;
+
+    // compute bilateral interpolation weights for reference image
+    const float subpix_u_tl = u_tl-u_tl_i;
+    const float subpix_v_tl = v_tl-v_tl_i;
+    const float wtl = (1.0-subpix_u_tl) * (1.0-subpix_v_tl);
+    const float wtr = subpix_u_tl * (1.0-subpix_v_tl);
+    const float wbl = (1.0-subpix_u_tl) * subpix_v_tl;
+    const float wbr = subpix_u_tl * subpix_v_tl;
+
+    // interpolate patch with border
+    size_t pixel_counter = 0;
+    for(int y = 0; y < patch_size; ++y)
+    {
+      // reference image pointer (openCv stores data in row major format)
+      uint8_t* r =
+          (uint8_t*) refImageCv.data
+          + (v_tl_i+y)*stride
+          + (u_tl_i);
+      for(int x = 0; x < patch_size; ++x, ++r, ++pixel_counter)
+      {
+        // precompute interpolated reference patch color
+        patch_cpu[pixel_counter] = wtl*r[0] + wtr*r[1] + wbl*r[stride] + wbr*r[stride+1];
+      }
+    }
+  }
+
+
+  cv::namedWindow("Patch cpu",cv::WINDOW_NORMAL);
+  cv::Mat patch_cpu_cv = cv::Mat(patch_size,patch_size, CV_32FC1, patch_cpu);
+  cv::Mat patch_cpu_cv_char;
+  patch_cpu_cv.convertTo(patch_cpu_cv_char, CV_8UC1);
+  cv::imshow("Patch cpu",patch_cpu_cv_char);
+
+  cv::Mat difference = cv::Mat(patch_size,patch_size, CV_32FC1);
+  difference = patch_gpu_cv - patch_cpu_cv;
+
+  double min, max;
+  cv::minMaxLoc(difference, &min, &max);
+  std::cout << std::endl << std::endl;
+  std::cout << "patch gpu" << std::endl;
+  std::cout << patch_gpu_cv << std::endl;
+  std::cout << "patch cpu" << std::endl;
+  std::cout << patch_cpu_cv << std::endl;
+  std::cout << "difference" << std::endl;
+  std::cout << difference << std::endl;
+
+  std::cout << "Min difference " << min << " Max difference " << max << std::endl;
+
   cv::waitKey(0);
 }
 
@@ -365,11 +571,11 @@ void experiment3()
   dim3 blocks_jacobian_second((nr_second_half+threads_jacobian.x-1)/threads_jacobian.x);
 
   kernelBaseCachesPinhole<<<blocks_jacobian_first,threads_jacobian>>>(T_imu_cam,R_cam_imu,focal_length,
-                                                                p_in_cam_dev,jacobian_dev_pinhole,nr_first_half);
+                                                                      p_in_cam_dev,jacobian_dev_pinhole,nr_first_half);
   cudaDeviceSynchronize();
   // second half
   kernelBaseCachesPinhole<<<blocks_jacobian_second,threads_jacobian>>>(T_imu_cam,R_cam_imu,focal_length,
-                                                                &p_in_cam_dev[nr_first_half],&jacobian_dev_pinhole[12*nr_first_half],nr_second_half);
+                                                                       &p_in_cam_dev[nr_first_half],&jacobian_dev_pinhole[12*nr_first_half],nr_second_half);
   cudaDeviceSynchronize();
 
 
@@ -652,65 +858,230 @@ void experiment2()
   cudaCheckError();
 }
 
-#pragma GCC push_options
-#pragma GCC optimize ("O0")
-void testBlockOperations()
+//#pragma GCC push_options
+//#pragma GCC optimize ("O0")
+//void testBlockOperations()
+//{
+//  imp::cu::Matrix<float,3,4> mat34;
+//  mat34(0,0) = 1.0;
+//  mat34(1,0) = 2.0;
+//  mat34(2,0) = 3.0;
+//  mat34(0,1) = 4.0;
+//  mat34(1,1) = 5.0;
+//  mat34(2,1) = 6.0;
+//  mat34(0,2) = 7.0;
+//  mat34(1,2) = 8.0;
+//  mat34(2,2) = 9.0;
+//  mat34(0,3) = 10.0;
+//  mat34(1,3) = 11.0;
+//  mat34(2,3) = 12.0;
+
+//  //  template<size_t block_rows,size_t block_cols>
+//  //  __host__ __device__ __forceinline__
+//  //  Matrix<Type,block_rows,block_cols> blockLoop(size_t top_left_row, size_t top_left_col)
+//  //  {
+//  //    Matrix<Type,block_rows,block_cols> out;
+//  //    for(size_t rr = 0; rr < block_rows; ++rr)
+//  //    {
+//  //      for(size_t cc = 0; cc < block_cols; ++cc)
+//  //      {
+//  //        out(rr,cc) = (*this)(rr+top_left_row,cc+top_left_col);
+//  //      }
+//  //    }
+//  //    return out;
+//  //  }
+//  imp::cu::Matrix<float,3,4> mat33;
+//  std::clock_t c_start_block= std::clock();
+
+//  for(int ii=0; ii< 10000; ++ii)
+//  {
+//    mat33 = mat34.block<3,4>(0,0);
+//  }
+
+//  std::clock_t c_end_block = std::clock();
+//  double time_block = CLOCK_TO_MS(c_start_block,c_end_block);
+//  std::clock_t c_start_block_memcpy= std::clock();
+//  for(int ii=0; ii< 10000; ++ii)
+//  {
+//    mat33 = mat34.block<3,4>(0,0);
+//  }
+//  std::clock_t c_end_block_memcpy = std::clock();
+//  double time_block_memcpy = CLOCK_TO_MS(c_start_block_memcpy,c_end_block_memcpy);
+//  std::cout << "Time block " << time_block << std::endl;
+//  std::cout << "Time block memcpy " << time_block_memcpy << std::endl;
+//  std::cout << mat34 << std::endl;
+//  std::cout << mat33 << std::endl;
+//}
+//#pragma GCC pop_options
+
+static constexpr unsigned int kJacobianSize = 8;
+static constexpr unsigned int kHessianTriagSize = 36;
+static constexpr unsigned int kPatchSize = 4;
+static constexpr unsigned int kPatchArea = kPatchSize*kPatchSize;
+
+template <unsigned int _block_size, bool n_is_pow2>
+__global__ void k_hessianGradient(const float* __restrict__ jacobian_cache,
+                                  const float* __restrict__ residual_cache,
+                                  const char* __restrict__ visibility_cache,
+                                  float* __restrict__ hessian_cache,
+                                  const unsigned int n_elements)
 {
-  imp::cu::Matrix<float,3,4> mat34;
-  mat34(0,0) = 1.0;
-  mat34(1,0) = 2.0;
-  mat34(2,0) = 3.0;
-  mat34(0,1) = 4.0;
-  mat34(1,1) = 5.0;
-  mat34(2,1) = 6.0;
-  mat34(0,2) = 7.0;
-  mat34(1,2) = 8.0;
-  mat34(2,2) = 9.0;
-  mat34(0,3) = 10.0;
-  mat34(1,3) = 11.0;
-  mat34(2,3) = 12.0;
+  extern __shared__ float s_hessian_data[];
+  extern __shared__ float s_gradient_data[];
+  float jacobian[kJacobianSize];
+  float gradient[kJacobianSize];
+  float hessian[kHessianTriagSize];
 
-  //  template<size_t block_rows,size_t block_cols>
-  //  __host__ __device__ __forceinline__
-  //  Matrix<Type,block_rows,block_cols> blockLoop(size_t top_left_row, size_t top_left_col)
-  //  {
-  //    Matrix<Type,block_rows,block_cols> out;
-  //    for(size_t rr = 0; rr < block_rows; ++rr)
-  //    {
-  //      for(size_t cc = 0; cc < block_cols; ++cc)
-  //      {
-  //        out(rr,cc) = (*this)(rr+top_left_row,cc+top_left_col);
-  //      }
-  //    }
-  //    return out;
-  //  }
-  imp::cu::Matrix<float,3,4> mat33;
-  std::clock_t c_start_block= std::clock();
+  // perform first level of reduction,
+  // reading from global memory, writing to shared memory
+  unsigned int tid = threadIdx.x;
+  unsigned int i = blockIdx.x*_block_size*2 + threadIdx.x;
+  unsigned int gridSize = _block_size*2*gridDim.x;
+  unsigned int hessian_index = tid*kHessianTriagSize;
+  unsigned int gradient_index = tid*kJacobianSize;
 
-  for(int ii=0; ii< 10000; ++ii)
+  // we reduce multiple elements per thread.  The number is determined by the
+  // number of active thread blocks (via gridDim).  More blocks will result
+  // in a larger gridSize and therefore fewer elements per thread
+
+  //set memory to zero in case the index is out of bound
+  setToZero<kJacobianSize>(jacobian);
+  setToZero<kJacobianSize>(gradient);
+  setToZero<kHessianTriagSize>(hessian);
+
+  //continue here
+  while (i < n_elements)
   {
-    mat33 = mat34.block<3,4>(0,0);
+    unsigned int visib_index = i/kPatchArea;
+    float visible = static_cast<float>(visibility_cache[visib_index]);
+    float residual = residual_cache[i];
+    //TODO: add weighting function
+    float weight = visible;// visible*weight_function(residual/weight_scale);
+    copyVector<kJacobianSize>(jacobian,&jacobian_cache[i*kJacobianSize]);
+
+    addVVTUpperTriag<kJacobianSize>(jacobian,weight,&s_hessian_data[hessian_index]);
+
+    // ensure we don't read out of bounds -- this is optimized away for powerOf2 sized arrays
+    if (n_is_pow2 || i + blockSize < n)
+      mySum += g_idata[i+blockSize];
+
+    i += gridSize;
   }
 
-  std::clock_t c_end_block = std::clock();
-  double time_block = CLOCK_TO_MS(c_start_block,c_end_block);
-  std::clock_t c_start_block_memcpy= std::clock();
-  for(int ii=0; ii< 10000; ++ii)
-  {
-    mat33 = mat34.block<3,4>(0,0);
-  }
-  std::clock_t c_end_block_memcpy = std::clock();
-  double time_block_memcpy = CLOCK_TO_MS(c_start_block_memcpy,c_end_block_memcpy);
-  std::cout << "Time block " << time_block << std::endl;
-  std::cout << "Time block memcpy " << time_block_memcpy << std::endl;
-  std::cout << mat34 << std::endl;
-  std::cout << mat33 << std::endl;
+  // each thread puts its local sum into shared memory
+  sdata[tid] = mySum;
+  __syncthreads();
 }
-#pragma GCC pop_options
+
+template <size_t _n_elements>
+__host__ __device__ __forceinline__ void setToZero(float*  mem)
+{
+#pragma unroll
+  for(int ind = 0; ind < _n_elements; ++ind)
+  {
+    mem[ind] = 0.0;
+  }
+}
+
+template <size_t _matrix_size>
+__host__ __device__ __forceinline__ void setVVTUpperTriag(const float* __restrict__ vect,
+                                                          const float& __restrict__ weight,
+                                                          float* __restrict__ upper_triag_row_maj)
+{
+  int index = 0;
+#pragma unroll
+  for(int row = 0; row < _matrix_size; ++row)
+  {
+#pragma unroll
+    for(int col = row; col < _matrix_size; ++col,++index)
+    {
+      upper_triag_row_maj[index] = weight*vect[row]*vect[col];
+    }
+  }
+}
+
+template <size_t _matrix_size>
+__host__ __device__ __forceinline__ void addVVTUpperTriag(const float* __restrict__ vect,
+                                                          const float& __restrict__ weight,
+                                                          float* __restrict__ upper_triag_row_maj)
+{
+  int index = 0;
+#pragma unroll
+  for(int row = 0; row < _matrix_size; ++row)
+  {
+#pragma unroll
+    for(int col = row; col < _matrix_size; ++col,++index)
+    {
+      upper_triag_row_maj[index] += weight*vect[row]*vect[col];
+    }
+  }
+}
+
+template <size_t _vector_size>
+__host__ __device__ __forceinline__ void addVector(float* __restrict__ sum_vect,
+                                                   const float& __restrict__ weight,
+                                                   const float* __restrict__ addend_vect)
+{
+
+#pragma unroll
+  for(int ind = 0; ind < _vector_size; ++ind)
+  {
+    sum_vect[ind] += weight*addend_vect[ind];
+  }
+}
+
+template <size_t _vector_size>
+__host__ __device__ __forceinline__ void setVector(float* __restrict__ dest_vect,
+                                                   const float& __restrict__ weight,
+                                                   const float* __restrict__ src_vect)
+{
+
+#pragma unroll
+  for(int ind = 0; ind < _vector_size; ++ind)
+  {
+    dest_vect[ind] = weight*src_vect[ind];
+  }
+}
+
+template <size_t _vector_size>
+__host__ __device__ __forceinline__ void copyVector(float* __restrict__ dest_vect,
+                                                    const float* __restrict__ src_vect)
+{
+
+#pragma unroll
+  for(int ind = 0; ind < _vector_size; ++ind)
+  {
+    dest_vect[ind] = src_vect[ind];
+  }
+}
+
+unsigned int nextPow2(unsigned int x)
+{
+  --x;
+  x |= x >> 1;
+  x |= x >> 2;
+  x |= x >> 4;
+  x |= x >> 8;
+  x |= x >> 16;
+  return ++x;
+}
+
+void reductionExperiment()
+{
+  int max_threads = 256;
+  int nr_elements = 1000;
 
 
-int main() {
-  jacobianExperiment();
+  int threads = (nr_elements < max_threads*2) ? nextPow2((nr_elements + 1)/ 2) : max_threads;
+  int blocks = (nr_elements + (threads * 2 - 1)) / (threads * 2);
+
+
+}
+
+int main(int argc, const char* argv[]) {
+  reductionExperiment();
+  //interpolationTest(atof(argv[1]),atof(argv[2]),atoi(argv[3]));
+  //jacobianExperiment();
   //experiment1();
   //experiment2();
   //experiment3();

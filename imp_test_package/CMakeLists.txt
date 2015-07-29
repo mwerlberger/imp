@@ -8,6 +8,9 @@ endif(${CMAKE_MAJOR_VERSION} VERSION_GREATER 3.0)
 find_package(catkin_simple REQUIRED)
 catkin_simple()
 
+SET(CMAKE_CXX_FLAGS "-Wno-unknown-pragmas")
+
+
 include(imp_macros)
 include(imp_finders)
 imp_setup()
