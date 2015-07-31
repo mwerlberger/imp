@@ -1023,7 +1023,6 @@ __host__ __device__ __forceinline__ void copyVector(float* __restrict__ dest_vec
   }
 }
 
-
 static constexpr unsigned int kJacobianSize = 8;
 static constexpr unsigned int kHessianTriagN = 36;
 static constexpr unsigned int kPatchSize = 4;
@@ -1226,7 +1225,7 @@ __global__ void k_jacobianReduceHessianGradient(const float* __restrict__ jacobi
     copyVector<kHessianTriagN>(&s_hessian_data[hessian_index],hessian);
   }
 
-  __syncthreads();
+  //__syncthreads();
 
   if ((_block_size >=   4) && (tid <  2))
   {
@@ -1866,7 +1865,6 @@ void reduceHessianGradient(int size, int threads, int blocks,
       break;
 
     case 64:
-      std::cout << "reducing hessian gradient" << std::endl;
       cudaFuncSetCacheConfig (k_reduceHessianGradient<64,false>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<64, false><<< dimGrid, dimBlock >>>(gradient_cache,
                                                                   hessian_cache,
@@ -1894,8 +1892,6 @@ void reduceHessianGradient(int size, int threads, int blocks,
       break;
 
     case  8:
-      std::cout << "Calling 8 thread per block" << std::endl;
-      std::cout << "dimGrid, dimBlock, size" << blocks << "," << threads <<"," << size << std::endl;
       cudaFuncSetCacheConfig (k_reduceHessianGradient<8,false>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<8, false><<< dimGrid, dimBlock >>>(gradient_cache,
                                                                  hessian_cache,
@@ -1937,6 +1933,7 @@ void reduceHessianGradient(int size, int threads, int blocks,
 
 void reductionExperiment(int _nr_ele)
 {
+  unsigned int nr_iterations = 10;
   // Generate Test data
   int nr_patches = _nr_ele;
   int nr_elements = nr_patches*kPatchArea;
@@ -2006,7 +2003,7 @@ void reductionExperiment(int _nr_ele)
   cudaMemcpy(visibility_input_device,visibility_input_host,visibility_input_size*sizeof(char),cudaMemcpyHostToDevice);
   cudaMemcpy(residual_input_device,residual_input_host,residual_input_size*sizeof(float),cudaMemcpyHostToDevice);
 
-  int max_threads = 64;
+  int max_threads = 128;
 
   int threads = (nr_elements < max_threads*2) ? nextPow2((nr_elements + 1)/ 2) : max_threads;
   int blocks = (nr_elements + (threads * 2 - 1)) / (threads * 2);
@@ -2031,29 +2028,41 @@ void reductionExperiment(int _nr_ele)
   //  std::cout << "effective elements per thread " << static_cast<double>(nr_elements)/static_cast<double>(blocks*threads) << std::endl;
   //  std::cout << "brent effective elements per thread " << static_cast<double>(nr_elements)/static_cast<double>(blocks_brent*threads) << std::endl;
 
+  // warm up call
+  reduceJacobian(nr_elements ,threads ,blocks ,jacobian_input_device ,visibility_input_device ,residual_input_device ,gradient_output ,hessian_output);
+
   // ----------------------- reduce normal
   int output_cache = 1;
-  std::cout << "reducing normal blocks/threads/problem_size: " << blocks << "," <<threads<<","<<nr_elements << std::endl;
-  reduceJacobian(nr_elements,threads,blocks,jacobian_input_device,visibility_input_device,residual_input_device,gradient_output,hessian_output);
+  int problem_size;
 
-  int problem_size = blocks;
-  while(blocks > 1)
+  //test static memory
+  std::clock_t c_start_gpu_normal = std::clock();
+  for(unsigned int tt = 0; tt < nr_iterations;++tt)
   {
-    threads = (problem_size < max_threads*2) ? nextPow2((problem_size + 1)/ 2) : max_threads;
-    blocks = (problem_size + (threads * 2 - 1)) / (threads * 2);
-    std::cout << "reducing normal blocks/threads/problem_size: " << blocks << "," <<threads<<","<<problem_size << std::endl;
-    reduceHessianGradient(problem_size,threads,blocks,gradient_output,hessian_output,gradient_output_2,hessian_output_2);
-    output_cache = 2;
-    if(blocks > 1)
+    //std::cout << "reducing normal blocks/threads/problem_size: " << blocks << "," <<threads<<","<<nr_elements << std::endl;
+    reduceJacobian(nr_elements,threads,blocks,jacobian_input_device,visibility_input_device,residual_input_device,gradient_output,hessian_output);
+
+    problem_size = blocks;
+    while(blocks > 1)
     {
-      problem_size = blocks;
       threads = (problem_size < max_threads*2) ? nextPow2((problem_size + 1)/ 2) : max_threads;
       blocks = (problem_size + (threads * 2 - 1)) / (threads * 2);
-      std::cout << "reducing normal blocks/threads/problem_size: " << blocks << "," <<threads<<","<<problem_size << std::endl;
-      reduceHessianGradient(problem_size,threads,blocks,gradient_output_2,hessian_output_2,gradient_output,hessian_output);
-      output_cache = 1;
+      //std::cout << "reducing normal blocks/threads/problem_size: " << blocks << "," <<threads<<","<<problem_size << std::endl;
+      reduceHessianGradient(problem_size,threads,blocks,gradient_output,hessian_output,gradient_output_2,hessian_output_2);
+      output_cache = 2;
+      if(blocks > 1)
+      {
+        problem_size = blocks;
+        threads = (problem_size < max_threads*2) ? nextPow2((problem_size + 1)/ 2) : max_threads;
+        blocks = (problem_size + (threads * 2 - 1)) / (threads * 2);
+        //std::cout << "reducing normal blocks/threads/problem_size: " << blocks << "," <<threads<<","<<problem_size << std::endl;
+        reduceHessianGradient(problem_size,threads,blocks,gradient_output_2,hessian_output_2,gradient_output,hessian_output);
+        output_cache = 1;
+      }
     }
   }
+  std::clock_t c_end_gpu_normal = std::clock();
+  double time_gpu_normal = CLOCK_TO_MS(c_start_gpu_normal,c_end_gpu_normal);
 
   //get result
   float hessian_array_host[kHessianTriagN];
@@ -2070,57 +2079,64 @@ void reductionExperiment(int _nr_ele)
   }
 
   // print result
-  std::cout << "Hessian Normal" << std::endl;
-  float hessian_output_array[kJacobianSize*kJacobianSize];
-  for(unsigned int row = 0, index = 0; row < kJacobianSize; ++row)
-  {
-    for(unsigned int col = row; col < kJacobianSize; ++col,++index)
-    {
-      hessian_output_array[row*kJacobianSize + col] = hessian_output_array[col*kJacobianSize + row] =  hessian_array_host[index];
-    }
-  }
+  //  std::cout << "Hessian Normal" << std::endl;
+  //  float hessian_output_array[kJacobianSize*kJacobianSize];
+  //  for(unsigned int row = 0, index = 0; row < kJacobianSize; ++row)
+  //  {
+  //    for(unsigned int col = row; col < kJacobianSize; ++col,++index)
+  //    {
+  //      hessian_output_array[row*kJacobianSize + col] = hessian_output_array[col*kJacobianSize + row] =  hessian_array_host[index];
+  //    }
+  //  }
 
-  for(unsigned int row = 0; row < kJacobianSize; ++row)
-  {
-    for(unsigned int col = 0; col < kJacobianSize; ++col)
-    {
-      std::cout << std::setw( 12 ) << hessian_output_array[row*kJacobianSize + col] << " " ;
-    }
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
+  //  for(unsigned int row = 0; row < kJacobianSize; ++row)
+  //  {
+  //    for(unsigned int col = 0; col < kJacobianSize; ++col)
+  //    {
+  //      std::cout << std::setw( 12 ) << hessian_output_array[row*kJacobianSize + col] << " " ;
+  //    }
+  //    std::cout << std::endl;
+  //  }
+  //  std::cout << std::endl;
 
-  std::cout << "Gradient Normal" << std::endl;
-  for(unsigned int ii = 0; ii < kJacobianSize; ++ii)
-  {
-    std::cout << gradient_array_host[ii] << " " ;
-  }
-  std::cout << std::endl;
+  //  std::cout << "Gradient Normal" << std::endl;
+  //  for(unsigned int ii = 0; ii < kJacobianSize; ++ii)
+  //  {
+  //    std::cout << gradient_array_host[ii] << " " ;
+  //  }
+  //  std::cout << std::endl;
 
 
   // ----------------------- reduce brent
-  output_cache = 1;
-  std::cout << "reducing brent blocks/problem_size: " << blocks_brent << "," << nr_elements << std::endl;
-  reduceJacobian(nr_elements,threads,blocks_brent,jacobian_input_device,visibility_input_device,residual_input_device,gradient_output,hessian_output);
-
-  problem_size = blocks_brent;
-  while(blocks_brent > 1)
+  std::clock_t c_start_gpu_brent = std::clock();
+  for(unsigned int tt = 0; tt < nr_iterations;++tt)
   {
-    threads = (problem_size < max_threads*2) ? nextPow2((problem_size + 1)/ 2) : max_threads;
-    blocks_brent = (problem_size + (threads * 2 - 1)) / (threads * 2);
-    std::cout << "reducing brent blocks/problem_size: " << blocks_brent << "," << problem_size << std::endl;
-    reduceHessianGradient(problem_size,threads,blocks_brent,gradient_output,hessian_output,gradient_output_2,hessian_output_2);
-    output_cache = 2;
-    if(blocks_brent > 1)
+    output_cache = 1;
+    //std::cout << "reducing brent blocks/problem_size: " << blocks_brent << "," << nr_elements << std::endl;
+    reduceJacobian(nr_elements,threads,blocks_brent,jacobian_input_device,visibility_input_device,residual_input_device,gradient_output,hessian_output);
+
+    problem_size = blocks_brent;
+    while(blocks_brent > 1)
     {
-      problem_size = blocks_brent;
       threads = (problem_size < max_threads*2) ? nextPow2((problem_size + 1)/ 2) : max_threads;
       blocks_brent = (problem_size + (threads * 2 - 1)) / (threads * 2);
-      std::cout << "reducing brent blocks/problem_size: " << blocks_brent << "," << problem_size << std::endl;
-      reduceHessianGradient(problem_size,threads,blocks_brent,gradient_output_2,hessian_output_2,gradient_output,hessian_output);
-      output_cache = 1;
+      //std::cout << "reducing brent blocks/problem_size: " << blocks_brent << "," << problem_size << std::endl;
+      reduceHessianGradient(problem_size,threads,blocks_brent,gradient_output,hessian_output,gradient_output_2,hessian_output_2);
+      output_cache = 2;
+      if(blocks_brent > 1)
+      {
+        problem_size = blocks_brent;
+        threads = (problem_size < max_threads*2) ? nextPow2((problem_size + 1)/ 2) : max_threads;
+        blocks_brent = (problem_size + (threads * 2 - 1)) / (threads * 2);
+        //std::cout << "reducing brent blocks/problem_size: " << blocks_brent << "," << problem_size << std::endl;
+        reduceHessianGradient(problem_size,threads,blocks_brent,gradient_output_2,hessian_output_2,gradient_output,hessian_output);
+        output_cache = 1;
+      }
     }
   }
+  std::clock_t c_end_gpu_brent = std::clock();
+  double time_gpu_brent = CLOCK_TO_MS(c_start_gpu_brent,c_end_gpu_brent);
+
 
   //get result
   if(output_cache == 1)
@@ -2135,46 +2151,56 @@ void reductionExperiment(int _nr_ele)
   }
 
   // print result
-  std::cout << "Hessian Brent" << std::endl;
-  for(unsigned int row = 0, index = 0; row < kJacobianSize; ++row)
+  //  std::cout << "Hessian Brent" << std::endl;
+  //  for(unsigned int row = 0, index = 0; row < kJacobianSize; ++row)
+  //  {
+  //    for(unsigned int col = row; col < kJacobianSize; ++col,++index)
+  //    {
+  //      hessian_output_array[row*kJacobianSize + col] = hessian_output_array[col*kJacobianSize + row] =  hessian_array_host[index];
+  //    }
+  //  }
+
+  //  for(unsigned int row = 0; row < kJacobianSize; ++row)
+  //  {
+  //    for(unsigned int col = 0; col < kJacobianSize; ++col)
+  //    {
+  //      std::cout << std::setw( 12 ) << hessian_output_array[row*kJacobianSize + col] << " " ;
+  //    }
+  //    std::cout << std::endl;
+  //  }
+  //  std::cout << std::endl;
+
+  //  std::cout << "Gradient Brent" << std::endl;
+  //  for(unsigned int ii = 0; ii < kJacobianSize; ++ii)
+  //  {
+  //    std::cout << gradient_array_host[ii] << " " ;
+  //  }
+  //  std::cout << std::endl;
+
+  std::clock_t c_start_cpu = std::clock();
+  for(unsigned int tt = 0; tt < nr_iterations;++tt)
   {
-    for(unsigned int col = row; col < kJacobianSize; ++col,++index)
-    {
-      hessian_output_array[row*kJacobianSize + col] = hessian_output_array[col*kJacobianSize + row] =  hessian_array_host[index];
-    }
+    Eigen::Matrix<float,kJacobianSize,kJacobianSize> H;
+    Eigen::Matrix<float,kJacobianSize,1> g;
+
+    reduceJacobianCPU(nr_elements,
+                      jacobian_input_host,
+                      visibility_input_host,
+                      residual_input_host,
+                      H,
+                      g);
   }
+  std::clock_t c_end_cpu = std::clock();
+  double time_cpu= CLOCK_TO_MS(c_start_cpu,c_end_cpu);
 
-  for(unsigned int row = 0; row < kJacobianSize; ++row)
-  {
-    for(unsigned int col = 0; col < kJacobianSize; ++col)
-    {
-      std::cout << std::setw( 12 ) << hessian_output_array[row*kJacobianSize + col] << " " ;
-    }
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
+  //  std::cout << "Hessian CPU" << std::endl;
+  //  std::cout << H << std::endl;
+  //  std::cout << "Gradient CPU" << std::endl;
+  //  std::cout << g.transpose() << std::endl;
 
-  std::cout << "Gradient Brent" << std::endl;
-  for(unsigned int ii = 0; ii < kJacobianSize; ++ii)
-  {
-    std::cout << gradient_array_host[ii] << " " ;
-  }
-  std::cout << std::endl;
-
-  Eigen::Matrix<float,kJacobianSize,kJacobianSize> H;
-  Eigen::Matrix<float,kJacobianSize,1> g;
-
-  reduceJacobianCPU(nr_elements,
-                    jacobian_input_host,
-                    visibility_input_host,
-                    residual_input_host,
-                    H,
-                    g);
-
-  std::cout << "Hessian CPU" << std::endl;
-  std::cout << H << std::endl;
-  std::cout << "Gradient CPU" << std::endl;
-  std::cout << g.transpose() << std::endl;
+  std::cout << "Time normal " << time_gpu_normal << std::endl;
+  std::cout << "Time brent " << time_gpu_brent << std::endl;
+  std::cout << "Time CPU "  << time_cpu << std::endl;
 
   free(jacobian_input_host);
   free(visibility_input_host);
