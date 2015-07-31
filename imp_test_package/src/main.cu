@@ -1363,7 +1363,6 @@ __global__ void k_reduceHessianGradient(float* __restrict__ gradient_cache,
 
   __syncthreads();
 
-
   //#if (__CUDA_ARCH__ >= 300 )
   //  if ( tid < 32 )
   //  {
@@ -1423,7 +1422,7 @@ __global__ void k_reduceHessianGradient(float* __restrict__ gradient_cache,
     copyVector<kHessianTriagN>(&s_hessian_data[hessian_index],hessian);
   }
 
-  __syncthreads();
+  //__syncthreads();
 
   if ((_block_size >=   4) && (tid <  2))
   {
@@ -1867,6 +1866,7 @@ void reduceHessianGradient(int size, int threads, int blocks,
       break;
 
     case 64:
+      std::cout << "reducing hessian gradient" << std::endl;
       cudaFuncSetCacheConfig (k_reduceHessianGradient<64,false>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<64, false><<< dimGrid, dimBlock >>>(gradient_cache,
                                                                   hessian_cache,
@@ -1894,6 +1894,8 @@ void reduceHessianGradient(int size, int threads, int blocks,
       break;
 
     case  8:
+      std::cout << "Calling 8 thread per block" << std::endl;
+      std::cout << "dimGrid, dimBlock, size" << blocks << "," << threads <<"," << size << std::endl;
       cudaFuncSetCacheConfig (k_reduceHessianGradient<8,false>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<8, false><<< dimGrid, dimBlock >>>(gradient_cache,
                                                                  hessian_cache,
@@ -1935,30 +1937,10 @@ void reduceHessianGradient(int size, int threads, int blocks,
 
 void reductionExperiment(int _nr_ele)
 {
-  //int max_threads = 256;
-  int max_threads = 256;
-  //int max_threads = 64;
+  // Generate Test data
   int nr_patches = _nr_ele;
   int nr_elements = nr_patches*kPatchArea;
 
-  int threads = (nr_elements < max_threads*2) ? nextPow2((nr_elements + 1)/ 2) : max_threads;
-  int blocks = (nr_elements + (threads * 2 - 1)) / (threads * 2);
-
-  //Blocks such that each thread sums log(n) elements
-  int nr_ele_per_thread = std::floor(log2 (static_cast<double>(nr_elements)));
-  int blocks_brent = (nr_elements + (threads*nr_ele_per_thread - 1)) / (threads*nr_ele_per_thread);
-
-  std::cout << "nr_elements = " << nr_elements << std::endl;
-  std::cout << "threads = " << threads << std::endl;
-  std::cout << "nr_ele_per_thread = " << nr_ele_per_thread << std::endl;
-  std::cout << "blocks = " << blocks << std::endl;
-  std::cout << "blocks_brent = " << blocks_brent << std::endl;
-  std::cout << "nr threads " << blocks*threads << std::endl;
-  std::cout << "brent nr threads " << blocks_brent*threads << std::endl;
-  std::cout << "effective elements per thread " << static_cast<double>(nr_elements)/static_cast<double>(blocks*threads) << std::endl;
-  std::cout << "brent effective elements per thread " << static_cast<double>(nr_elements)/static_cast<double>(blocks_brent*threads) << std::endl;
-
-  // Generate Test data
   unsigned int jacobian_input_size = nr_elements*kJacobianSize;
   float* jacobian_input_host = (float*) malloc(jacobian_input_size*sizeof(float));
   unsigned int visibility_input_size = nr_elements/kPatchArea;
@@ -1976,6 +1958,14 @@ void reductionExperiment(int _nr_ele)
     float magnitude = 10;
     float rand_init = (static_cast<float>(rand())/RAND_MAX - 0.5)*magnitude;
     jacobian_input_host[ii] = rand_init;
+    //    if(ii%kJacobianSize == 0)
+    //    {
+    //      jacobian_input_host[ii] = 1;
+    //    }
+    //    else
+    //    {
+    //      jacobian_input_host[ii] = 0;
+    //    }
     //std::cout << jacobian_input_host[ii] << " ";
   }
   //std::cout << std::endl;
@@ -1985,6 +1975,7 @@ void reductionExperiment(int _nr_ele)
   {
     char rand_init = (static_cast<float>(rand())/RAND_MAX - visibility_ratio) < 0 ? 1 : 0;
     visibility_input_host[ii] = rand_init;
+    //visibility_input_host[ii] = 1;
     //std::cout << static_cast<int>(visibility_input_host[ii]) << " ";
   }
   //std::cout << std::endl;
@@ -1995,6 +1986,7 @@ void reductionExperiment(int _nr_ele)
     float magnitude = 2.0;
     float rand_init = (static_cast<float>(rand())/RAND_MAX - 0.5)*magnitude;
     residual_input_host[ii] = rand_init;
+    //residual_input_host[ii] = 1;
     //std::cout << residual_input_host[ii] << " ";
   }
   //std::cout << std::endl;
@@ -2010,26 +2002,46 @@ void reductionExperiment(int _nr_ele)
   cudaMalloc((void **)& jacobian_input_device,jacobian_input_size*sizeof(float));
   cudaMalloc((void **)& visibility_input_device,visibility_input_size*sizeof(char));
   cudaMalloc((void **)& residual_input_device,residual_input_size*sizeof(float));
+  cudaMemcpy(jacobian_input_device,jacobian_input_host,jacobian_input_size*sizeof(float),cudaMemcpyHostToDevice);
+  cudaMemcpy(visibility_input_device,visibility_input_host,visibility_input_size*sizeof(char),cudaMemcpyHostToDevice);
+  cudaMemcpy(residual_input_device,residual_input_host,residual_input_size*sizeof(float),cudaMemcpyHostToDevice);
+
+  int max_threads = 64;
+
+  int threads = (nr_elements < max_threads*2) ? nextPow2((nr_elements + 1)/ 2) : max_threads;
+  int blocks = (nr_elements + (threads * 2 - 1)) / (threads * 2);
+
+  //Blocks such that each thread sums log(n) elements
+  int nr_ele_per_thread = std::floor(log2 (static_cast<double>(nr_elements)));
+  int blocks_brent = (nr_elements + (threads*nr_ele_per_thread - 1)) / (threads*nr_ele_per_thread);
+
   cudaMalloc((void **)& gradient_output,std::max(blocks,blocks_brent)*kJacobianSize*sizeof(float));
   cudaMalloc((void **)& hessian_output,std::max(blocks,blocks_brent)*kHessianTriagN*sizeof(float));
   cudaMalloc((void **)& gradient_output_2,std::max(blocks,blocks_brent)*kJacobianSize*sizeof(float));
   cudaMalloc((void **)& hessian_output_2,std::max(blocks,blocks_brent)*kHessianTriagN*sizeof(float));
 
-  cudaMemcpy(jacobian_input_device,jacobian_input_host,jacobian_input_size*sizeof(float),cudaMemcpyHostToDevice);
-  cudaMemcpy(visibility_input_device,visibility_input_host,visibility_input_size*sizeof(char),cudaMemcpyHostToDevice);
-  cudaMemcpy(residual_input_device,residual_input_host,residual_input_size*sizeof(float),cudaMemcpyHostToDevice);
 
-  //  cudaFuncSetCacheConfig (k_jacobianReduceHessianGradient<16,true>, cudaFuncCachePreferShared);
-  //  cudaFuncSetCacheConfig (k_reduceHessianGradient<16,true>, cudaFuncCachePreferShared);
+  //  std::cout << "nr_elements = " << nr_elements << std::endl;
+  //  std::cout << "threads = " << threads << std::endl;
+  //  std::cout << "nr_ele_per_thread = " << nr_ele_per_thread << std::endl;
+  //  std::cout << "blocks = " << blocks << std::endl;
+  //  std::cout << "blocks_brent = " << blocks_brent << std::endl;
+  //  std::cout << "total nr threads " << blocks*threads << std::endl;
+  //  std::cout << "brent nr threads " << blocks_brent*threads << std::endl;
+  //  std::cout << "effective elements per thread " << static_cast<double>(nr_elements)/static_cast<double>(blocks*threads) << std::endl;
+  //  std::cout << "brent effective elements per thread " << static_cast<double>(nr_elements)/static_cast<double>(blocks_brent*threads) << std::endl;
 
   // ----------------------- reduce normal
   int output_cache = 1;
+  std::cout << "reducing normal blocks/threads/problem_size: " << blocks << "," <<threads<<","<<nr_elements << std::endl;
   reduceJacobian(nr_elements,threads,blocks,jacobian_input_device,visibility_input_device,residual_input_device,gradient_output,hessian_output);
+
   int problem_size = blocks;
   while(blocks > 1)
   {
     threads = (problem_size < max_threads*2) ? nextPow2((problem_size + 1)/ 2) : max_threads;
     blocks = (problem_size + (threads * 2 - 1)) / (threads * 2);
+    std::cout << "reducing normal blocks/threads/problem_size: " << blocks << "," <<threads<<","<<problem_size << std::endl;
     reduceHessianGradient(problem_size,threads,blocks,gradient_output,hessian_output,gradient_output_2,hessian_output_2);
     output_cache = 2;
     if(blocks > 1)
@@ -2037,6 +2049,7 @@ void reductionExperiment(int _nr_ele)
       problem_size = blocks;
       threads = (problem_size < max_threads*2) ? nextPow2((problem_size + 1)/ 2) : max_threads;
       blocks = (problem_size + (threads * 2 - 1)) / (threads * 2);
+      std::cout << "reducing normal blocks/threads/problem_size: " << blocks << "," <<threads<<","<<problem_size << std::endl;
       reduceHessianGradient(problem_size,threads,blocks,gradient_output_2,hessian_output_2,gradient_output,hessian_output);
       output_cache = 1;
     }
@@ -2045,7 +2058,7 @@ void reductionExperiment(int _nr_ele)
   //get result
   float hessian_array_host[kHessianTriagN];
   float gradient_array_host[kJacobianSize];
-  if(output_cache = 1)
+  if(output_cache == 1)
   {
     cudaMemcpy(hessian_array_host,hessian_output,kHessianTriagN*sizeof(float),cudaMemcpyDeviceToHost);
     cudaMemcpy(gradient_array_host,gradient_output,kJacobianSize*sizeof(float),cudaMemcpyDeviceToHost);
@@ -2065,7 +2078,6 @@ void reductionExperiment(int _nr_ele)
     {
       hessian_output_array[row*kJacobianSize + col] = hessian_output_array[col*kJacobianSize + row] =  hessian_array_host[index];
     }
-    std::cout << std::endl;
   }
 
   for(unsigned int row = 0; row < kJacobianSize; ++row)
@@ -2088,12 +2100,15 @@ void reductionExperiment(int _nr_ele)
 
   // ----------------------- reduce brent
   output_cache = 1;
+  std::cout << "reducing brent blocks/problem_size: " << blocks_brent << "," << nr_elements << std::endl;
   reduceJacobian(nr_elements,threads,blocks_brent,jacobian_input_device,visibility_input_device,residual_input_device,gradient_output,hessian_output);
+
   problem_size = blocks_brent;
   while(blocks_brent > 1)
   {
     threads = (problem_size < max_threads*2) ? nextPow2((problem_size + 1)/ 2) : max_threads;
     blocks_brent = (problem_size + (threads * 2 - 1)) / (threads * 2);
+    std::cout << "reducing brent blocks/problem_size: " << blocks_brent << "," << problem_size << std::endl;
     reduceHessianGradient(problem_size,threads,blocks_brent,gradient_output,hessian_output,gradient_output_2,hessian_output_2);
     output_cache = 2;
     if(blocks_brent > 1)
@@ -2101,13 +2116,14 @@ void reductionExperiment(int _nr_ele)
       problem_size = blocks_brent;
       threads = (problem_size < max_threads*2) ? nextPow2((problem_size + 1)/ 2) : max_threads;
       blocks_brent = (problem_size + (threads * 2 - 1)) / (threads * 2);
+      std::cout << "reducing brent blocks/problem_size: " << blocks_brent << "," << problem_size << std::endl;
       reduceHessianGradient(problem_size,threads,blocks_brent,gradient_output_2,hessian_output_2,gradient_output,hessian_output);
       output_cache = 1;
     }
   }
 
   //get result
-  if(output_cache = 1)
+  if(output_cache == 1)
   {
     cudaMemcpy(hessian_array_host,hessian_output,kHessianTriagN*sizeof(float),cudaMemcpyDeviceToHost);
     cudaMemcpy(gradient_array_host,gradient_output,kJacobianSize*sizeof(float),cudaMemcpyDeviceToHost);
@@ -2126,7 +2142,6 @@ void reductionExperiment(int _nr_ele)
     {
       hessian_output_array[row*kJacobianSize + col] = hessian_output_array[col*kJacobianSize + row] =  hessian_array_host[index];
     }
-    std::cout << std::endl;
   }
 
   for(unsigned int row = 0; row < kJacobianSize; ++row)
