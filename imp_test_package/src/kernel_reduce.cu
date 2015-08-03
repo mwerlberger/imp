@@ -2,50 +2,9 @@
 #include <cstdlib>
 #include <cuda_runtime.h>
 
-#define cudaCheckError() {                                                                       \
-  cudaError_t e=cudaGetLastError();                                                        \
-  if(e!=cudaSuccess) {                                                                     \
-  printf("Cuda failure %s:%d: '%s'\n",__FILE__,__LINE__,cudaGetErrorString(e));        \
-  exit(EXIT_FAILURE);                                                                  \
-  }                                                                                        \
-  }
-
-// Utility class used to avoid linker errors with extern
-// unsized shared memory arrays with templated type
-template<class T>
-struct SharedMemory
-{
-    __device__ inline operator       T *()
-    {
-        extern __shared__ int __smem[];
-        return (T *)__smem;
-    }
-
-    __device__ inline operator const T *() const
-    {
-        extern __shared__ int __smem[];
-        return (T *)__smem;
-    }
-};
-
-// specialize for double to avoid unaligned memory
-// access compile errors
-template<>
-struct SharedMemory<double>
-{
-    __device__ inline operator       double *()
-    {
-        extern __shared__ double __smem_d[];
-        return (double *)__smem_d;
-    }
-
-    __device__ inline operator const double *() const
-    {
-        extern __shared__ double __smem_d[];
-        return (double *)__smem_d;
-    }
-};
-
+//-------------------------------------------------------------------------------------------
+// simple sum reduction
+//-------------------------------------------------------------------------------------------
 
 /*
     This version adds multiple elements per thread sequentially.  This reduces the overall
@@ -60,7 +19,6 @@ template <class T, unsigned int blockSize, bool nIsPow2>
 __global__ void
 reduce6(T *g_idata, T *g_odata, unsigned int n)
 {
-    //T *sdata = SharedMemory<T>();
     __shared__ T sdata[blockSize];
 
     // perform first level of reduction,
@@ -274,6 +232,9 @@ void reduce(int size, int threads, int blocks,
   }
 }
 
+//-------------------------------------------------------------------------------------------
+// Hessian reduction
+//-------------------------------------------------------------------------------------------
 
 template <size_t _n_elements>
 __host__ __device__ __forceinline__ void setToZero(float*  mem)

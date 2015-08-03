@@ -10,6 +10,14 @@
 #include <imp/imp_test_package/kernel_reduce.hpp>
 #include <imp/imp_test_package/helper_cuda.h>
 
+#define cudaCheckError() {                                                                       \
+  cudaError_t e=cudaGetLastError();                                                        \
+  if(e!=cudaSuccess) {                                                                     \
+  printf("Cuda failure %s:%d: '%s'\n",__FILE__,__LINE__,cudaGetErrorString(e));        \
+  exit(EXIT_FAILURE);                                                                  \
+  }                                                                                        \
+  }
+
 #define CLOCK_TO_MS(C_START,C_END) 1000.0 * (C_END - C_START) / CLOCKS_PER_SEC
 
 
@@ -120,7 +128,7 @@ void reductionBenchmarkSum(int _nr_elements)
   T sum_from_gpu = 0;
   for(unsigned int ii = 0; ii < nr_kernel_calls; ++ii)
   {
-    reduce<float>(nr_elements, num_threads, num_blocks, d_idata, d_odata);
+    reduce<T>(nr_elements, num_threads, num_blocks, d_idata, d_odata);
     cudaDeviceSynchronize();
 
     // copy data directly to device memory
@@ -154,14 +162,20 @@ void reductionBenchmarkSum(int _nr_elements)
   free(h_odata);
 }
 
-template<typename T>
 void reductionBenchmarkHessian(int _nr_elements)
 {
 
 }
 
 int main(int argc, const char* argv[]) {
-  //reductionBenchmarkSum<float>(atoi(argv[1]));
-  reductionBenchmarkHessian<float>(atoi(argv[1]));
+
+  //------------ simple sum reduction ----------
+  // conclusion: 10000000 elements results in 0.28ms kernel time and 138 GB/s throughput
+  //reductionBenchmarkSum<int>(atoi(argv[1]));
+
+  //------------ hessian reduction ----------
+  //reductionBenchmarkHessian(atoi(argv[1]));
+
+  cudaCheckError();
   return 0;
 }
