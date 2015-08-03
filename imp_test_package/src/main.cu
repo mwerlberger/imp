@@ -1945,7 +1945,7 @@ void reductionExperiment(int _nr_ele)
   unsigned int residual_input_size = nr_elements;
   float* residual_input_host = (float*) malloc(residual_input_size*sizeof(float));
 
-  float visibility_ratio = 0.2;
+  float visibility_ratio = 0.9;
   srand(115);
 
   // Initialize test data
@@ -2040,11 +2040,13 @@ void reductionExperiment(int _nr_ele)
   for(unsigned int tt = 0; tt < nr_iterations;++tt)
   {
     //std::cout << "reducing normal blocks/threads/problem_size: " << blocks << "," <<threads<<","<<nr_elements << std::endl;
+    std::cout << "reduce jacobian" << std::endl;
     reduceJacobian(nr_elements,threads,blocks,jacobian_input_device,visibility_input_device,residual_input_device,gradient_output,hessian_output);
 
     problem_size = blocks;
     while(blocks > 1)
     {
+      std::cout << "reduce GPU" << std::endl;
       threads = (problem_size < max_threads*2) ? nextPow2((problem_size + 1)/ 2) : max_threads;
       blocks = (problem_size + (threads * 2 - 1)) / (threads * 2);
       //std::cout << "reducing normal blocks/threads/problem_size: " << blocks << "," <<threads<<","<<problem_size << std::endl;
