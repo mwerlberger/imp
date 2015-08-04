@@ -216,12 +216,16 @@ void setupInputData(float** jacobian_input, char** visibility_input, float** res
 void reduceHessianGradientCPU(const int num_blocks,
                               const float* __restrict__ gradient_input_host,
                               const float* __restrict__ hessian_input_host,
+                              const unsigned int* __restrict__ nMeas_input_host,
+                              const float* __restrict__ chi2_input_host,
                               float gradient_out[kJacobianSize],
-                              float hessian_out[kHessianTriagN])
+                              float hessian_out[kHessianTriagN],
+                              float& chi2)
 {
 
   memset(hessian_out,0,kHessianTriagN*sizeof(float));
   memset(gradient_out,0,kJacobianSize*sizeof(float));
+  chi2 = 0;
 
   for(unsigned int ii = 0; ii< static_cast<unsigned int>(num_blocks); ++ii)
   {
@@ -234,6 +238,7 @@ void reduceHessianGradientCPU(const int num_blocks,
     {
       gradient_out[gg] += gradient_input_host[ii*kJacobianSize + gg];
     }
+    chi2 += chi2_input_host[ii]/nMeas_input_host[ii];
   }
 }
 
@@ -242,10 +247,14 @@ void reduceJacobianCPU(int size,
                        char* visibility_input,
                        float* residual_input,
                        Eigen::Matrix<float,kJacobianSize,kJacobianSize>& H,
-                       Eigen::Matrix<float,kJacobianSize,1>& g)
+                       Eigen::Matrix<float,kJacobianSize,1>& g,
+                       float& chi2)
 {
   H.setZero(kJacobianSize,kJacobianSize);
   g.setZero(kJacobianSize,1);
+  chi2 = 0;
+  unsigned int n_meas = 0;
+
   for(size_t ii = 0; ii < size/kPatchArea; ++ii)
   {
     if(visibility_input[ii] == 1)
@@ -263,8 +272,14 @@ void reduceJacobianCPU(int size,
         const Eigen::Map<Eigen::Matrix<float,kJacobianSize,1> > J_d = Eigen::Map<Eigen::Matrix<float,kJacobianSize,1> >(&jacobian_input[jacobian_offset + kJacobianSize*jj]);
         H.noalias() += J_d*J_d.transpose()*weight;
         g.noalias() -= J_d*res*weight;
+        chi2 += res*res*weight;
+        ++n_meas;
       }
     }
+  }
+  if(n_meas > 0)
+  {
+    chi2 = chi2/n_meas;
   }
 }
 
@@ -293,8 +308,11 @@ void reductionBenchmarkHessian(int _nr_patches)
   // host intermediate input
   float* hessian_input_host = (float*) malloc(num_blocks*kHessianTriagN*sizeof(float));
   float* gradient_input_host = (float*) malloc(num_blocks*kJacobianSize*sizeof(float));
+  float* chi2_input_host = (float*) malloc(num_blocks*sizeof(float));
+  unsigned int* nMeas_input_host = (unsigned int*) malloc(num_blocks*sizeof(unsigned int));
   float gradient_out_cpu[kJacobianSize];
   float hessian_out_cpu[kHessianTriagN];
+  float chi2_out_cpu;
 
   // Setup device memory
   float* jacobian_input_device;
@@ -302,6 +320,8 @@ void reductionBenchmarkHessian(int _nr_patches)
   float* residual_input_device;
   float* gradient_output;
   float* hessian_output;
+  float* chi2_output;
+  unsigned int* nMeas_output;
 
   checkCudaErrors(cudaMalloc((void **)& jacobian_input_device,nr_elements*kJacobianSize*sizeof(float)));
   checkCudaErrors(cudaMalloc((void **)& visibility_input_device,(nr_elements/kPatchArea)*sizeof(char)));
@@ -311,29 +331,36 @@ void reductionBenchmarkHessian(int _nr_patches)
   checkCudaErrors(cudaMemcpy(residual_input_device,residual_input_host,nr_elements*sizeof(float),cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMalloc((void **)& gradient_output,num_blocks*kJacobianSize*sizeof(float)));
   checkCudaErrors(cudaMalloc((void **)& hessian_output,num_blocks*kHessianTriagN*sizeof(float)));
+  checkCudaErrors(cudaMalloc((void **)& chi2_output,num_blocks*sizeof(float)));
+  checkCudaErrors(cudaMalloc((void **)& nMeas_output,num_blocks*sizeof(unsigned int)));
 
   // warm up kernel call
-  reduceHessianGradient(nr_elements ,num_threads , num_blocks ,jacobian_input_device ,visibility_input_device ,residual_input_device ,gradient_output ,hessian_output);
+  reduceHessianGradient(nr_elements, num_threads, num_blocks, jacobian_input_device, visibility_input_device, residual_input_device, gradient_output, hessian_output, nMeas_output, chi2_output);
 
   // GPU reduction
   std::clock_t c_start_gpu = std::clock();
   for(unsigned int ii = 0; ii < nr_kernel_calls; ++ii)
   {
-    reduceHessianGradient(nr_elements ,num_threads , num_blocks ,jacobian_input_device ,visibility_input_device ,residual_input_device ,gradient_output ,hessian_output);
+    reduceHessianGradient(nr_elements, num_threads, num_blocks, jacobian_input_device, visibility_input_device, residual_input_device, gradient_output, hessian_output, nMeas_output, chi2_output);
     cudaDeviceSynchronize();
+
     checkCudaErrors(cudaMemcpy(hessian_input_host,hessian_output,num_blocks*kHessianTriagN*sizeof(float), cudaMemcpyDeviceToHost));
     checkCudaErrors(cudaMemcpy(gradient_input_host,gradient_output,num_blocks*kJacobianSize*sizeof(float), cudaMemcpyDeviceToHost));
-    reduceHessianGradientCPU(num_blocks,gradient_input_host, hessian_input_host, gradient_out_cpu, hessian_out_cpu);
+    checkCudaErrors(cudaMemcpy(chi2_input_host,chi2_output,num_blocks*sizeof(float), cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaMemcpy(nMeas_input_host,nMeas_output,num_blocks*sizeof(float), cudaMemcpyDeviceToHost));
+
+    reduceHessianGradientCPU(num_blocks,gradient_input_host, hessian_input_host,nMeas_input_host, chi2_input_host, gradient_out_cpu, hessian_out_cpu, chi2_out_cpu);
   }
   std::clock_t c_end_gpu = std::clock();
   double time_gpu_ms = CLOCK_TO_MS(c_start_gpu,c_end_gpu)/((double) nr_kernel_calls);
   unsigned int nr_elements_bytes = nr_elements*kJacobianSize*sizeof(float);
-  std::cout << std::endl << "Time per reduction (ms): " << time_gpu_ms << std::endl << "Troughput (jacobian input data / reduce time):" << (1.0e-9 * ((double) nr_elements_bytes))/(time_gpu_ms/1000) << " GB/s " << std::endl << std::endl;
+  std::cout << std::endl << "GPU time per reduction (ms): " << time_gpu_ms << std::endl << "Troughput (jacobian input data / reduce time):" << (1.0e-9 * ((double) nr_elements_bytes))/(time_gpu_ms/1000) << " GB/s " << std::endl << std::endl;
 
   // Cpu reduction for comparison
   std::clock_t c_start_cpu = std::clock();
   Eigen::Matrix<float,kJacobianSize,kJacobianSize> H;
   Eigen::Matrix<float,kJacobianSize,1> g;
+  float chi2;
   for(unsigned int tt = 0; tt < nr_kernel_calls;++tt)
   {
     reduceJacobianCPU(nr_elements,
@@ -341,11 +368,12 @@ void reductionBenchmarkHessian(int _nr_patches)
                       visibility_input_host,
                       residual_input_host,
                       H,
-                      g);
+                      g,
+                      chi2);
   }
   std::clock_t c_end_cpu = std::clock();
   double time_cpu_ms = CLOCK_TO_MS(c_start_cpu,c_end_cpu)/((double) nr_kernel_calls);
-  std::cout << std::endl << "Cpu time per reduce (ms): " << time_cpu_ms << std::endl << "Troughput (jacobian input data / reduce time):" << (1.0e-9 * ((double) nr_elements_bytes))/(time_cpu_ms/1000) << " GB/s " << std::endl << std::endl;
+  std::cout << std::endl << "CPU time per reduction (ms): " << time_cpu_ms << std::endl << "Troughput (jacobian input data / reduce time):" << (1.0e-9 * ((double) nr_elements_bytes))/(time_cpu_ms/1000) << " GB/s " << std::endl << std::endl;
 
 
   // ---------------- Output results ----------------
@@ -376,20 +404,27 @@ void reductionBenchmarkHessian(int _nr_patches)
   }
   std::cout << std::endl;
 
+  std::cout << "Chi2 GPU " << chi2_out_cpu <<std::endl;
+
   // Result CPU
   std::cout << "Hessian CPU" << std::endl;
   std::cout << H << std::endl;
   std::cout << "Gradient CPU" << std::endl;
   std::cout << g.transpose() << std::endl;
+  std::cout << "Chi2 CPU " << chi2_out_cpu <<std::endl;
 
   free(jacobian_input_host);
   free(visibility_input_host);
   free(residual_input_host);
+  free(chi2_input_host);
+  free(nMeas_input_host);
   cudaFree(jacobian_input_device);
   cudaFree(visibility_input_device);
   cudaFree(residual_input_device);
   cudaFree(gradient_output);
   cudaFree(hessian_output);
+  cudaFree(chi2_output);
+  cudaFree(nMeas_output);
 }
 
 int main(int argc, const char* argv[]) {

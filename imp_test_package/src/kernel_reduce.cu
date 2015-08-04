@@ -12,10 +12,6 @@
     This version adds multiple elements per thread sequentially.  This reduces the overall
     cost of the algorithm while keeping the work complexity O(n) and the step complexity O(log n).
     (Brent's Theorem optimization)
-
-    Note, this kernel needs a minimum of 64*sizeof(T) bytes of shared memory.
-    In other words if blockSize <= 32, allocate 64*sizeof(T) bytes.
-    If blockSize > 32, allocate blockSize*sizeof(T) bytes.
 */
 template <class T, unsigned int blockSize, bool nIsPow2>
 __global__ void
@@ -352,15 +348,21 @@ __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache
                                         const char* __restrict__ visibility_cache,
                                         float* __restrict__ gradient_cache,
                                         float* __restrict__ hessian_cache,
+                                        unsigned int* __restrict__ nrMeas,
+                                        float* __restrict__ chi2,
                                         const unsigned int n_elements)
 {
   //  extern __shared__ float s_hessian_data[];
   //  extern __shared__ float s_gradient_data[];
   __shared__ float s_hessian_data[_block_size*kHessianTriagN];
   __shared__ float s_gradient_data[_block_size*kJacobianSize];
+  __shared__ float s_chi2[_block_size];
+  __shared__ short s_chi2NrMeas[_block_size];
   float jacobian[kJacobianSize];
   float gradient[kJacobianSize];
   float hessian[kHessianTriagN];
+  float chi2_temp;
+  unsigned int chi2NrMeas = 0;
 
   // perform first level of reduction,
   // reading from global memory, writing to shared memory
@@ -380,6 +382,7 @@ __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache
     //set memory to zero
     setToZero<kJacobianSize>(gradient);
     setToZero<kHessianTriagN>(hessian);
+    chi2_temp = 0.0;
   }
   else
   {
@@ -394,11 +397,14 @@ __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache
       copyVector<kJacobianSize>(jacobian,&jacobian_cache[i*kJacobianSize]);
       setVVTUpperTriag<kJacobianSize>(hessian,jacobian,weight);
       setWeightedVector<kJacobianSize>(gradient,jacobian, -weight*residual);
+      chi2_temp = residual*residual*weight;
+      ++chi2NrMeas;
     }
     else
     {
       setToZero<kJacobianSize>(gradient);
       setToZero<kHessianTriagN>(hessian);
+      chi2_temp = 0.0;
     }
 
     // Get second element
@@ -417,6 +423,8 @@ __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache
         copyVector<kJacobianSize>(jacobian,&jacobian_cache[i*kJacobianSize]);
         addVVTUpperTriag<kJacobianSize>(hessian,jacobian,weight);
         subWeightedVector<kJacobianSize>(gradient,jacobian, weight*residual);
+        chi2_temp += residual*residual*weight;
+        ++chi2NrMeas;
       }
     }
     i += (gridSize - _block_size);
@@ -436,6 +444,8 @@ __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache
       copyVector<kJacobianSize>(jacobian,&jacobian_cache[i*kJacobianSize]);
       addVVTUpperTriag<kJacobianSize>(hessian,jacobian,weight);
       subWeightedVector<kJacobianSize>(gradient,jacobian, weight*residual);
+      chi2_temp += residual*residual*weight;
+      ++chi2NrMeas;
     }
 
     // add second element
@@ -454,6 +464,8 @@ __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache
         copyVector<kJacobianSize>(jacobian,&jacobian_cache[i*kJacobianSize]);
         addVVTUpperTriag<kJacobianSize>(hessian,jacobian,weight);
         subWeightedVector<kJacobianSize>(gradient,jacobian, weight*residual);
+        chi2_temp += residual*residual*weight;
+        ++chi2NrMeas;
       }
     }
     i += (gridSize - _block_size);
@@ -462,6 +474,8 @@ __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache
   // each thread puts its local sum into shared memory
   copyVector<kJacobianSize>(&s_gradient_data[gradient_index],gradient);
   copyVector<kHessianTriagN>(&s_hessian_data[hessian_index],hessian);
+  s_chi2[tid] = chi2_temp;
+  s_chi2NrMeas[tid] = chi2NrMeas;
   __syncthreads();
 
   // do reduction in shared mem
@@ -470,9 +484,14 @@ __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache
     // add to local variable
     addVector<kJacobianSize>(gradient,&s_gradient_data[(tid + 256)*kJacobianSize]);
     addVector<kHessianTriagN>(hessian,&s_hessian_data[(tid + 256)*kHessianTriagN]);
+    chi2_temp += s_chi2[tid + 256];
+    chi2NrMeas += s_chi2NrMeas[tid + 256];
+
     // store result to shared memory
     copyVector<kJacobianSize>(&s_gradient_data[gradient_index],gradient);
     copyVector<kHessianTriagN>(&s_hessian_data[hessian_index],hessian);
+    s_chi2[tid] = chi2_temp;
+    s_chi2NrMeas[tid] = chi2NrMeas;
   }
 
   __syncthreads();
@@ -482,9 +501,13 @@ __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache
     // add to local variable
     addVector<kJacobianSize>(gradient,&s_gradient_data[(tid + 128)*kJacobianSize]);
     addVector<kHessianTriagN>(hessian,&s_hessian_data[(tid + 128)*kHessianTriagN]);
+    chi2_temp += s_chi2[tid + 128];
+    chi2NrMeas += s_chi2NrMeas[tid + 128];
     // store result to shared memory
     copyVector<kJacobianSize>(&s_gradient_data[gradient_index],gradient);
     copyVector<kHessianTriagN>(&s_hessian_data[hessian_index],hessian);
+    s_chi2[tid] = chi2_temp;
+    s_chi2NrMeas[tid] = chi2NrMeas;
   }
 
   __syncthreads();
@@ -494,9 +517,13 @@ __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache
     // add to local variable
     addVector<kJacobianSize>(gradient,&s_gradient_data[(tid + 64)*kJacobianSize]);
     addVector<kHessianTriagN>(hessian,&s_hessian_data[(tid + 64)*kHessianTriagN]);
+    chi2_temp += s_chi2[tid + 64];
+    chi2NrMeas += s_chi2NrMeas[tid + 64];
     // store result to shared memory
     copyVector<kJacobianSize>(&s_gradient_data[gradient_index],gradient);
     copyVector<kHessianTriagN>(&s_hessian_data[hessian_index],hessian);
+    s_chi2[tid] = chi2_temp;
+    s_chi2NrMeas[tid] = chi2NrMeas;
   }
 
   __syncthreads();
@@ -520,69 +547,91 @@ __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache
     // add to local variable
     addVector<kJacobianSize>(gradient,&s_gradient_data[(tid + 32)*kJacobianSize]);
     addVector<kHessianTriagN>(hessian,&s_hessian_data[(tid + 32)*kHessianTriagN]);
+    chi2_temp += s_chi2[tid + 32];
+    chi2NrMeas += s_chi2NrMeas[tid + 32];
     // store result to shared memory
     copyVector<kJacobianSize>(&s_gradient_data[gradient_index],gradient);
     copyVector<kHessianTriagN>(&s_hessian_data[hessian_index],hessian);
+    s_chi2[tid] = chi2_temp;
+    s_chi2NrMeas[tid] = chi2NrMeas;
   }
 
-  //__syncthreads();
+  __syncthreads();
 
   if ((_block_size >=  32) && (tid < 16))
   {
     // add to local variable
     addVector<kJacobianSize>(gradient,&s_gradient_data[(tid + 16)*kJacobianSize]);
     addVector<kHessianTriagN>(hessian,&s_hessian_data[(tid + 16)*kHessianTriagN]);
+    chi2_temp += s_chi2[tid + 16];
+    chi2NrMeas += s_chi2NrMeas[tid + 16];
     // store result to shared memory
     copyVector<kJacobianSize>(&s_gradient_data[gradient_index],gradient);
     copyVector<kHessianTriagN>(&s_hessian_data[hessian_index],hessian);
+    s_chi2[tid] = chi2_temp;
+    s_chi2NrMeas[tid] = chi2NrMeas;
   }
 
-  //__syncthreads();
+  __syncthreads();
 
   if ((_block_size >=  16) && (tid <  8))
   {
     // add to local variable
     addVector<kJacobianSize>(gradient,&s_gradient_data[(tid + 8)*kJacobianSize]);
     addVector<kHessianTriagN>(hessian,&s_hessian_data[(tid + 8)*kHessianTriagN]);
+    chi2_temp += s_chi2[tid + 8];
+    chi2NrMeas += s_chi2NrMeas[tid + 8];
     // store result to shared memory
     copyVector<kJacobianSize>(&s_gradient_data[gradient_index],gradient);
     copyVector<kHessianTriagN>(&s_hessian_data[hessian_index],hessian);
+    s_chi2[tid] = chi2_temp;
+    s_chi2NrMeas[tid] = chi2NrMeas;
   }
 
-  //__syncthreads();
+  __syncthreads();
 
   if ((_block_size >=   8) && (tid <  4))
   {
     // add to local variable
     addVector<kJacobianSize>(gradient,&s_gradient_data[(tid + 4)*kJacobianSize]);
     addVector<kHessianTriagN>(hessian,&s_hessian_data[(tid + 4)*kHessianTriagN]);
+    chi2_temp += s_chi2[tid + 4];
+    chi2NrMeas += s_chi2NrMeas[tid + 4];
     // store result to shared memory
     copyVector<kJacobianSize>(&s_gradient_data[gradient_index],gradient);
     copyVector<kHessianTriagN>(&s_hessian_data[hessian_index],hessian);
+    s_chi2[tid] = chi2_temp;
+    s_chi2NrMeas[tid] = chi2NrMeas;
   }
 
-  //__syncthreads();
+  __syncthreads();
 
   if ((_block_size >=   4) && (tid <  2))
   {
     // add to local variable
     addVector<kJacobianSize>(gradient,&s_gradient_data[(tid + 2)*kJacobianSize]);
     addVector<kHessianTriagN>(hessian,&s_hessian_data[(tid + 2)*kHessianTriagN]);
+    chi2_temp += s_chi2[tid + 2];
+    chi2NrMeas += s_chi2NrMeas[tid + 2];
     // store result to shared memory
     copyVector<kJacobianSize>(&s_gradient_data[gradient_index],gradient);
     copyVector<kHessianTriagN>(&s_hessian_data[hessian_index],hessian);
+    s_chi2[tid] = chi2_temp;
+    s_chi2NrMeas[tid] = chi2NrMeas;
   }
 
-  //__syncthreads();
+  __syncthreads();
 
   if ((_block_size >=   2) && ( tid <  1))
   {
     // add to local variable
     addVector<kJacobianSize>(gradient,&s_gradient_data[(tid + 1)*kJacobianSize]);
     addVector<kHessianTriagN>(hessian,&s_hessian_data[(tid + 1)*kHessianTriagN]);
+    chi2_temp += s_chi2[tid + 1];
+    chi2NrMeas += s_chi2NrMeas[tid + 1];
   }
 
-  //__syncthreads();
+  __syncthreads();
   //#endif
 
   // write result for this block to global mem
@@ -590,6 +639,8 @@ __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache
   {
     copyVector<kJacobianSize>(&gradient_cache[blockIdx.x*kJacobianSize],gradient);
     copyVector<kHessianTriagN>(&hessian_cache[blockIdx.x*kHessianTriagN],hessian);
+    chi2[blockIdx.x] = chi2_temp;
+    nrMeas[blockIdx.x] = chi2NrMeas;
   }
 }
 
@@ -599,7 +650,9 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                            const char* __restrict__ visibility_input_device,
                            const float* __restrict__ residual_input_device,
                            float* __restrict__ gradient_output,
-                           float* __restrict__ hessian_output)
+                           float* __restrict__ hessian_output,
+                           unsigned int* __restrict__ nrMeas,
+                           float* __restrict__ chi2)
 {
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
@@ -627,6 +680,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                   visibility_input_device,
                                                                   gradient_output,
                                                                   hessian_output,
+                                                                  nrMeas,
+                                                                  chi2,
                                                                   size);
       break;
 
@@ -637,6 +692,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                   visibility_input_device,
                                                                   gradient_output,
                                                                   hessian_output,
+                                                                  nrMeas,
+                                                                  chi2,
                                                                   size);
       break;
 
@@ -647,6 +704,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                  visibility_input_device,
                                                                  gradient_output,
                                                                  hessian_output,
+                                                                 nrMeas,
+                                                                 chi2,
                                                                  size);
       break;
 
@@ -657,6 +716,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                  visibility_input_device,
                                                                  gradient_output,
                                                                  hessian_output,
+                                                                 nrMeas,
+                                                                 chi2,
                                                                  size);
       break;
 
@@ -667,6 +728,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                  visibility_input_device,
                                                                  gradient_output,
                                                                  hessian_output,
+                                                                 nrMeas,
+                                                                 chi2,
                                                                  size);
       break;
 
@@ -677,6 +740,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                 visibility_input_device,
                                                                 gradient_output,
                                                                 hessian_output,
+                                                                nrMeas,
+                                                                chi2,
                                                                 size);
       break;
 
@@ -687,6 +752,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                 visibility_input_device,
                                                                 gradient_output,
                                                                 hessian_output,
+                                                                nrMeas,
+                                                                chi2,
                                                                 size);
       break;
 
@@ -697,6 +764,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                 visibility_input_device,
                                                                 gradient_output,
                                                                 hessian_output,
+                                                                nrMeas,
+                                                                chi2,
                                                                 size);
       break;
 
@@ -707,6 +776,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                 visibility_input_device,
                                                                 gradient_output,
                                                                 hessian_output,
+                                                                nrMeas,
+                                                                chi2,
                                                                 size);
       break;
     }
@@ -733,6 +804,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                    visibility_input_device,
                                                                    gradient_output,
                                                                    hessian_output,
+                                                                   nrMeas,
+                                                                   chi2,
                                                                    size);
       break;
 
@@ -743,6 +816,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                    visibility_input_device,
                                                                    gradient_output,
                                                                    hessian_output,
+                                                                   nrMeas,
+                                                                   chi2,
                                                                    size);
       break;
 
@@ -753,6 +828,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                   visibility_input_device,
                                                                   gradient_output,
                                                                   hessian_output,
+                                                                  nrMeas,
+                                                                  chi2,
                                                                   size);
       break;
 
@@ -763,6 +840,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                   visibility_input_device,
                                                                   gradient_output,
                                                                   hessian_output,
+                                                                  nrMeas,
+                                                                  chi2,
                                                                   size);
       break;
 
@@ -773,6 +852,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                   visibility_input_device,
                                                                   gradient_output,
                                                                   hessian_output,
+                                                                  nrMeas,
+                                                                  chi2,
                                                                   size);
       break;
 
@@ -783,6 +864,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                  visibility_input_device,
                                                                  gradient_output,
                                                                  hessian_output,
+                                                                 nrMeas,
+                                                                 chi2,
                                                                  size);
       break;
 
@@ -793,6 +876,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                  visibility_input_device,
                                                                  gradient_output,
                                                                  hessian_output,
+                                                                 nrMeas,
+                                                                 chi2,
                                                                  size);
       break;
 
@@ -803,6 +888,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                  visibility_input_device,
                                                                  gradient_output,
                                                                  hessian_output,
+                                                                 nrMeas,
+                                                                 chi2,
                                                                  size);
       break;
 
@@ -813,6 +900,8 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
                                                                  visibility_input_device,
                                                                  gradient_output,
                                                                  hessian_output,
+                                                                 nrMeas,
+                                                                 chi2,
                                                                  size);
       break;
     }
