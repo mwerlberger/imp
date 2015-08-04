@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cuda_runtime.h>
+#include <stdexcept>
+#include <imp/imp_test_package/kernel_reduce.hpp>
 
 //-------------------------------------------------------------------------------------------
 // simple sum reduction
@@ -343,14 +345,9 @@ __host__ __device__ __forceinline__ void copyVector(float* __restrict__ dest_vec
   }
 }
 
-static constexpr unsigned int kJacobianSize = 8;
-static constexpr unsigned int kHessianTriagN = 36;
-static constexpr unsigned int kPatchSize = 4;
-static constexpr unsigned int kPatchArea = kPatchSize*kPatchSize;
-
 // _block_size must be power of 2
 template <unsigned int _block_size, bool n_is_pow2>
-__global__ void k_jacobianReduceHessianGradient(const float* __restrict__ jacobian_cache,
+__global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache,
                                                 const float* __restrict__ residual_cache,
                                                 const char* __restrict__ visibility_cache,
                                                 float* __restrict__ gradient_cache,
@@ -574,6 +571,232 @@ __global__ void k_jacobianReduceHessianGradient(const float* __restrict__ jacobi
   {
     copyVector<kJacobianSize>(&gradient_cache[blockIdx.x*kJacobianSize],gradient);
     copyVector<kHessianTriagN>(&hessian_cache[blockIdx.x*kHessianTriagN],hessian);
+  }
+}
+
+
+void reduceHessianGradient(const int size, const int threads, const int blocks,
+                           const float* __restrict__ jacobian_input_device,
+                           const char* __restrict__ visibility_input_device,
+                           const float* __restrict__ residual_input_device,
+                           float* __restrict__ gradient_output,
+                           float* __restrict__ hessian_output)
+{
+  dim3 dimBlock(threads, 1, 1);
+  dim3 dimGrid(blocks, 1, 1);
+
+  if (isPow2(size))
+  {
+    switch (threads)
+    {
+
+    case 512:
+      throw std::runtime_error(" 512 threads exceed the 48kB of available shared memory per block!");
+      //      cudaFuncSetCacheConfig (k_reduceHessianGradient<512,true>, cudaFuncCachePreferShared);
+      //      k_jacobianReduceHessianGradient<512, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
+      //                                                                          residual_input_device,
+      //                                                                          visibility_input_device,
+      //                                                                          gradient_output,
+      //                                                                          hessian_output,
+      //                                                                          size);
+      break;
+
+    case 256:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<256,true>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<256, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                          residual_input_device,
+                                                                          visibility_input_device,
+                                                                          gradient_output,
+                                                                          hessian_output,
+                                                                          size);
+      break;
+
+    case 128:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<128,true>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<128, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                          residual_input_device,
+                                                                          visibility_input_device,
+                                                                          gradient_output,
+                                                                          hessian_output,
+                                                                          size);
+      break;
+
+    case 64:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<64,true>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<64, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                         residual_input_device,
+                                                                         visibility_input_device,
+                                                                         gradient_output,
+                                                                         hessian_output,
+                                                                         size);
+      break;
+
+    case 32:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<32,true>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<32, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                         residual_input_device,
+                                                                         visibility_input_device,
+                                                                         gradient_output,
+                                                                         hessian_output,
+                                                                         size);
+      break;
+
+    case 16:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<16,true>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<16, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                         residual_input_device,
+                                                                         visibility_input_device,
+                                                                         gradient_output,
+                                                                         hessian_output,
+                                                                         size);
+      break;
+
+    case  8:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<8,true>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<8, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                        residual_input_device,
+                                                                        visibility_input_device,
+                                                                        gradient_output,
+                                                                        hessian_output,
+                                                                        size);
+      break;
+
+    case  4:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<4,true>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<4, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                        residual_input_device,
+                                                                        visibility_input_device,
+                                                                        gradient_output,
+                                                                        hessian_output,
+                                                                        size);
+      break;
+
+    case  2:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<2,true>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<2, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                        residual_input_device,
+                                                                        visibility_input_device,
+                                                                        gradient_output,
+                                                                        hessian_output,
+                                                                        size);
+      break;
+
+    case  1:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<1,true>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<1, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                        residual_input_device,
+                                                                        visibility_input_device,
+                                                                        gradient_output,
+                                                                        hessian_output,
+                                                                        size);
+      break;
+    }
+  }
+  else
+  {
+    switch (threads)
+    {
+    case 512:
+      throw std::runtime_error(" 512 threads exceed the 48kB of available shared memory per block!");
+      //      cudaFuncSetCacheConfig (k_reduceHessianGradient<512,false>, cudaFuncCachePreferShared);
+      //      k_jacobianReduceHessianGradient<512, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
+      //                                                                           residual_input_device,
+      //                                                                           visibility_input_device,
+      //                                                                           gradient_output,
+      //                                                                           hessian_output,
+      //                                                                           size);
+      break;
+
+    case 256:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<256,false>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<256, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                           residual_input_device,
+                                                                           visibility_input_device,
+                                                                           gradient_output,
+                                                                           hessian_output,
+                                                                           size);
+      break;
+
+    case 128:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<128,false>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<128, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                           residual_input_device,
+                                                                           visibility_input_device,
+                                                                           gradient_output,
+                                                                           hessian_output,
+                                                                           size);
+      break;
+
+    case 64:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<64,false>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<64, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                          residual_input_device,
+                                                                          visibility_input_device,
+                                                                          gradient_output,
+                                                                          hessian_output,
+                                                                          size);
+      break;
+
+    case 32:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<32,false>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<32, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                          residual_input_device,
+                                                                          visibility_input_device,
+                                                                          gradient_output,
+                                                                          hessian_output,
+                                                                          size);
+      break;
+
+    case 16:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<16,false>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<16, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                          residual_input_device,
+                                                                          visibility_input_device,
+                                                                          gradient_output,
+                                                                          hessian_output,
+                                                                          size);
+      break;
+
+    case  8:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<8,false>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<8, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                         residual_input_device,
+                                                                         visibility_input_device,
+                                                                         gradient_output,
+                                                                         hessian_output,
+                                                                         size);
+      break;
+
+    case  4:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<4,false>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<4, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                         residual_input_device,
+                                                                         visibility_input_device,
+                                                                         gradient_output,
+                                                                         hessian_output,
+                                                                         size);
+      break;
+
+    case  2:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<2,false>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<2, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                         residual_input_device,
+                                                                         visibility_input_device,
+                                                                         gradient_output,
+                                                                         hessian_output,
+                                                                         size);
+      break;
+
+    case  1:
+      //cudaFuncSetCacheConfig (k_reduceHessianGradient<1,false>, cudaFuncCachePreferL1);
+      k_reduceHessianGradient<1, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
+                                                                         residual_input_device,
+                                                                         visibility_input_device,
+                                                                         gradient_output,
+                                                                         hessian_output,
+                                                                         size);
+      break;
+    }
   }
 }
 

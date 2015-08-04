@@ -10,6 +10,11 @@
 #include <imp/imp_test_package/kernel_reduce.hpp>
 #include <imp/imp_test_package/helper_cuda.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+#include <Eigen/Dense>
+#pragma GCC diagnostic pop
+
 #define cudaCheckError() {                                                                       \
   cudaError_t e=cudaGetLastError();                                                        \
   if(e!=cudaSuccess) {                                                                     \
@@ -162,9 +167,169 @@ void reductionBenchmarkSum(int _nr_elements)
   free(h_odata);
 }
 
-void reductionBenchmarkHessian(int _nr_elements)
+void setupInputData(float** jacobian_input, char** visibility_input, float** residual_input, unsigned int nr_elements)
+{
+  unsigned int jacobian_input_size = nr_elements*kJacobianSize;
+  *jacobian_input = (float*) malloc(jacobian_input_size*sizeof(float));
+  if(nr_elements%kPatchArea != 0)
+  {
+    throw std::runtime_error("nr elements must be a multiple of the patchsize");
+  }
+
+  unsigned int visibility_input_size = nr_elements/kPatchArea;
+  *visibility_input = (char*) malloc(visibility_input_size*sizeof(char));
+  unsigned int residual_input_size = nr_elements;
+  *residual_input = (float*) malloc(residual_input_size*sizeof(float));
+
+  float visibility_ratio = 0.9;
+  srand(115);
+
+  // Initialize test data
+  for(unsigned int ii = 0; ii < jacobian_input_size; ++ii)
+  {
+    float magnitude = 10;
+    float rand_init = (static_cast<float>(rand())/RAND_MAX - 0.5)*magnitude;
+    (*jacobian_input)[ii] = rand_init;
+  }
+
+  for(unsigned int ii = 0; ii < visibility_input_size; ++ii)
+  {
+    char rand_init = (static_cast<float>(rand())/RAND_MAX - visibility_ratio) < 0 ? 1 : 0;
+    (*visibility_input)[ii] = rand_init;
+  }
+
+  for(unsigned int ii = 0; ii < residual_input_size; ++ii)
+  {
+    float magnitude = 2.0;
+    float rand_init = (static_cast<float>(rand())/RAND_MAX - 0.5)*magnitude;
+    (*residual_input)[ii] = rand_init;
+  }
+}
+
+
+void reduceHessianGradientCPU(const int num_blocks,
+                              const float* __restrict__ gradient_input_host,
+                              const float* __restrict__ hessian_input_host,
+                              float gradient_out[kJacobianSize],
+                              float hessian_out[kHessianTriagN])
 {
 
+  memset(hessian_out,0,kHessianTriagN*sizeof(float));
+  memset(gradient_out,0,kJacobianSize*sizeof(float));
+
+  for(unsigned int ii = 0; ii< static_cast<unsigned int>(num_blocks); ++ii)
+  {
+    for(unsigned int hh = 0; hh < kHessianTriagN; ++hh)
+    {
+      hessian_out[hh] += hessian_input_host[ii*kHessianTriagN + hh];
+    }
+
+    for(unsigned int gg = 0; gg < kJacobianSize; ++gg)
+    {
+      gradient_out[gg] += gradient_input_host[ii*kJacobianSize + gg];
+    }
+  }
+}
+
+void reductionBenchmarkHessian(int _nr_patches)
+{
+  unsigned int nr_kernel_calls = 100;
+  int max_threads = 256;
+  int max_blocks = 64;
+  //int nr_elements_per_thread = 2;
+  unsigned int nr_patches = static_cast<unsigned int>(_nr_patches);
+  unsigned int nr_elements = nr_patches*kPatchArea;
+  int nr_elements_per_thread = std::floor(log2 (static_cast<double>(nr_elements)));
+
+  int num_blocks = 0;
+  int num_threads = 0;
+  getNumBlocksAndThreads(nr_elements, max_blocks, max_threads, nr_elements_per_thread, num_blocks, num_threads);
+
+  // Generate Test data
+  float* jacobian_input_host;
+  char* visibility_input_host;
+  float* residual_input_host;
+
+  setupInputData(&jacobian_input_host,&visibility_input_host, &residual_input_host, nr_elements);
+
+  // host intermediate input
+  float* hessian_input_host = (float*) malloc(num_blocks*kHessianTriagN*sizeof(float));
+  float* gradient_input_host = (float*) malloc(num_blocks*kJacobianSize*sizeof(float));
+  float gradient_out_cpu[kJacobianSize];
+  float hessian_out_cpu[kHessianTriagN];
+
+  // Setup device memory
+  float* jacobian_input_device;
+  char* visibility_input_device;
+  float* residual_input_device;
+  float* gradient_output;
+  float* hessian_output;
+
+  checkCudaErrors(cudaMalloc((void **)& jacobian_input_device,nr_elements*kJacobianSize*sizeof(float)));
+  checkCudaErrors(cudaMalloc((void **)& visibility_input_device,(nr_elements/kPatchArea)*sizeof(char)));
+  checkCudaErrors(cudaMalloc((void **)& residual_input_device,nr_elements*sizeof(float)));
+  checkCudaErrors(cudaMemcpy(jacobian_input_device,jacobian_input_host,nr_elements*kJacobianSize*sizeof(float),cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(visibility_input_device,visibility_input_host,(nr_elements/kPatchArea)*sizeof(char),cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(residual_input_device,residual_input_host,nr_elements*sizeof(float),cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMalloc((void **)& gradient_output,num_blocks*kJacobianSize*sizeof(float)));
+  checkCudaErrors(cudaMalloc((void **)& hessian_output,num_blocks*kHessianTriagN*sizeof(float)));
+
+  // warm up kernel call
+  reduceHessianGradient(nr_elements ,num_threads , num_blocks ,jacobian_input_device ,visibility_input_device ,residual_input_device ,gradient_output ,hessian_output);
+
+  std::clock_t c_start_gpu = std::clock();
+  for(unsigned int ii = 0; ii < nr_kernel_calls; ++ii)
+  {
+    reduceHessianGradient(nr_elements ,num_threads , num_blocks ,jacobian_input_device ,visibility_input_device ,residual_input_device ,gradient_output ,hessian_output);
+    cudaDeviceSynchronize();
+    checkCudaErrors(cudaMemcpy(hessian_input_host,hessian_output,num_blocks*kHessianTriagN*sizeof(float), cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaMemcpy(gradient_input_host,gradient_output,num_blocks*kJacobianSize*sizeof(float), cudaMemcpyDeviceToHost));
+    reduceHessianGradientCPU(num_blocks,gradient_input_host, hessian_input_host, gradient_out_cpu, hessian_out_cpu);
+  }
+  std::clock_t c_end_gpu = std::clock();
+  double time_gpu_ms = CLOCK_TO_MS(c_start_gpu,c_end_gpu)/((double) nr_kernel_calls);
+  unsigned int nr_elements_bytes = nr_elements*kJacobianSize*sizeof(float);
+  std::cout << "Time per kernel (ms): " << time_gpu_ms << std::endl << "Troughput (jacobian input data / reduce time):" << (1.0e-9 * ((double) nr_elements_bytes))/(time_gpu_ms/1000) << " GB/s " << std::endl;
+
+  free(jacobian_input_host);
+  free(visibility_input_host);
+  free(residual_input_host);
+  cudaFree(jacobian_input_device);
+  cudaFree(visibility_input_device);
+  cudaFree(residual_input_device);
+  cudaFree(gradient_output);
+  cudaFree(hessian_output);
+}
+
+void reduceJacobianCPU(int size,
+                       float* jacobian_input,
+                       char* visibility_input,
+                       float* residual_input,
+                       Eigen::Matrix<float,kJacobianSize,kJacobianSize>& H,
+                       Eigen::Matrix<float,kJacobianSize,1>& g)
+{
+  H.setZero(kJacobianSize,kJacobianSize);
+  g.setZero(kJacobianSize,1);
+  for(size_t ii = 0; ii < size/kPatchArea; ++ii)
+  {
+    if(visibility_input[ii] == 1)
+    {
+      size_t patch_offset = ii*kPatchArea;
+      size_t jacobian_offset = ii*kJacobianSize*kPatchArea;
+      for(size_t jj = 0; jj < kPatchArea; ++jj)
+      {
+        float res = residual_input[patch_offset+jj];
+
+        // Robustification.
+        float weight = 1.0;
+
+        // Compute Jacobian, weighted Hessian and weighted "steepest descend images" (times error).
+        const Eigen::Map<Eigen::Matrix<float,kJacobianSize,1> > J_d = Eigen::Map<Eigen::Matrix<float,kJacobianSize,1> >(&jacobian_input[jacobian_offset + kJacobianSize*jj]);
+        H.noalias() += J_d*J_d.transpose()*weight;
+        g.noalias() -= J_d*res*weight;
+      }
+    }
+  }
 }
 
 int main(int argc, const char* argv[]) {
@@ -174,7 +339,7 @@ int main(int argc, const char* argv[]) {
   //reductionBenchmarkSum<int>(atoi(argv[1]));
 
   //------------ hessian reduction ----------
-  //reductionBenchmarkHessian(atoi(argv[1]));
+  reductionBenchmarkHessian(atoi(argv[1]));
 
   cudaCheckError();
   return 0;
