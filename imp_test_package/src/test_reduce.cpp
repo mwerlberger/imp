@@ -323,7 +323,7 @@ void reductionBenchmarkHessian(int _nr_patches)
   unsigned int nr_elements_bytes = nr_elements*kJacobianSize*sizeof(float);
   std::cout << std::endl << "Time per reduction (ms): " << time_gpu_ms << std::endl << "Troughput (jacobian input data / reduce time):" << (1.0e-9 * ((double) nr_elements_bytes))/(time_gpu_ms/1000) << " GB/s " << std::endl << std::endl;
 
-  // Cpu comparison
+  // Cpu reduction for comparison
   std::clock_t c_start_cpu = std::clock();
   Eigen::Matrix<float,kJacobianSize,kJacobianSize> H;
   Eigen::Matrix<float,kJacobianSize,1> g;
@@ -341,7 +341,8 @@ void reductionBenchmarkHessian(int _nr_patches)
   std::cout << std::endl << "Cpu time per reduce (ms): " << time_cpu_ms << std::endl << "Troughput (jacobian input data / reduce time):" << (1.0e-9 * ((double) nr_elements_bytes))/(time_cpu_ms/1000) << " GB/s " << std::endl << std::endl;
 
 
-  //Results GPU
+  // ---------------- Output results ----------------
+  // Results GPU
   float hessian_output_array[kJacobianSize*kJacobianSize];
   std::cout << "Hessian GPU" << std::endl;
   for(unsigned int row = 0, index = 0; row < kJacobianSize; ++row)
@@ -368,6 +369,7 @@ void reductionBenchmarkHessian(int _nr_patches)
   }
   std::cout << std::endl;
 
+  // Result CPU
   std::cout << "Hessian CPU" << std::endl;
   std::cout << H << std::endl;
   std::cout << "Gradient CPU" << std::endl;

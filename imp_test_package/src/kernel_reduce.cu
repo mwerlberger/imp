@@ -21,115 +21,115 @@ template <class T, unsigned int blockSize, bool nIsPow2>
 __global__ void
 reduce6(T *g_idata, T *g_odata, unsigned int n)
 {
-    __shared__ T sdata[blockSize];
+  __shared__ T sdata[blockSize];
 
-    // perform first level of reduction,
-    // reading from global memory, writing to shared memory
-    unsigned int tid = threadIdx.x;
-    unsigned int i = blockIdx.x*blockSize*2 + threadIdx.x;
-    unsigned int gridSize = blockSize*2*gridDim.x;
+  // perform first level of reduction,
+  // reading from global memory, writing to shared memory
+  unsigned int tid = threadIdx.x;
+  unsigned int i = blockIdx.x*blockSize*2 + threadIdx.x;
+  unsigned int gridSize = blockSize*2*gridDim.x;
 
-    T mySum = 0;
+  T mySum = 0;
 
-    // we reduce multiple elements per thread.  The number is determined by the
-    // number of active thread blocks (via gridDim).  More blocks will result
-    // in a larger gridSize and therefore fewer elements per thread
-    while (i < n)
-    {
-        mySum += g_idata[i];
+  // we reduce multiple elements per thread.  The number is determined by the
+  // number of active thread blocks (via gridDim).  More blocks will result
+  // in a larger gridSize and therefore fewer elements per thread
+  while (i < n)
+  {
+    mySum += g_idata[i];
 
-        // ensure we don't read out of bounds -- this is optimized away for powerOf2 sized arrays
-        if (nIsPow2 || i + blockSize < n)
-            mySum += g_idata[i+blockSize];
+    // ensure we don't read out of bounds -- this is optimized away for powerOf2 sized arrays
+    if (nIsPow2 || i + blockSize < n)
+      mySum += g_idata[i+blockSize];
 
-        i += gridSize;
-    }
+    i += gridSize;
+  }
 
-    // each thread puts its local sum into shared memory
-    sdata[tid] = mySum;
-    __syncthreads();
+  // each thread puts its local sum into shared memory
+  sdata[tid] = mySum;
+  __syncthreads();
 
 
-    // do reduction in shared mem
-    if ((blockSize >= 512) && (tid < 256))
-    {
-        sdata[tid] = mySum = mySum + sdata[tid + 256];
-    }
+  // do reduction in shared mem
+  if ((blockSize >= 512) && (tid < 256))
+  {
+    sdata[tid] = mySum = mySum + sdata[tid + 256];
+  }
 
-    __syncthreads();
+  __syncthreads();
 
-    if ((blockSize >= 256) &&(tid < 128))
-    {
-            sdata[tid] = mySum = mySum + sdata[tid + 128];
-    }
+  if ((blockSize >= 256) &&(tid < 128))
+  {
+    sdata[tid] = mySum = mySum + sdata[tid + 128];
+  }
 
-     __syncthreads();
+  __syncthreads();
 
-    if ((blockSize >= 128) && (tid <  64))
-    {
-       sdata[tid] = mySum = mySum + sdata[tid +  64];
-    }
+  if ((blockSize >= 128) && (tid <  64))
+  {
+    sdata[tid] = mySum = mySum + sdata[tid +  64];
+  }
 
-    __syncthreads();
+  __syncthreads();
 
 #if (__CUDA_ARCH__ >= 300 )
-    if ( tid < 32 )
+  if ( tid < 32 )
+  {
+    // Fetch final intermediate sum from 2nd warp
+    if (blockSize >=  64) mySum += sdata[tid + 32];
+    // Reduce final warp using shuffle
+    for (int offset = warpSize/2; offset > 0; offset /= 2)
     {
-        // Fetch final intermediate sum from 2nd warp
-        if (blockSize >=  64) mySum += sdata[tid + 32];
-        // Reduce final warp using shuffle
-        for (int offset = warpSize/2; offset > 0; offset /= 2)
-        {
-            mySum += __shfl_down(mySum, offset);
-        }
+      mySum += __shfl_down(mySum, offset);
     }
+  }
 #else
-    // fully unroll reduction within a single warp
-    if ((blockSize >=  64) && (tid < 32))
-    {
-        sdata[tid] = mySum = mySum + sdata[tid + 32];
-    }
+  // fully unroll reduction within a single warp
+  if ((blockSize >=  64) && (tid < 32))
+  {
+    sdata[tid] = mySum = mySum + sdata[tid + 32];
+  }
 
-    __syncthreads();
+  __syncthreads();
 
-    if ((blockSize >=  32) && (tid < 16))
-    {
-        sdata[tid] = mySum = mySum + sdata[tid + 16];
-    }
+  if ((blockSize >=  32) && (tid < 16))
+  {
+    sdata[tid] = mySum = mySum + sdata[tid + 16];
+  }
 
-    __syncthreads();
+  __syncthreads();
 
-    if ((blockSize >=  16) && (tid <  8))
-    {
-        sdata[tid] = mySum = mySum + sdata[tid +  8];
-    }
+  if ((blockSize >=  16) && (tid <  8))
+  {
+    sdata[tid] = mySum = mySum + sdata[tid +  8];
+  }
 
-    __syncthreads();
+  __syncthreads();
 
-    if ((blockSize >=   8) && (tid <  4))
-    {
-        sdata[tid] = mySum = mySum + sdata[tid +  4];
-    }
+  if ((blockSize >=   8) && (tid <  4))
+  {
+    sdata[tid] = mySum = mySum + sdata[tid +  4];
+  }
 
-    __syncthreads();
+  __syncthreads();
 
-    if ((blockSize >=   4) && (tid <  2))
-    {
-        sdata[tid] = mySum = mySum + sdata[tid +  2];
-    }
+  if ((blockSize >=   4) && (tid <  2))
+  {
+    sdata[tid] = mySum = mySum + sdata[tid +  2];
+  }
 
-    __syncthreads();
+  __syncthreads();
 
-    if ((blockSize >=   2) && ( tid <  1))
-    {
-        sdata[tid] = mySum = mySum + sdata[tid +  1];
-    }
+  if ((blockSize >=   2) && ( tid <  1))
+  {
+    sdata[tid] = mySum = mySum + sdata[tid +  1];
+  }
 
-    __syncthreads();
+  __syncthreads();
 #endif
 
-    // write result for this block to global mem
-    if (tid == 0) g_odata[blockIdx.x] = mySum;
+  // write result for this block to global mem
+  if (tid == 0) g_odata[blockIdx.x] = mySum;
 }
 
 extern "C"
@@ -348,11 +348,11 @@ __host__ __device__ __forceinline__ void copyVector(float* __restrict__ dest_vec
 // _block_size must be power of 2
 template <unsigned int _block_size, bool n_is_pow2>
 __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache,
-                                                const float* __restrict__ residual_cache,
-                                                const char* __restrict__ visibility_cache,
-                                                float* __restrict__ gradient_cache,
-                                                float* __restrict__ hessian_cache,
-                                                const unsigned int n_elements)
+                                        const float* __restrict__ residual_cache,
+                                        const char* __restrict__ visibility_cache,
+                                        float* __restrict__ gradient_cache,
+                                        float* __restrict__ hessian_cache,
+                                        const unsigned int n_elements)
 {
   //  extern __shared__ float s_hessian_data[];
   //  extern __shared__ float s_gradient_data[];
@@ -378,35 +378,46 @@ __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache
   if((!n_is_pow2)&&(i >= n_elements))
   {
     //set memory to zero
-    setToZero<kJacobianSize>(jacobian);
     setToZero<kJacobianSize>(gradient);
     setToZero<kHessianTriagN>(hessian);
   }
   else
   {
     unsigned int visib_index = i/kPatchArea;
-    float visible = static_cast<float>(visibility_cache[visib_index]);
-    float residual = residual_cache[i];
-    //TODO: add weighting function
-    float weight = visible;// visible*weight_function(residual/weight_scale);
+    char visible = visibility_cache[visib_index];
+    if(visible == 1)
+    {
+      float residual = residual_cache[i];
+      //TODO: add weighting function
+      float weight = 1.0;// weight_function(residual/weight_scale);
 
-    copyVector<kJacobianSize>(jacobian,&jacobian_cache[i*kJacobianSize]);
-    setVVTUpperTriag<kJacobianSize>(hessian,jacobian,weight);
-    setWeightedVector<kJacobianSize>(gradient,jacobian, -weight*residual);
+      copyVector<kJacobianSize>(jacobian,&jacobian_cache[i*kJacobianSize]);
+      setVVTUpperTriag<kJacobianSize>(hessian,jacobian,weight);
+      setWeightedVector<kJacobianSize>(gradient,jacobian, -weight*residual);
+    }
+    else
+    {
+      setToZero<kJacobianSize>(gradient);
+      setToZero<kHessianTriagN>(hessian);
+    }
 
+    // Get second element
     // ensure we don't read out of bounds -- this is optimized away for powerOf2 problem size
     if (n_is_pow2 || i + _block_size < n_elements)
     {
       i += _block_size;
       unsigned int visib_index = i/kPatchArea;
-      float visible = static_cast<float>(visibility_cache[visib_index]);
-      float residual = residual_cache[i];
-      //TODO: add weighting function
-      float weight = visible;// visible*weight_function(residual/weight_scale);
+      char visible = visibility_cache[visib_index];
+      if(visible == 1)
+      {
+        float residual = residual_cache[i];
+        //TODO: add weighting function
+        float weight = 1.0;//weight_function(residual/weight_scale);
 
-      copyVector<kJacobianSize>(jacobian,&jacobian_cache[i*kJacobianSize]);
-      addVVTUpperTriag<kJacobianSize>(hessian,jacobian,weight);
-      subWeightedVector<kJacobianSize>(gradient,jacobian, weight*residual);
+        copyVector<kJacobianSize>(jacobian,&jacobian_cache[i*kJacobianSize]);
+        addVVTUpperTriag<kJacobianSize>(hessian,jacobian,weight);
+        subWeightedVector<kJacobianSize>(gradient,jacobian, weight*residual);
+      }
     }
     i += (gridSize - _block_size);
   }
@@ -415,27 +426,35 @@ __global__ void k_reduceHessianGradient(const float* __restrict__ jacobian_cache
   while (i < n_elements)
   {
     unsigned int visib_index = i/kPatchArea;
-    float visible = static_cast<float>(visibility_cache[visib_index]);
-    float residual = residual_cache[i];
-    //TODO: add weighting function
-    float weight = visible;// visible*weight_function(residual/weight_scale);
+    char visible = visibility_cache[visib_index];
+    if(visible == 1)
+    {
+      float residual = residual_cache[i];
+      //TODO: add weighting function
+      float weight = 1.0;// weight_function(residual/weight_scale);
 
-    copyVector<kJacobianSize>(jacobian,&jacobian_cache[i*kJacobianSize]);
-    addVVTUpperTriag<kJacobianSize>(hessian,jacobian,weight);
-    subWeightedVector<kJacobianSize>(gradient,jacobian, weight*residual);
+      copyVector<kJacobianSize>(jacobian,&jacobian_cache[i*kJacobianSize]);
+      addVVTUpperTriag<kJacobianSize>(hessian,jacobian,weight);
+      subWeightedVector<kJacobianSize>(gradient,jacobian, weight*residual);
+    }
+
+    // add second element
     // ensure we don't read out of bounds -- this is optimized away for powerOf2 sized arrays
     if (n_is_pow2 || i + _block_size < n_elements)
     {
       i += _block_size;
       unsigned int visib_index = i/kPatchArea;
-      float visible = static_cast<float>(visibility_cache[visib_index]);
-      float residual = residual_cache[i];
-      //TODO: add weighting function
-      float weight = visible;// visible*weight_function(residual/weight_scale);
+      char visible = visibility_cache[visib_index];
+      if(visible == 1)
+      {
+        float residual = residual_cache[i];
+        //TODO: add weighting function
+        float weight = 1.0;// visible*weight_function(residual/weight_scale);
 
-      copyVector<kJacobianSize>(jacobian,&jacobian_cache[i*kJacobianSize]);
-      addVVTUpperTriag<kJacobianSize>(hessian,jacobian,weight);
-      subWeightedVector<kJacobianSize>(gradient,jacobian, weight*residual);
+        copyVector<kJacobianSize>(jacobian,&jacobian_cache[i*kJacobianSize]);
+        addVVTUpperTriag<kJacobianSize>(hessian,jacobian,weight);
+        subWeightedVector<kJacobianSize>(gradient,jacobian, weight*residual);
+      }
     }
     i += (gridSize - _block_size);
   }
@@ -604,91 +623,91 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
     case 256:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<256,true>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<256, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                          residual_input_device,
-                                                                          visibility_input_device,
-                                                                          gradient_output,
-                                                                          hessian_output,
-                                                                          size);
+                                                                  residual_input_device,
+                                                                  visibility_input_device,
+                                                                  gradient_output,
+                                                                  hessian_output,
+                                                                  size);
       break;
 
     case 128:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<128,true>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<128, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                          residual_input_device,
-                                                                          visibility_input_device,
-                                                                          gradient_output,
-                                                                          hessian_output,
-                                                                          size);
+                                                                  residual_input_device,
+                                                                  visibility_input_device,
+                                                                  gradient_output,
+                                                                  hessian_output,
+                                                                  size);
       break;
 
     case 64:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<64,true>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<64, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                         residual_input_device,
-                                                                         visibility_input_device,
-                                                                         gradient_output,
-                                                                         hessian_output,
-                                                                         size);
+                                                                 residual_input_device,
+                                                                 visibility_input_device,
+                                                                 gradient_output,
+                                                                 hessian_output,
+                                                                 size);
       break;
 
     case 32:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<32,true>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<32, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                         residual_input_device,
-                                                                         visibility_input_device,
-                                                                         gradient_output,
-                                                                         hessian_output,
-                                                                         size);
+                                                                 residual_input_device,
+                                                                 visibility_input_device,
+                                                                 gradient_output,
+                                                                 hessian_output,
+                                                                 size);
       break;
 
     case 16:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<16,true>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<16, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                         residual_input_device,
-                                                                         visibility_input_device,
-                                                                         gradient_output,
-                                                                         hessian_output,
-                                                                         size);
+                                                                 residual_input_device,
+                                                                 visibility_input_device,
+                                                                 gradient_output,
+                                                                 hessian_output,
+                                                                 size);
       break;
 
     case  8:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<8,true>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<8, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                        residual_input_device,
-                                                                        visibility_input_device,
-                                                                        gradient_output,
-                                                                        hessian_output,
-                                                                        size);
+                                                                residual_input_device,
+                                                                visibility_input_device,
+                                                                gradient_output,
+                                                                hessian_output,
+                                                                size);
       break;
 
     case  4:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<4,true>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<4, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                        residual_input_device,
-                                                                        visibility_input_device,
-                                                                        gradient_output,
-                                                                        hessian_output,
-                                                                        size);
+                                                                residual_input_device,
+                                                                visibility_input_device,
+                                                                gradient_output,
+                                                                hessian_output,
+                                                                size);
       break;
 
     case  2:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<2,true>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<2, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                        residual_input_device,
-                                                                        visibility_input_device,
-                                                                        gradient_output,
-                                                                        hessian_output,
-                                                                        size);
+                                                                residual_input_device,
+                                                                visibility_input_device,
+                                                                gradient_output,
+                                                                hessian_output,
+                                                                size);
       break;
 
     case  1:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<1,true>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<1, true><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                        residual_input_device,
-                                                                        visibility_input_device,
-                                                                        gradient_output,
-                                                                        hessian_output,
-                                                                        size);
+                                                                residual_input_device,
+                                                                visibility_input_device,
+                                                                gradient_output,
+                                                                hessian_output,
+                                                                size);
       break;
     }
   }
@@ -710,91 +729,91 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
     case 256:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<256,false>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<256, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                           residual_input_device,
-                                                                           visibility_input_device,
-                                                                           gradient_output,
-                                                                           hessian_output,
-                                                                           size);
+                                                                   residual_input_device,
+                                                                   visibility_input_device,
+                                                                   gradient_output,
+                                                                   hessian_output,
+                                                                   size);
       break;
 
     case 128:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<128,false>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<128, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                           residual_input_device,
-                                                                           visibility_input_device,
-                                                                           gradient_output,
-                                                                           hessian_output,
-                                                                           size);
+                                                                   residual_input_device,
+                                                                   visibility_input_device,
+                                                                   gradient_output,
+                                                                   hessian_output,
+                                                                   size);
       break;
 
     case 64:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<64,false>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<64, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                          residual_input_device,
-                                                                          visibility_input_device,
-                                                                          gradient_output,
-                                                                          hessian_output,
-                                                                          size);
+                                                                  residual_input_device,
+                                                                  visibility_input_device,
+                                                                  gradient_output,
+                                                                  hessian_output,
+                                                                  size);
       break;
 
     case 32:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<32,false>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<32, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                          residual_input_device,
-                                                                          visibility_input_device,
-                                                                          gradient_output,
-                                                                          hessian_output,
-                                                                          size);
+                                                                  residual_input_device,
+                                                                  visibility_input_device,
+                                                                  gradient_output,
+                                                                  hessian_output,
+                                                                  size);
       break;
 
     case 16:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<16,false>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<16, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                          residual_input_device,
-                                                                          visibility_input_device,
-                                                                          gradient_output,
-                                                                          hessian_output,
-                                                                          size);
+                                                                  residual_input_device,
+                                                                  visibility_input_device,
+                                                                  gradient_output,
+                                                                  hessian_output,
+                                                                  size);
       break;
 
     case  8:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<8,false>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<8, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                         residual_input_device,
-                                                                         visibility_input_device,
-                                                                         gradient_output,
-                                                                         hessian_output,
-                                                                         size);
+                                                                 residual_input_device,
+                                                                 visibility_input_device,
+                                                                 gradient_output,
+                                                                 hessian_output,
+                                                                 size);
       break;
 
     case  4:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<4,false>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<4, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                         residual_input_device,
-                                                                         visibility_input_device,
-                                                                         gradient_output,
-                                                                         hessian_output,
-                                                                         size);
+                                                                 residual_input_device,
+                                                                 visibility_input_device,
+                                                                 gradient_output,
+                                                                 hessian_output,
+                                                                 size);
       break;
 
     case  2:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<2,false>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<2, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                         residual_input_device,
-                                                                         visibility_input_device,
-                                                                         gradient_output,
-                                                                         hessian_output,
-                                                                         size);
+                                                                 residual_input_device,
+                                                                 visibility_input_device,
+                                                                 gradient_output,
+                                                                 hessian_output,
+                                                                 size);
       break;
 
     case  1:
       //cudaFuncSetCacheConfig (k_reduceHessianGradient<1,false>, cudaFuncCachePreferL1);
       k_reduceHessianGradient<1, false><<< dimGrid, dimBlock >>>(jacobian_input_device,
-                                                                         residual_input_device,
-                                                                         visibility_input_device,
-                                                                         gradient_output,
-                                                                         hessian_output,
-                                                                         size);
+                                                                 residual_input_device,
+                                                                 visibility_input_device,
+                                                                 gradient_output,
+                                                                 hessian_output,
+                                                                 size);
       break;
     }
   }
@@ -803,10 +822,10 @@ void reduceHessianGradient(const int size, const int threads, const int blocks,
 // Instantiate the reduction function for 3 types
 template
 void reduce<int>(int size, int threads, int blocks,
-            int* d_idata, int* d_odata);
+int* d_idata, int* d_odata);
 
 template
 void reduce<float>(int size, int threads, int blocks,
-            float* d_idata, float* d_odata);
+float* d_idata, float* d_odata);
 
 
