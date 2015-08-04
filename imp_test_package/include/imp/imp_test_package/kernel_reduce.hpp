@@ -3,7 +3,7 @@
 
 static constexpr unsigned int kJacobianSize = 8;
 static constexpr unsigned int kHessianTriagN = 36;
-static constexpr unsigned int kPatchSize = 4;
+static constexpr unsigned int kPatchSize = 16;
 static constexpr unsigned int kPatchArea = kPatchSize*kPatchSize;
 
 template <class T>

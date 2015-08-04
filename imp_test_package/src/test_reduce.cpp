@@ -152,9 +152,10 @@ void reductionBenchmarkSum(int _nr_elements)
 
 
   std::clock_t c_start_cpu = std::clock();
-  T sum_from_cpu = 0;
+  T sum_from_cpu;
   for(unsigned int kk = 0; kk < nr_kernel_calls; ++kk)
   {
+    sum_from_cpu = 0;
     for(unsigned int ii = 0; ii < nr_elements; ++ii)
     {
       sum_from_cpu += h_idata[ii];
