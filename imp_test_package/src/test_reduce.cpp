@@ -95,6 +95,7 @@ void initTestData(float* data,const unsigned int nr_elements)
 template<typename T>
 void reductionBenchmarkSum(int _nr_elements)
 {
+  std::cout << "-------Reduction Benchmark Sum--------" << std::endl;
   unsigned int nr_elements = _nr_elements;
   unsigned int nr_elements_bytes = nr_elements*sizeof(T);
   unsigned int nr_kernel_calls = 100;
@@ -131,7 +132,7 @@ void reductionBenchmarkSum(int _nr_elements)
 
   std::clock_t c_start_gpu = std::clock();
   T sum_from_gpu = 0;
-  for(unsigned int ii = 0; ii < nr_kernel_calls; ++ii)
+  for(unsigned int kk = 0; kk < nr_kernel_calls; ++kk)
   {
     reduce<T>(nr_elements, num_threads, num_blocks, d_idata, d_odata);
     cudaDeviceSynchronize();
@@ -149,17 +150,21 @@ void reductionBenchmarkSum(int _nr_elements)
   std::clock_t c_end_gpu = std::clock();
   double time_gpu_ms = CLOCK_TO_MS(c_start_gpu,c_end_gpu)/((double) nr_kernel_calls);
 
-  T sum_from_cpu = 0;
+
   std::clock_t c_start_cpu = std::clock();
-  for(unsigned int ii = 0; ii < nr_elements; ++ii)
+  T sum_from_cpu = 0;
+  for(unsigned int kk = 0; kk < nr_kernel_calls; ++kk)
   {
-    sum_from_cpu += h_idata[ii];
+    for(unsigned int ii = 0; ii < nr_elements; ++ii)
+    {
+      sum_from_cpu += h_idata[ii];
+    }
   }
   std::clock_t c_end_cpu = std::clock();
-  double time_cpu_ms = CLOCK_TO_MS(c_start_cpu,c_end_cpu);
+  double time_cpu_ms = CLOCK_TO_MS(c_start_cpu,c_end_cpu)/((double) nr_kernel_calls);
 
-  std::cout << "sum GPU: " << sum_from_gpu << " Time per kernel " << time_gpu_ms << " Troughput " << (1.0e-9 * ((double) nr_elements_bytes))/(time_gpu_ms/1000) << " GB/s " << std::endl;
-  std::cout << "sum CPU: " << sum_from_cpu << " Time " << time_cpu_ms << std::endl;
+  std::cout << "sum GPU: " << sum_from_gpu << " Time per reduction " << time_gpu_ms << " Troughput " << (1.0e-9 * ((double) nr_elements_bytes))/(time_gpu_ms/1000) << " GB/s " << std::endl;
+  std::cout << "sum CPU: " << sum_from_cpu << " Time per reduction " << time_cpu_ms << " Troughput " << (1.0e-9 * ((double) nr_elements_bytes))/(time_cpu_ms/1000) << " GB/s " << std::endl;
 
   cudaFree(d_idata);
   cudaFree(d_odata);
@@ -264,6 +269,7 @@ void reduceJacobianCPU(int size,
 
 void reductionBenchmarkHessian(int _nr_patches)
 {
+  std::cout << "-------Reduction Benchmark Hessian--------" << std::endl;
   unsigned int nr_kernel_calls = 100;
   int max_threads = 256;
   int max_blocks = 64;
@@ -389,11 +395,10 @@ int main(int argc, const char* argv[]) {
 
   //------------ simple sum reduction ----------
   // Conclusion: 10000000 elements results in 0.28ms kernel time and 138 GB/s throughput
-  //reductionBenchmarkSum<int>(atoi(argv[1]));
+  reductionBenchmarkSum<int>(atoi(argv[1]));
 
   //------------ hessian reduction ---------
   // Conclusion 100'000 patches, Time per kernel (ms): 5.12451, Troughput (jacobian input data / reduce time): 9.9912 GB/s
-
   reductionBenchmarkHessian(atoi(argv[1]));
 
   cudaCheckError();
