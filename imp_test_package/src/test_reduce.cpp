@@ -181,7 +181,7 @@ void setupInputData(float** jacobian_input, char** visibility_input, float** res
   unsigned int residual_input_size = nr_elements;
   *residual_input = (float*) malloc(residual_input_size*sizeof(float));
 
-  float visibility_ratio = 0.9;
+  float visibility_ratio = 0.95;
   srand(115);
 
   // Initialize test data
@@ -227,6 +227,37 @@ void reduceHessianGradientCPU(const int num_blocks,
     for(unsigned int gg = 0; gg < kJacobianSize; ++gg)
     {
       gradient_out[gg] += gradient_input_host[ii*kJacobianSize + gg];
+    }
+  }
+}
+
+void reduceJacobianCPU(int size,
+                       float* jacobian_input,
+                       char* visibility_input,
+                       float* residual_input,
+                       Eigen::Matrix<float,kJacobianSize,kJacobianSize>& H,
+                       Eigen::Matrix<float,kJacobianSize,1>& g)
+{
+  H.setZero(kJacobianSize,kJacobianSize);
+  g.setZero(kJacobianSize,1);
+  for(size_t ii = 0; ii < size/kPatchArea; ++ii)
+  {
+    if(visibility_input[ii] == 1)
+    {
+      size_t patch_offset = ii*kPatchArea;
+      size_t jacobian_offset = ii*kJacobianSize*kPatchArea;
+      for(size_t jj = 0; jj < kPatchArea; ++jj)
+      {
+        float res = residual_input[patch_offset+jj];
+
+        // Robustification.
+        float weight = 1.0;
+
+        // Compute Jacobian, weighted Hessian and weighted "steepest descend images" (times error).
+        const Eigen::Map<Eigen::Matrix<float,kJacobianSize,1> > J_d = Eigen::Map<Eigen::Matrix<float,kJacobianSize,1> >(&jacobian_input[jacobian_offset + kJacobianSize*jj]);
+        H.noalias() += J_d*J_d.transpose()*weight;
+        g.noalias() -= J_d*res*weight;
+      }
     }
   }
 }
@@ -277,6 +308,7 @@ void reductionBenchmarkHessian(int _nr_patches)
   // warm up kernel call
   reduceHessianGradient(nr_elements ,num_threads , num_blocks ,jacobian_input_device ,visibility_input_device ,residual_input_device ,gradient_output ,hessian_output);
 
+  // GPU reduction
   std::clock_t c_start_gpu = std::clock();
   for(unsigned int ii = 0; ii < nr_kernel_calls; ++ii)
   {
@@ -289,7 +321,57 @@ void reductionBenchmarkHessian(int _nr_patches)
   std::clock_t c_end_gpu = std::clock();
   double time_gpu_ms = CLOCK_TO_MS(c_start_gpu,c_end_gpu)/((double) nr_kernel_calls);
   unsigned int nr_elements_bytes = nr_elements*kJacobianSize*sizeof(float);
-  std::cout << "Time per kernel (ms): " << time_gpu_ms << std::endl << "Troughput (jacobian input data / reduce time):" << (1.0e-9 * ((double) nr_elements_bytes))/(time_gpu_ms/1000) << " GB/s " << std::endl;
+  std::cout << std::endl << "Time per reduction (ms): " << time_gpu_ms << std::endl << "Troughput (jacobian input data / reduce time):" << (1.0e-9 * ((double) nr_elements_bytes))/(time_gpu_ms/1000) << " GB/s " << std::endl << std::endl;
+
+  // Cpu comparison
+  std::clock_t c_start_cpu = std::clock();
+  Eigen::Matrix<float,kJacobianSize,kJacobianSize> H;
+  Eigen::Matrix<float,kJacobianSize,1> g;
+  for(unsigned int tt = 0; tt < nr_kernel_calls;++tt)
+  {
+    reduceJacobianCPU(nr_elements,
+                      jacobian_input_host,
+                      visibility_input_host,
+                      residual_input_host,
+                      H,
+                      g);
+  }
+  std::clock_t c_end_cpu = std::clock();
+  double time_cpu_ms = CLOCK_TO_MS(c_start_cpu,c_end_cpu)/((double) nr_kernel_calls);
+  std::cout << std::endl << "Cpu time per reduce (ms): " << time_cpu_ms << std::endl << "Troughput (jacobian input data / reduce time):" << (1.0e-9 * ((double) nr_elements_bytes))/(time_cpu_ms/1000) << " GB/s " << std::endl << std::endl;
+
+
+  //Results GPU
+  float hessian_output_array[kJacobianSize*kJacobianSize];
+  std::cout << "Hessian GPU" << std::endl;
+  for(unsigned int row = 0, index = 0; row < kJacobianSize; ++row)
+  {
+    for(unsigned int col = row; col < kJacobianSize; ++col,++index)
+    {
+      hessian_output_array[row*kJacobianSize + col] = hessian_output_array[col*kJacobianSize + row] =  hessian_out_cpu[index];
+    }
+  }
+  for(unsigned int row = 0; row < kJacobianSize; ++row)
+  {
+    for(unsigned int col = 0; col < kJacobianSize; ++col)
+    {
+      std::cout << std::setw( 11 ) << hessian_output_array[row*kJacobianSize + col] << " " ;
+    }
+    std::cout << std::endl;
+  }
+  std::cout << std::endl;
+
+  std::cout << "Gradient GPU" << std::endl;
+  for(unsigned int ii = 0; ii < kJacobianSize; ++ii)
+  {
+    std::cout << std::setw( 11 ) << gradient_out_cpu[ii] << " " ;
+  }
+  std::cout << std::endl;
+
+  std::cout << "Hessian CPU" << std::endl;
+  std::cout << H << std::endl;
+  std::cout << "Gradient CPU" << std::endl;
+  std::cout << g.transpose() << std::endl;
 
   free(jacobian_input_host);
   free(visibility_input_host);
@@ -301,44 +383,15 @@ void reductionBenchmarkHessian(int _nr_patches)
   cudaFree(hessian_output);
 }
 
-void reduceJacobianCPU(int size,
-                       float* jacobian_input,
-                       char* visibility_input,
-                       float* residual_input,
-                       Eigen::Matrix<float,kJacobianSize,kJacobianSize>& H,
-                       Eigen::Matrix<float,kJacobianSize,1>& g)
-{
-  H.setZero(kJacobianSize,kJacobianSize);
-  g.setZero(kJacobianSize,1);
-  for(size_t ii = 0; ii < size/kPatchArea; ++ii)
-  {
-    if(visibility_input[ii] == 1)
-    {
-      size_t patch_offset = ii*kPatchArea;
-      size_t jacobian_offset = ii*kJacobianSize*kPatchArea;
-      for(size_t jj = 0; jj < kPatchArea; ++jj)
-      {
-        float res = residual_input[patch_offset+jj];
-
-        // Robustification.
-        float weight = 1.0;
-
-        // Compute Jacobian, weighted Hessian and weighted "steepest descend images" (times error).
-        const Eigen::Map<Eigen::Matrix<float,kJacobianSize,1> > J_d = Eigen::Map<Eigen::Matrix<float,kJacobianSize,1> >(&jacobian_input[jacobian_offset + kJacobianSize*jj]);
-        H.noalias() += J_d*J_d.transpose()*weight;
-        g.noalias() -= J_d*res*weight;
-      }
-    }
-  }
-}
-
 int main(int argc, const char* argv[]) {
 
   //------------ simple sum reduction ----------
-  // conclusion: 10000000 elements results in 0.28ms kernel time and 138 GB/s throughput
+  // Conclusion: 10000000 elements results in 0.28ms kernel time and 138 GB/s throughput
   //reductionBenchmarkSum<int>(atoi(argv[1]));
 
-  //------------ hessian reduction ----------
+  //------------ hessian reduction ---------
+  // Conclusion 100'000 patches, Time per kernel (ms): 5.12451, Troughput (jacobian input data / reduce time): 9.9912 GB/s
+
   reductionBenchmarkHessian(atoi(argv[1]));
 
   cudaCheckError();
