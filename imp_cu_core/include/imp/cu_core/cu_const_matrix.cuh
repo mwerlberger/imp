@@ -174,7 +174,7 @@ public:
   __host__
   ConstMatrixStatic(Eigen::Matrix<Type,_rows,_cols,Eigen::RowMajor>& input_row_major)
   {
-    for(int ii=0; ii < _rows*_cols;ii++)
+    for(size_t ii=0; ii < _rows*_cols;ii++)
     {
       data_[ii] = input_row_major(ii);
     }
