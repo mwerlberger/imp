@@ -78,6 +78,7 @@ class LinearMemoryTest : public ::testing::Test
   size_t numel_ = 123;
   imp::Roi1u roi_ = imp::Roi1u(numel_/3, numel_/3);
   imp::LinearMemory<Pixel> linmem_;
+
   Pixel pixel1_;
   Pixel pixel2_;
 };
@@ -143,6 +144,17 @@ TYPED_TEST(LinearMemoryTest, CheckValues)
     ASSERT_EQ(this->linmem_[i], this->pixel1_);
   }
 }
+
+TYPED_TEST(LinearMemoryTest, CheckValuesInConstLinearMemory)
+{
+  this->setValue();
+  const imp::LinearMemory<TypeParam> const_linmem(this->linmem_);
+  for (std::uint32_t i=0; i<this->numel_; ++i)
+  {
+    ASSERT_EQ(const_linmem[i], this->pixel1_);
+  }
+}
+
 
 TYPED_TEST(LinearMemoryTest, CheckRoiValues)
 {

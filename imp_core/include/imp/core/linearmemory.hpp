@@ -70,6 +70,7 @@ public:
    inline Pixel& operator()(std::uint32_t idx) {return *this->data(idx);}
    /** Pixel access with [idx]. */
    inline Pixel& operator[](std::uint32_t idx) {return *this->data(idx);}
+   inline const Pixel& operator[](std::uint32_t idx) const {return *this->data(idx);}
 
 private:
   std::unique_ptr<Pixel, Deallocator> data_;
