@@ -93,6 +93,11 @@ typedef LinearMemory<imp::Pixel16uC2> LinearMemory16uC2;
 typedef LinearMemory<imp::Pixel16uC3> LinearMemory16uC3;
 typedef LinearMemory<imp::Pixel16uC4> LinearMemory16uC4;
 
+typedef LinearMemory<imp::Pixel32uC1> LinearMemory32uC1;
+typedef LinearMemory<imp::Pixel32uC2> LinearMemory32uC2;
+typedef LinearMemory<imp::Pixel32uC3> LinearMemory32uC3;
+typedef LinearMemory<imp::Pixel32uC4> LinearMemory32uC4;
+
 typedef LinearMemory<imp::Pixel32sC1> LinearMemory32sC1;
 typedef LinearMemory<imp::Pixel32sC2> LinearMemory32sC2;
 typedef LinearMemory<imp::Pixel32sC3> LinearMemory32sC3;

@@ -3,6 +3,7 @@
 // system includes
 #include <assert.h>
 #include <cstdint>
+#include <cfloat>
 #include <iostream>
 #include <random>
 #include <functional>
