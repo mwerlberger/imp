@@ -31,13 +31,11 @@ public:
       if(from.outerStride() == _cols)
       {
         // copy whole memory block
-        std::cout << "copy whole block" << std::endl;
         memcpy(data_,from.data(),_rows*_cols*sizeof(Type));
       }
       else
       {
         // copy line by line
-        std::cout << "Copy line by line" << std::endl;
         for(int row = 0; row < _rows; ++row)
         {
           memcpy(&data_[row*_cols],&(from.data()[row*from.outerStride()]),_cols*sizeof(Type));
@@ -47,7 +45,6 @@ public:
     else
     {
       // copy element by element
-      std::cout << "Copy element by element " << std::endl;
       for(int row = 0; row < _rows; ++row)
       {
         for(int col = 0; col < _cols; ++col)
