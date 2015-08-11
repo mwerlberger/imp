@@ -14,6 +14,8 @@
 
   <depend>imp_cmake</depend>
   <depend>imp_core</depend>
-    
+  <depend>eigen_catkin</depend>
+  <depend>minkindr</depend>
+
   <test_depend>gtest</test_depend>
 </package>

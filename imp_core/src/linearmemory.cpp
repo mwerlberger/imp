@@ -122,6 +122,11 @@ template class LinearMemory<imp::Pixel16uC2>;
 template class LinearMemory<imp::Pixel16uC3>;
 template class LinearMemory<imp::Pixel16uC4>;
 
+template class LinearMemory<imp::Pixel32uC1>;
+template class LinearMemory<imp::Pixel32uC2>;
+template class LinearMemory<imp::Pixel32uC3>;
+template class LinearMemory<imp::Pixel32uC4>;
+
 template class LinearMemory<imp::Pixel32sC1>;
 template class LinearMemory<imp::Pixel32sC2>;
 template class LinearMemory<imp::Pixel32sC3>;

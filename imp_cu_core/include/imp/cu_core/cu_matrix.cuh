@@ -4,6 +4,7 @@
 #include <ostream>
 #include <cuda_runtime.h>
 #include <imp/core/pixel.hpp>
+#include <Eigen/Dense>
 
 namespace imp{
 namespace cu{
@@ -21,23 +22,59 @@ public:
   __host__ __device__
   ~Matrix() = default;
 
-//  // copy and asignment operator
-//  __host__ __device__
-//  Matrix(const Matrix& other)
-//    : f_(other.f())
-//    , c_(other.c())
-//  {
-//  }
-//  __host__ __device__
-//  Matrix& operator=(const Matrix& other)
-//  {
-//    if  (this != &other)
-//    {
-//      f_ = other.f();
-//      c_ = other.c();
-//    }
-//    return *this;
-//  }
+  __host__
+  Matrix(Eigen::Matrix<Type,_rows,_cols,Eigen::RowMajor> from)
+  {
+    // check if memory is unpadded
+    if(from.innerStride() == 1)
+    {
+      if(from.outerStride() == _cols)
+      {
+        // copy whole memory block
+        std::cout << "copy whole block" << std::endl;
+        memcpy(data_,from.data(),_rows*_cols*sizeof(Type));
+      }
+      else
+      {
+        // copy line by line
+        std::cout << "Copy line by line" << std::endl;
+        for(int row = 0; row < _rows; ++row)
+        {
+          memcpy(&data_[row*_cols],&(from.data()[row*from.outerStride()]),_cols*sizeof(Type));
+        }
+      }
+    }
+    else
+    {
+      // copy element by element
+      std::cout << "Copy element by element " << std::endl;
+      for(int row = 0; row < _rows; ++row)
+      {
+        for(int col = 0; col < _cols; ++col)
+        {
+          data_[row*cols_ + col] = from(row,col);
+        }
+      }
+    }
+  }
+
+  //  // copy and asignment operator
+  //  __host__ __device__
+  //  Matrix(const Matrix& other)
+  //    : f_(other.f())
+  //    , c_(other.c())
+  //  {
+  //  }
+  //  __host__ __device__
+  //  Matrix& operator=(const Matrix& other)
+  //  {
+  //    if  (this != &other)
+  //    {
+  //      f_ = other.f();
+  //      c_ = other.c();
+  //    }
+  //    return *this;
+  //  }
 
 
   __host__ __device__ __forceinline__
@@ -80,6 +117,19 @@ public:
   Type & operator[](int ind)
   {
     return data_[ind];
+  }
+
+  template<size_t block_rows,size_t block_cols>
+  __host__ __device__ __forceinline__
+  Matrix<Type,block_rows,block_cols> block(size_t top_left_row, size_t top_left_col) const
+  {
+    Matrix<Type,block_rows,block_cols> out;
+    size_t data_offset = top_left_row*cols_ + top_left_col;
+    for(size_t row = 0; row < block_rows; ++row)
+    {
+      memcpy(&out[row*block_cols],&data_[data_offset+row*cols_],block_cols*sizeof(Type));
+    }
+    return out;
   }
 
 #if 0
@@ -167,6 +217,18 @@ Vec32fC3 operator*(const Matrix3f& mat, const Vec32fC3& v)
         mat(0,0)*v.x + mat(0,1)*v.y + mat(0,2)*v.z,
         mat(1,0)*v.x + mat(1,1)*v.y + mat(1,2)*v.z,
         mat(2,0)*v.x + mat(2,1)*v.y + mat(2,2)*v.z
+        );
+}
+
+//------------------------------------------------------------------------------
+// transformation matrix three-vector multiplication
+__host__ __device__ __forceinline__
+float3 transform(const Matrix<float,3,4>& T, const float3& v)
+{
+  return make_float3(
+        T(0,0)*v.x + T(0,1)*v.y + T(0,2)*v.z + T(0,3),
+        T(1,0)*v.x + T(1,1)*v.y + T(1,2)*v.z + T(1,3),
+        T(2,0)*v.x + T(2,1)*v.y + T(2,2)*v.z + T(2,3)
         );
 }
 

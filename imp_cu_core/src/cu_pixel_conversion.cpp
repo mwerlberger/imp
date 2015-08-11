@@ -53,6 +53,26 @@ ushort4* __host__ __device__ toCudaVectorType(imp::Pixel16uC4* buffer)
 }
 
 //
+// unsigned int
+//
+unsigned int* __host__ __device__ toCudaVectorType(imp::Pixel32uC1* buffer)
+{
+  return reinterpret_cast<unsigned int*>(buffer);
+}
+uint2* __host__ __device__ toCudaVectorType(imp::Pixel32uC2* buffer)
+{
+  return reinterpret_cast<uint2*>(buffer);
+}
+uint3* __host__ __device__ toCudaVectorType(imp::Pixel32uC3* buffer)
+{
+  return reinterpret_cast<uint3*>(buffer);
+}
+uint4* __host__ __device__ toCudaVectorType(imp::Pixel32uC4* buffer)
+{
+  return reinterpret_cast<uint4*>(buffer);
+}
+
+//
 // int
 //
 int* __host__ __device__ toCudaVectorType(imp::Pixel32sC1* buffer)
@@ -134,6 +154,26 @@ const ushort3* __host__ __device__ toConstCudaVectorType(const imp::Pixel16uC3* 
 const ushort4* __host__ __device__ toConstCudaVectorType(const imp::Pixel16uC4* buffer)
 {
   return reinterpret_cast<const ushort4*>(buffer);
+}
+
+//
+// unsigned int
+//
+const unsigned int* __host__ __device__ toConstCudaVectorType(const imp::Pixel32uC1* buffer)
+{
+  return reinterpret_cast<const unsigned int*>(buffer);
+}
+const uint2* __host__ __device__ toConstCudaVectorType(const imp::Pixel32uC2* buffer)
+{
+  return reinterpret_cast<const uint2*>(buffer);
+}
+const uint3* __host__ __device__ toConstCudaVectorType(const imp::Pixel32uC3* buffer)
+{
+  return reinterpret_cast<const uint3*>(buffer);
+}
+const uint4* __host__ __device__ toConstCudaVectorType(const imp::Pixel32uC4* buffer)
+{
+  return reinterpret_cast<const uint4*>(buffer);
 }
 
 //

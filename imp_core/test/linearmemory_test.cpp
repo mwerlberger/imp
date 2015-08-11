@@ -88,6 +88,7 @@ typedef testing::Types<
 imp::Pixel8uC1, imp::Pixel8uC2, imp::Pixel8uC3, imp::Pixel8uC4,
 imp::Pixel16uC1, imp::Pixel16uC2, imp::Pixel16uC3, imp::Pixel16uC4,
 imp::Pixel32sC1, imp::Pixel32sC2, imp::Pixel32sC3, imp::Pixel32sC4,
+imp::Pixel32uC1, imp::Pixel32uC2, imp::Pixel32uC3, imp::Pixel32uC4,
 imp::Pixel32fC1, imp::Pixel32fC2, imp::Pixel32fC3, imp::Pixel32fC4> PixelTypes;
 
 TYPED_TEST_CASE(LinearMemoryTest, PixelTypes);

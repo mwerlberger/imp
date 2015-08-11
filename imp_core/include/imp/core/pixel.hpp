@@ -250,6 +250,11 @@ typedef Pixel2<std::int32_t> Pixel32sC2;
 typedef Pixel3<std::int32_t> Pixel32sC3;
 typedef Pixel4<std::int32_t> Pixel32sC4;
 
+typedef Pixel1<std::uint32_t> Pixel32uC1;
+typedef Pixel2<std::uint32_t> Pixel32uC2;
+typedef Pixel3<std::uint32_t> Pixel32uC3;
+typedef Pixel4<std::uint32_t> Pixel32uC4;
+
 typedef Pixel1<float> Pixel32fC1;
 typedef Pixel2<float> Pixel32fC2;
 typedef Pixel3<float> Pixel32fC3;
@@ -276,6 +281,11 @@ using Vec32sC1 = Vec1<std::int32_t>;
 using Vec32sC2 = Vec2<std::int32_t>;
 using Vec32sC3 = Vec3<std::int32_t>;
 using Vec32sC4 = Vec4<std::int32_t>;
+
+using Vec32uC1 = Vec1<std::uint32_t>;
+using Vec32uC2 = Vec2<std::uint32_t>;
+using Vec32uC3 = Vec3<std::uint32_t>;
+using Vec32uC4 = Vec4<std::uint32_t>;
 
 using Vec32fC1 = Vec1<float>;
 using Vec32fC2 = Vec2<float>;
