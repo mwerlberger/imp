@@ -229,6 +229,16 @@ float3 transform(const Matrix<float,3,4>& T, const float3& v)
         );
 }
 
+__host__ __device__ __forceinline__
+double3 transform(const Matrix<double,3,4>& T, const double3& v)
+{
+  return make_double3(
+        T(0,0)*v.x + T(0,1)*v.y + T(0,2)*v.z + T(0,3),
+        T(1,0)*v.x + T(1,1)*v.y + T(1,2)*v.z + T(1,3),
+        T(2,0)*v.x + T(2,1)*v.y + T(2,2)*v.z + T(2,3)
+        );
+}
+
 //------------------------------------------------------------------------------
 template<typename T, size_t rows, size_t cols>
 __host__
