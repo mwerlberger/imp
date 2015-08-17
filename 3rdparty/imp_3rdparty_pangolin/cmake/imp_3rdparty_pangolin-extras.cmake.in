@@ -1,0 +1,15 @@
+# This overrides the empty library with the pangolin library file.
+set(@PROJECT_NAME@_LIBRARIES
+   @CATKIN_DEVEL_PREFIX@/lib/libpangolin@CMAKE_SHARED_LIBRARY_SUFFIX@
+   @FREEGLUT_LIBRARY@
+   @GLUT_LIBRARY@
+   @OPENGL_LIBRARIES@
+   @GLEW_LIBRARY@
+   @DepthSense_LIBRARIES@
+   @JPEG_LIBRARY@
+   @PNG_LIBRARY_DEBUG@
+   @PNG_LIBRARY_RELEASE@
+   @TIFF_LIBRARY@
+   @ZLIB_LIBRARY@
+   )
+set(@PROJECT_NAME@_INCLUDE_DIR @CATKIN_DEVEL_PREFIX@/include)
