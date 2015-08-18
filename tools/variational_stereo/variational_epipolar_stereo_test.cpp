@@ -3,8 +3,11 @@
 #include <iostream>
 #include <memory>
 
-#include <Eigen/Core>
-#include <Eigen/Geometry>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+# include <Eigen/Core>
+# include <Eigen/Geometry>
+#pragma GCC diagnostic pop
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>

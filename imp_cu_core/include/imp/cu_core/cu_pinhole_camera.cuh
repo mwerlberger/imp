@@ -19,6 +19,9 @@ namespace cu {
 class PinholeCamera
 {
 public:
+
+  typedef std::shared_ptr<PinholeCamera> Ptr;
+
   __host__ PinholeCamera() = default;
   __host__ ~PinholeCamera() = default;
 

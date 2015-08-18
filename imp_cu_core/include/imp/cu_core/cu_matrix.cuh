@@ -4,7 +4,10 @@
 #include <ostream>
 #include <cuda_runtime.h>
 #include <imp/core/pixel.hpp>
-#include <Eigen/Dense>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+# include <Eigen/Dense>
+#pragma GCC diagnostic pop
 
 namespace imp{
 namespace cu{
@@ -16,6 +19,9 @@ class Matrix
   using Type = _Type;
 
 public:
+
+  typedef std::shared_ptr<Matrix> Ptr;
+
   __host__ __device__
   Matrix() = default;
 
