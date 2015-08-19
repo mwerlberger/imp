@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <cmath>
 
-#ifdef IMP_WITH_CUDA
+#ifdef WITH_CUDA
 #  include<cuda_runtime_api.h>
 #  define CUDA_HOST __host__
 #  define CUDA_DEVICE  __device__

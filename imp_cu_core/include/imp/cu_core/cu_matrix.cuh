@@ -19,7 +19,6 @@ class Matrix
   using Type = _Type;
 
 public:
-
   typedef std::shared_ptr<Matrix> Ptr;
 
   __host__ __device__
