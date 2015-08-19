@@ -13,8 +13,8 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
+  <depend>cuda_catkin</depend>
   <depend>cv_bridge</depend>
-
   <depend>imp_cmake</depend>
   <depend>imp_core</depend>
   <depend>imp_cu_core</depend>

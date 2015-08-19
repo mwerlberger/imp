@@ -1,6 +1,7 @@
 #ifndef IMP_CU_MATRIX_CUH
 #define IMP_CU_MATRIX_CUH
 
+#include <memory>
 #include <ostream>
 #include <cuda_runtime.h>
 #include <imp/core/pixel.hpp>

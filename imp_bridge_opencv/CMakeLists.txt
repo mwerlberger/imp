@@ -8,12 +8,10 @@ endif(${CMAKE_MAJOR_VERSION} VERSION_GREATER 3.0)
 find_package(catkin_simple REQUIRED)
 catkin_simple()
 
-include(imp_macros)
-include(imp_finders)
-imp_setup()
-imp_find_cuda()
+find_cuda()
 
-# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++0x -D__STRICT_ANSI__")
+include(imp_macros)
+imp_setup()
 
 set(HEADERS
   include/imp/bridge/opencv/cv_connector_pixel_types.hpp

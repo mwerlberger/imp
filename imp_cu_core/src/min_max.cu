@@ -44,7 +44,7 @@ __global__ void k_minMax(Pixel* d_col_mins, Pixel* d_col_maxs,
 //-----------------------------------------------------------------------------
 template<typename Pixel, typename SrcPixel>
 __global__ void k_minMax(Pixel* d_col_mins, Pixel* d_col_maxs,
-                         SrcPixel* src, size_type src_stride,
+                         SrcPixel* src, size_t src_stride,
                          std::uint32_t roi_x, std::uint32_t roi_y,
                          std::uint32_t roi_width, std::uint32_t roi_height)
 {

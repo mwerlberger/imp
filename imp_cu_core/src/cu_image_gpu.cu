@@ -45,7 +45,7 @@ ImageGpu<Pixel, pixel_type>::ImageGpu(const Image<Pixel, pixel_type>& from)
 //template<typename Pixel, imp::PixelType pixel_type>
 //ImageGpu<Pixel, pixel_type>
 //::ImageGpu(Pixel* data, std::uint32_t width, std::uint32_t height,
-//           size_type pitch, bool use_ext_data_pointer)
+//           size_t pitch, bool use_ext_data_pointer)
 //  : Base(width, height)
 //{
 //  if (data == nullptr)
@@ -64,7 +64,7 @@ ImageGpu<Pixel, pixel_type>::ImageGpu(const Image<Pixel, pixel_type>& from)
 //  else
 //  {
 //    data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
-//    size_type stride = pitch / sizeof(Pixel);
+//    size_t stride = pitch / sizeof(Pixel);
 
 //    if (this->bytes() == pitch*height)
 //    {
