@@ -24,7 +24,7 @@ public:
   virtual ~SolverStereoPrecondHuberL1();
 
   SolverStereoPrecondHuberL1(const Parameters::Ptr& params,
-                                      imp::Size2u size, size_type level);
+                                      imp::Size2u size, size_t level);
 
   virtual void init() override;
   virtual void init(const SolverStereoAbstract& rhs) override;

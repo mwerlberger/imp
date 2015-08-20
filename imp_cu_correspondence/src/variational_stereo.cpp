@@ -40,20 +40,20 @@ void VariationalStereo::solve()
 }
 
 //------------------------------------------------------------------------------
-ImageGpu32fC1::Ptr VariationalStereo::computePrimalEnergy(size_type level)
+ImageGpu32fC1::Ptr VariationalStereo::computePrimalEnergy(size_t level)
 {
   return ctf_->computePrimalEnergy(level);
 }
 
 //------------------------------------------------------------------------------
-VariationalStereo::ImageGpu32fC1::Ptr VariationalStereo::getDisparities(size_type level)
+VariationalStereo::ImageGpu32fC1::Ptr VariationalStereo::getDisparities(size_t level)
 {
   return ctf_->getDisparities(level);
 }
 
 
 //------------------------------------------------------------------------------
-VariationalStereo::ImageGpu32fC1::Ptr VariationalStereo::getOcclusion(size_type level)
+VariationalStereo::ImageGpu32fC1::Ptr VariationalStereo::getOcclusion(size_t level)
 {
   return ctf_->getOcclusion(level);
 }

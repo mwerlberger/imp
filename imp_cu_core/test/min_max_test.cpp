@@ -9,7 +9,9 @@
 #include <functional>
 #include <limits>
 
-#include <imp/cu_core/cu_matrix.cuh>
+#include <imp/core/image_raw.hpp>
+#include <imp/cu_core/cu_math.cuh>
+#include <imp/cu_core/cu_utils.hpp>
 
 
 template<class T>

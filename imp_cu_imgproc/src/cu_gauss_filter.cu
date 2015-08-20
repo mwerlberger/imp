@@ -29,7 +29,7 @@ namespace cu {
  * @param horizontal   defines the direction of convolution
  */
 template<typename Pixel>
-__global__ void k_gauss(Pixel* dst, const size_type stride,
+__global__ void k_gauss(Pixel* dst, const size_t stride,
                         const int xoff, const int yoff,
                         const int width, const int height,
                         Texture2D src_tex, int kernel_size, float c0,
@@ -37,7 +37,7 @@ __global__ void k_gauss(Pixel* dst, const size_type stride,
 {
   int x = blockIdx.x*blockDim.x + threadIdx.x;
   int y = blockIdx.y*blockDim.y + threadIdx.y;
-  const size_type out_idx = y*stride+x;
+  const size_t out_idx = y*stride+x;
 
   if(x>=0 && y>= 0 && x<width && y<height)
   {

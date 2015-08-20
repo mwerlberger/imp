@@ -30,9 +30,9 @@ struct VariationalStereoParameters
     float scale_factor = 0.8f; //!< multiplicative scale factor between coarse-to-fine pyramid levels
     std::uint32_t iters = 100;
     std::uint32_t warps =  10;
-    size_type levels = UINT32_MAX;
-    size_type coarsest_level = UINT32_MAX;
-    size_type finest_level = 0;
+    size_t levels = UINT32_MAX;
+    size_t coarsest_level = UINT32_MAX;
+    size_t finest_level = 0;
     bool apply_median_filter = true;
   } ctf;
 

@@ -88,7 +88,7 @@ ImageCv<Pixel, pixel_type>::ImageCv(cv::Mat mat, imp::PixelOrder pixel_order)
 //template<typename Pixel, imp::PixelType pixel_type>
 //ImageCv<Pixel, pixel_type>
 //::ImageCv(Pixel* data, std::uint32_t width, std::uint32_t height,
-//           size_type pitch, bool use_ext_data_pointer)
+//           size_t pitch, bool use_ext_data_pointer)
 //  : Base(width, height)
 //{
 //  if (data == nullptr)
@@ -107,7 +107,7 @@ ImageCv<Pixel, pixel_type>::ImageCv(cv::Mat mat, imp::PixelOrder pixel_order)
 //  else
 //  {
 //    data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
-//    size_type stride = pitch / sizeof(pixel_storage_t);
+//    size_t stride = pitch / sizeof(pixel_storage_t);
 
 //    if (this->bytes() == pitch*height)
 //    {

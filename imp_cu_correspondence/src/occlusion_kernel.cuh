@@ -14,7 +14,7 @@ namespace cu {
 
 //------------------------------------------------------------------------------
 __global__ void k_occlusionCandidatesUniqunessMapping(
-    float* occ, size_type stride, std::uint32_t width, std::uint32_t height,
+    float* occ, size_t stride, std::uint32_t width, std::uint32_t height,
     Texture2D disp_tex)
 {
   const int x = blockIdx.x*blockDim.x + threadIdx.x /*+ roi_x*/;
@@ -36,7 +36,7 @@ __host__ __device__ Pixel clamp(const Pixel& in, const Pixel& low, const Pixel& 
 
 //------------------------------------------------------------------------------
 __global__ void k_clampOcclusion(
-    float* occ, size_type stride, std::uint32_t width, std::uint32_t height,
+    float* occ, size_t stride, std::uint32_t width, std::uint32_t height,
     Texture2D occ_tex)
 {
   const int x = blockIdx.x*blockDim.x + threadIdx.x /*+ roi_x*/;

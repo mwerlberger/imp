@@ -32,7 +32,7 @@ SolverEpipolarStereoPrecondHuberL1::~SolverEpipolarStereoPrecondHuberL1()
 
 //------------------------------------------------------------------------------
 SolverEpipolarStereoPrecondHuberL1::SolverEpipolarStereoPrecondHuberL1(
-    const std::shared_ptr<Parameters>& params, imp::Size2u size, size_type level,
+    const std::shared_ptr<Parameters>& params, imp::Size2u size, size_t level,
     const std::vector<cu::PinholeCamera>& cams,
     const cu::Matrix3f& F,
     const cu::SE3<float>& T_mov_fix,

@@ -15,7 +15,7 @@ namespace imp {
 template<typename Pixel, imp::PixelType pixel_type>
 ImagePyramid<Pixel,pixel_type>::ImagePyramid(ImagePtr img, float scale_factor,
                                              std::uint32_t size_bound,
-                                             size_type max_num_levels)
+                                             size_t max_num_levels)
   : scale_factor_(scale_factor)
   , size_bound_(size_bound)
   , max_num_levels_(max_num_levels)
@@ -57,7 +57,7 @@ void ImagePyramid<Pixel,pixel_type>::init(const imp::Size2u& size)
   num_levels_ = std::min(max_num_levels_, possible_num_levels);
 
   // init rate for each level
-  for (size_type i = 0; i<num_levels_; ++i)
+  for (size_t i = 0; i<num_levels_; ++i)
   {
     scale_factors_.push_back(std::pow(scale_factor_, static_cast<float>(i)));
   }
@@ -73,7 +73,7 @@ void ImagePyramid<Pixel,pixel_type>::updateImage(ImagePtr img_level0,
   levels_.push_back(img_level0);
   Size2u sz0 =  img_level0->size();
 
-  for (size_type i=1; i<num_levels_; ++i)
+  for (size_t i=1; i<num_levels_; ++i)
   {
     Size2u sz(static_cast<std::uint32_t>(sz0.width()*scale_factors_[i] + 0.5f),
               static_cast<std::uint32_t>(sz0.height()*scale_factors_[i] + 0.5f));
