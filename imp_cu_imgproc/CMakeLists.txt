@@ -8,9 +8,9 @@ endif(${CMAKE_MAJOR_VERSION} VERSION_GREATER 3.0)
 find_package(catkin_simple REQUIRED)
 catkin_simple()
 
-include(imp_finders)
+find_cuda()
+include(imp_macros)
 imp_setup()
-imp_find_cuda()
 
 set(HEADERS
   include/imp/cu_imgproc/image_pyramid.hpp

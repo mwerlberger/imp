@@ -85,7 +85,7 @@ public:
    * @param use_ext_data_pointer Flagg if the image should be copied (true) or if the data is just safed as 'reference' (false)
    */
 //  ImageGpu(Pixel* data, std::uint32_t width, std::uint32_t height,
-//           size_type pitch, bool use_ext_data_pointer = false);
+//           size_t pitch, bool use_ext_data_pointer = false);
 
   /** sets a region of interest */
   virtual void setRoi(const imp::Roi2u& roi) override;
@@ -126,7 +126,7 @@ public:
   virtual void setValue(const Pixel& value) override;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
-  virtual size_type pitch() const override { return pitch_; }
+  virtual size_t pitch() const override { return pitch_; }
 
   /** Returns flag if the image data resides on the device/GPU (TRUE) or host/GPU (FALSE) */
   virtual bool isGpuMemory() const override { return true; }
@@ -154,7 +154,7 @@ public:
 
 protected:
   std::unique_ptr<Pixel, Deallocator> data_; //!< the actual image data
-  size_type pitch_ = 0; //!< Row alignment in bytes.
+  size_t pitch_ = 0; //!< Row alignment in bytes.
 
 private:
   cudaChannelFormatDesc channel_format_desc_;

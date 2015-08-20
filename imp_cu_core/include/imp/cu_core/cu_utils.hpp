@@ -266,7 +266,7 @@ static inline void checkCudaErrorState(const char* file, const char* function,
  * @note This check is only enabled when the compile time flag is set
  * @todo (MWE) we should enable this whenever we compile in debug mode
  */
-#ifdef IMP_THROW_ON_CUDA_ERROR
+#ifdef THROW_ON_CUDA_ERROR
 #  define IMP_CUDA_CHECK() imp::cu::checkCudaErrorState(__FILE__, __FUNCTION__, __LINE__)
 #else
 #  define IMP_CUDA_CHECK() cudaDeviceSynchronize()

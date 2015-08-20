@@ -14,10 +14,10 @@ struct GpuData2D
   std::uint32_t width;
   std::uint32_t height;
   imp::Roi2u roi;
-  size_type stride;
+  size_t stride;
 
   __host__ __device__
-  GpuData2D(Pixel* _data, size_type _stride,
+  GpuData2D(Pixel* _data, size_t _stride,
             std::uint32_t _width, std::uint32_t _height,
             imp::Roi2u _roi=imp::Roi2u())
     : data(_data)

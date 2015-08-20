@@ -8,10 +8,10 @@ endif(${CMAKE_MAJOR_VERSION} VERSION_GREATER 3.0)
 find_package(catkin_simple REQUIRED)
 catkin_simple()
 
+find_cuda()
+
 include(imp_macros)
-include(imp_finders)
 imp_setup()
-imp_find_cuda()
 
 set(HEADERS
   include/imp/cu_core/cu_utils.hpp

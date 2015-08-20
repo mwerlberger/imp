@@ -29,7 +29,7 @@ SolverStereoHuberL1::~SolverStereoHuberL1()
 SolverStereoHuberL1::SolverStereoHuberL1(
     const Parameters::Ptr& params,
     imp::Size2u size,
-    size_type level)
+    size_t level)
   : SolverStereoAbstract(params, size, level)
 {
   u_.reset(new ImageGpu32fC1(size));

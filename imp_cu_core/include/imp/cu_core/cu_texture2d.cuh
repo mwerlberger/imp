@@ -34,7 +34,7 @@ struct Texture2D
   {
   }
 
-  __host__ Texture2D(const void* data, size_type pitch,
+  __host__ Texture2D(const void* data, size_t pitch,
                      cudaChannelFormatDesc channel_desc,
                      imp::Size2u size,
                      bool _normalized_coords = false,

@@ -28,7 +28,7 @@ SolverStereoPrecondHuberL1Weighted::~SolverStereoPrecondHuberL1Weighted()
 
 //------------------------------------------------------------------------------
 SolverStereoPrecondHuberL1Weighted::SolverStereoPrecondHuberL1Weighted(
-    const std::shared_ptr<Parameters>& params, imp::Size2u size, size_type level)
+    const std::shared_ptr<Parameters>& params, imp::Size2u size, size_t level)
   : SolverStereoAbstract(params, size, level)
 {
   u_.reset(new ImageGpu32fC1(size));

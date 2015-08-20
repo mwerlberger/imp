@@ -4,8 +4,7 @@ project(imp_3rdparty_cuda_toolkit)
 find_package(catkin_simple REQUIRED)
 catkin_simple()
 
-include(imp_finders)
-imp_find_cuda()
+find_cuda()
 
 file(MAKE_DIRECTORY ${CATKIN_DEVEL_PREFIX}/include)
 message(STATUS "INSTALL FROM: ${CMAKE_CURRENT_SOURCE_DIR}/${CUDA_VERSION}/include")

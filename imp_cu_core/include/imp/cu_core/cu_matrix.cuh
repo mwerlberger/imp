@@ -1,6 +1,7 @@
 #ifndef IMP_CU_MATRIX_CUH
 #define IMP_CU_MATRIX_CUH
 
+#include <memory>
 #include <ostream>
 #include <cuda_runtime.h>
 #include <imp/core/pixel.hpp>
@@ -19,7 +20,6 @@ class Matrix
   using Type = _Type;
 
 public:
-
   typedef std::shared_ptr<Matrix> Ptr;
 
   __host__ __device__

@@ -45,7 +45,7 @@ public:
     assert((memaddr_align != 0) && memaddr_align <= 128 &&
            ((memaddr_align & (~memaddr_align + 1)) == memaddr_align));
 
-    const size_type memory_size = sizeof(Pixel) * num_elements;
+    const size_t memory_size = sizeof(Pixel) * num_elements;
     //std::cout << "memory_size=" << memory_size << "; sizeof(Pixel)=" << sizeof(Pixel) << std::endl;
 
     // Pixel* p_data_aligned =
@@ -77,7 +77,7 @@ public:
    *
    */
   static Pixel* alignedAlloc(const std::uint32_t width, const std::uint32_t height,
-                             size_type* pitch, bool init_with_zeros=false)
+                             size_t* pitch, bool init_with_zeros=false)
   {
     if (width == 0 || height == 0)
     {
@@ -90,10 +90,10 @@ public:
            ((memaddr_align & (~memaddr_align + 1)) == memaddr_align));
 
     // check if the width allows a correct alignment of every row, otherwise add padding
-    const size_type width_bytes = width * sizeof(Pixel);
+    const size_t width_bytes = width * sizeof(Pixel);
     // bytes % memaddr_align = 0 for bytes=n*memaddr_align is the reason for
     // the decrement in the following compution:
-    const size_type bytes_to_add = (memaddr_align-1) - ((width_bytes-1) % memaddr_align);
+    const size_t bytes_to_add = (memaddr_align-1) - ((width_bytes-1) % memaddr_align);
     const std::uint32_t pitched_width = width + bytes_to_add/sizeof(Pixel);
     *pitch = width_bytes + bytes_to_add;
     return alignedAlloc(pitched_width*height, init_with_zeros);
@@ -106,7 +106,7 @@ public:
    * @param init_with_zeros Flag if the memory elements should be zeroed out (default=false).
    * @return
    */
-  static Pixel* alignedAlloc(imp::Size2u size, size_type* pitch,
+  static Pixel* alignedAlloc(imp::Size2u size, size_t* pitch,
                              bool init_with_zeros=false)
   {
     return alignedAlloc(size[0], size[1], pitch, init_with_zeros);

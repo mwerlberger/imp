@@ -13,7 +13,7 @@ namespace cu {
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
-__global__ void k_preconditionerWeighted(Pixel* xi, size_type stride,
+__global__ void k_preconditionerWeighted(Pixel* xi, size_t stride,
                                          std::uint32_t width, std::uint32_t height,
                                          // std::uint32_t roi_x, std::uint32_t roi_y,
                                          float lambda, Texture2D ix_tex, Texture2D g_tex)
@@ -33,7 +33,7 @@ __global__ void k_preconditionerWeighted(Pixel* xi, size_type stride,
 
 //-----------------------------------------------------------------------------
 template<typename Pixel>
-__global__ void k_preconditionerWeighted(Pixel* xi, size_type stride,
+__global__ void k_preconditionerWeighted(Pixel* xi, size_t stride,
                                          std::uint32_t width, std::uint32_t height,
                                          // std::uint32_t roi_x, std::uint32_t roi_y,
                                          Texture2D lambda_tex, Texture2D ix_tex,
@@ -58,7 +58,7 @@ __global__ void k_preconditionerWeighted(Pixel* xi, size_type stride,
  * @note PPixel and DPixel denote for the Pixel type/dimension of primal and dual variable
  */
 template<typename PPixel>
-__global__ void k_primalUpdateWeighted(PPixel* d_u, PPixel* d_u_prev, const size_type stride,
+__global__ void k_primalUpdateWeighted(PPixel* d_u, PPixel* d_u_prev, const size_t stride,
                                        std::uint32_t width, std::uint32_t height,
                                        const float lambda, const float tau,
                                        const float lin_step,
@@ -93,7 +93,7 @@ __global__ void k_primalUpdateWeighted(PPixel* d_u, PPixel* d_u_prev, const size
  * @note PPixel and DPixel denote for the Pixel type/dimension of primal and dual variable
  */
 template<typename PPixel>
-__global__ void k_primalUpdateWeighted(PPixel* d_u, PPixel* d_u_prev, const size_type stride,
+__global__ void k_primalUpdateWeighted(PPixel* d_u, PPixel* d_u_prev, const size_t stride,
                                        std::uint32_t width, std::uint32_t height,
                                        const float tau, const float lin_step,
                                        Texture2D lambda_tex,
@@ -126,8 +126,8 @@ __global__ void k_primalUpdateWeighted(PPixel* d_u, PPixel* d_u_prev, const size
 
 //-----------------------------------------------------------------------------
 template<typename PPixel, typename DPixel>
-__global__ void k_dualUpdateWeighted(DPixel* d_pu, const size_type stride_pu,
-                                     PPixel* d_q, const size_type stride_q,
+__global__ void k_dualUpdateWeighted(DPixel* d_pu, const size_t stride_pu,
+                                     PPixel* d_q, const size_t stride_q,
                                      std::uint32_t width, std::uint32_t height,
                                      const float eps_u,
                                      const float sigma, const float eta,
@@ -165,7 +165,7 @@ __global__ void k_dualUpdateWeighted(DPixel* d_pu, const size_type stride_pu,
 
 //-----------------------------------------------------------------------------
 template<typename T>
-__global__ void k_primalEnergy(T* ep, const size_type stride,
+__global__ void k_primalEnergy(T* ep, const size_t stride,
                                const std::uint32_t width, const std::uint32_t height,
                                const float lambda,
                                Texture2D u_tex, Texture2D g_tex,

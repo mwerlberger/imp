@@ -40,13 +40,13 @@ public:
    * @param max_num_levels maximum number of levels
    */
 //  ImagePyramid(const imp::Size2u& size, float scale_factor, std::uint32_t size_bound_=8,
-//               size_type max_num_levels=UINT32_MAX);
+//               size_t max_num_levels=UINT32_MAX);
 
   ImagePyramid(ImagePtr img, float scale_factor=0.5f, std::uint32_t size_bound_=8,
-               size_type max_num_levels=UINT32_MAX);
+               size_t max_num_levels=UINT32_MAX);
 
 //  ImagePyramid(ImagePtr img, float scale_factor, std::uint32_t size_bound_=8,
-//               size_type max_num_levels=UINT32_MAX);
+//               size_t max_num_levels=UINT32_MAX);
 
 
   /** Clearing image pyramid, not resetting parameters though. */
@@ -67,18 +67,18 @@ public:
   inline const ImageLevels& levels() const {return levels_;}
 
   /** Returns the actual number of levels saved in the pyramid. */
-  inline size_type numLevels() {return num_levels_;}
+  inline size_t numLevels() {return num_levels_;}
 
   /** Returns a shared pointer to the \a i-th image of the pyramid level. */
-  inline ImagePtr operator[] (size_type i) {return levels_[i];}
-  inline const ImagePtr operator[] (size_type i) const {return levels_[i];}
+  inline ImagePtr operator[] (size_t i) {return levels_[i];}
+  inline const ImagePtr operator[] (size_t i) const {return levels_[i];}
 
   /** Returns a shared pointer to the \a i-th image of the pyramid level. */
-  inline ImagePtr at(size_type i) {return levels_.at(i);}
-  inline const ImagePtr at(size_type i) const {return levels_.at(i);}
+  inline ImagePtr at(size_t i) {return levels_.at(i);}
+  inline const ImagePtr at(size_t i) const {return levels_.at(i);}
 
   /** Returns the size of the i-th image. */
-  inline Size2u size(size_type i) {return this->at(i)->size();}
+  inline Size2u size(size_t i) {return this->at(i)->size();}
 
   /** Sets the multiplicative level-to-level scale factor
    *  (most likely in the interval [0.5,1.0[)
@@ -88,15 +88,15 @@ public:
   inline float scaleFactor() const {return scale_factor_;}
 
   /** Returns the multiplicative scale-factor from \a i-th level to 0-level. */
-  inline float scaleFactor(const size_type& i) const {return scale_factors_.at(i);}
+  inline float scaleFactor(const size_t& i) const {return scale_factors_.at(i);}
 
   /** Sets the user defined maximum number of pyramid levels. */
-  inline void setMaxNumLevels(const size_type& max_num_levels)
+  inline void setMaxNumLevels(const size_t& max_num_levels)
   {
     max_num_levels_ = max_num_levels;
   }
   /** Returns the user defined maximum number of pyramid levels. */
-  inline size_type maxNumLevels() const {return max_num_levels_;}
+  inline size_t maxNumLevels() const {return max_num_levels_;}
 
 
   /** Sets the user defined size bound for the coarsest level (short side). */
@@ -112,8 +112,8 @@ private:
   std::vector<float> scale_factors_; //!< Scale factors (multiplicative) towards the 0-level.
   float scale_factor_ = 0.5f; //!< Scale factor between pyramid levels
   std::uint32_t size_bound_ = 8; //!< User defined minimum size of coarsest level (short side).
-  size_type max_num_levels_ = UINT32_MAX; //!< User defined maximum number of pyramid levels.
-  size_type num_levels_ = UINT32_MAX; //!< actual number of levels dependent on the current setting.
+  size_t max_num_levels_ = UINT32_MAX; //!< User defined maximum number of pyramid levels.
+  size_t num_levels_ = UINT32_MAX; //!< actual number of levels dependent on the current setting.
 };
 
 //-----------------------------------------------------------------------------

@@ -60,7 +60,7 @@ __device__ __forceinline__ void d_calcNaturalEdge(Pixel3<T>& g,
 
 //------------------------------------------------------------------------------
 template<typename Pixel, typename EdgePixel>
-__global__ void k_naturalEdges(EdgePixel *g, const size_type stride,
+__global__ void k_naturalEdges(EdgePixel *g, const size_t stride,
                                const float alpha, const float q,
                                const std::uint32_t xoff, const std::uint32_t yoff,
                                const std::uint32_t width, const std::uint32_t height,

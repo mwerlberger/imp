@@ -29,7 +29,7 @@ public:
       throw imp::Exception("Failed to allocate memory: num_elements=0");
     }
 
-    const size_type memory_size = sizeof(Pixel) * num_elements;
+    const size_t memory_size = sizeof(Pixel) * num_elements;
     //std::cout << "cu::MemoryStorage::alloc: memory_size=" << memory_size << "; sizeof(Pixel)=" << sizeof(Pixel) << std::endl;
 
     Pixel* p_data = nullptr;
@@ -55,7 +55,7 @@ public:
    *
    */
   static Pixel* alignedAlloc(const std::uint32_t width, const std::uint32_t height,
-                             size_type* pitch)
+                             size_t* pitch)
   {
     if (width == 0 || height == 0)
     {
@@ -98,7 +98,7 @@ public:
    * @param pitch Row alignment [bytes]
    * @return
    */
-  static Pixel* alignedAlloc(imp::Size2u size, size_type* pitch)
+  static Pixel* alignedAlloc(imp::Size2u size, size_t* pitch)
   {
     return alignedAlloc(size[0], size[1], pitch);
   }

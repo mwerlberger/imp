@@ -4,10 +4,10 @@ cmake_minimum_required(VERSION 2.8.0)
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
+find_cuda()
+
 include(imp_macros)
-include(imp_finders)
 imp_setup()
-imp_find_cuda()
 
 #
 # binaries

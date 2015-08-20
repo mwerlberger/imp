@@ -45,7 +45,7 @@ ImageRaw<Pixel, pixel_type>::ImageRaw(const Image<Pixel, pixel_type>& from)
 template<typename Pixel, imp::PixelType pixel_type>
 ImageRaw<Pixel, pixel_type>
 ::ImageRaw(Pixel* data, std::uint32_t width, std::uint32_t height,
-           size_type pitch, bool use_ext_data_pointer)
+           size_t pitch, bool use_ext_data_pointer)
   : Base(width, height)
 {
   if (data == nullptr)
@@ -63,7 +63,7 @@ ImageRaw<Pixel, pixel_type>
   else
   {
     data_.reset(Memory::alignedAlloc(this->width(), this->height(), &pitch_));
-    size_type stride = pitch / sizeof(Pixel);
+    size_t stride = pitch / sizeof(Pixel);
 
     if (this->bytes() == pitch*height)
     {
@@ -86,7 +86,7 @@ ImageRaw<Pixel, pixel_type>
 template<typename Pixel, imp::PixelType pixel_type>
 ImageRaw<Pixel, pixel_type>::ImageRaw(Pixel* data,
                                       std::uint32_t width, std::uint32_t height,
-                                      size_type pitch,
+                                      size_t pitch,
                                       const std::shared_ptr<void const>& tracked)
   : Base(width, height)
 {

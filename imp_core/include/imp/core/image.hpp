@@ -166,13 +166,13 @@ public:
   }
 
   /** Returns the length of a row (not including the padding!) in bytes. */
-  virtual size_type rowBytes() const
+  virtual size_t rowBytes() const
   {
     return this->width() * sizeof(Pixel);
   }
 
   /** Returns the distnace in pixels between starts of consecutive rows. */
-  virtual size_type stride() const override
+  virtual size_t stride() const override
   {
     return this->pitch()/sizeof(Pixel);
   }

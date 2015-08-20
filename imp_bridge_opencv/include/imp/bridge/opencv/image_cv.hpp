@@ -38,7 +38,7 @@ public:
   ImageCv(const Base& from);
   ImageCv(cv::Mat mat, imp::PixelOrder pixel_order_=imp::PixelOrder::undefined);
 //  ImageCv(Pixel* data, std::uint32_t width, std::uint32_t height,
-//          size_type pitch, bool use_ext_data_pointer = false);
+//          size_t pitch, bool use_ext_data_pointer = false);
 
   /** Returns the internal OpenCV image/mat
    */
@@ -61,7 +61,7 @@ public:
   virtual void setValue(const Pixel& value) override;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
-  virtual size_type pitch() const override { return mat_.step; }
+  virtual size_t pitch() const override { return mat_.step; }
 
   /** Returns the bit depth of the opencv matrix elements. */
   virtual std::uint8_t bitDepth() const override {return 8*mat_.elemSize(); }

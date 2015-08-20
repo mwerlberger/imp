@@ -41,14 +41,14 @@ TEST(IMPCuCoreTestSuite,minMaxTest_8uC1)
 {
   auto random_val = getRandomGenerator<std::uint8_t>();
 
-  imp::size_type width = 123;
-  imp::size_type height = 324;
+  size_t width = 123;
+  size_t height = 324;
   imp::ImageRaw8uC1 im(width,height);
   std::uint8_t min_val = std::numeric_limits<std::uint8_t>::max();
   std::uint8_t max_val = std::numeric_limits<std::uint8_t>::lowest();
-  for (imp::size_type y=0; y<height; ++y)
+  for (size_t y=0; y<height; ++y)
   {
-    for (imp::size_type x=0; x<width; ++x)
+    for (size_t x=0; x<width; ++x)
     {
       std::uint8_t random_value = random_val();
       im[y][x] = random_value;
@@ -75,14 +75,14 @@ TEST(IMPCuCoreTestSuite,minMaxTest_32fC1)
   // setup random number generator
   auto random_val = getRandomGenerator<float>();
 
-  imp::size_type width = 1250;
-  imp::size_type height = 325;
+  size_t width = 1250;
+  size_t height = 325;
   imp::ImageRaw32fC1 im(width,height);
   float min_val = std::numeric_limits<float>::max();
   float max_val = std::numeric_limits<float>::lowest();
-  for (imp::size_type y=0; y<height; ++y)
+  for (size_t y=0; y<height; ++y)
   {
-    for (imp::size_type x=0; x<width; ++x)
+    for (size_t x=0; x<width; ++x)
     {
       float random_value = random_val();
       im[y][x] = random_value;

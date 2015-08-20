@@ -15,7 +15,7 @@ namespace imp {
 template<typename T, std::uint8_t DIM, typename Derived>
 struct SizeBase
 {
-  using size_type = std::size_t;
+  using size_t = std::size_t;
 
   std::array<T, DIM> sz; //!< internal data storage for all dimensions' sizes
 

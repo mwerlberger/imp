@@ -4,9 +4,10 @@ cmake_minimum_required(VERSION 2.8.0)
 find_package(catkin_simple REQUIRED)
 catkin_simple()
 
-include(imp_finders)
+find_cuda()
+include(imp_macros)
 imp_setup()
-imp_find_cuda()
+
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs" )
 

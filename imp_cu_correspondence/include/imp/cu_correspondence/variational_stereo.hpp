@@ -35,9 +35,9 @@ public:
   virtual void addImage(const ImageGpu32fC1::Ptr& image);
   virtual void solve();
 
-  virtual ImageGpu32fC1::Ptr computePrimalEnergy(size_type level=0);
-  virtual ImageGpu32fC1::Ptr getDisparities(size_type level=0);
-  virtual ImageGpu32fC1::Ptr getOcclusion(size_type level=0);
+  virtual ImageGpu32fC1::Ptr computePrimalEnergy(size_t level=0);
+  virtual ImageGpu32fC1::Ptr getDisparities(size_t level=0);
+  virtual ImageGpu32fC1::Ptr getOcclusion(size_t level=0);
 
   // getters / setters
   virtual inline Parameters::Ptr parameters() {return params_;}

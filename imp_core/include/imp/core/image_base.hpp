@@ -143,25 +143,25 @@ public:
   }
 
   /** Returns the number of pixels in the image. */
-  size_type numel() const
+  size_t numel() const
   {
     return (size_[0]*size_[1]);
   }
 
   /** Returns the total amount of bytes saved in the data buffer. */
-  virtual size_type bytes() const
+  virtual size_t bytes() const
   {
     return this->height() * this->pitch();
   }
 
   /** Returns the length of a row (not including the padding!) in bytes. */
-  virtual size_type rowBytes() const = 0;
+  virtual size_t rowBytes() const = 0;
 
   /** Returns the distance in bytes between starts of consecutive rows. */
-  virtual size_type pitch() const = 0;
+  virtual size_t pitch() const = 0;
 
   /** Returns the distnace in pixels between starts of consecutive rows. */
-  virtual size_type stride() const = 0;
+  virtual size_t stride() const = 0;
 
   /** Returns the bit depth of the data pointer. */
   virtual std::uint8_t bitDepth() const = 0;

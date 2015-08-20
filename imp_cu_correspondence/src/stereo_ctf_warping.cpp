@@ -38,7 +38,7 @@ void StereoCtFWarping::init()
   //  // just in case
   //  levels_.clear();
 
-  for (size_type i=params_->ctf.finest_level; i<=params_->ctf.coarsest_level; ++i)
+  for (size_t i=params_->ctf.finest_level; i<=params_->ctf.coarsest_level; ++i)
   {
     Size2u sz = image_pyramids_.front()->size(i);
     switch (params_->solver)
@@ -78,7 +78,7 @@ void StereoCtFWarping::init()
 bool StereoCtFWarping::ready()
 {
   // check if all vectors are of the same length and not empty
-  size_type desired_num_levels =
+  size_t desired_num_levels =
       params_->ctf.coarsest_level - params_->ctf.finest_level + 1;
 
   if (images_.empty() || image_pyramids_.empty() || levels_.empty() ||
@@ -133,7 +133,7 @@ void StereoCtFWarping::solve()
 
 
   // the first level is initialized differently so we solve this one first
-  size_type lev = params_->ctf.coarsest_level;
+  size_t lev = params_->ctf.coarsest_level;
   levels_.at(lev)->init();
   // gather images of current scale level
   lev_images.clear();
@@ -145,7 +145,7 @@ void StereoCtFWarping::solve()
 
   // and then loop until we reach the finest level
   // note that we loop with +1 idx as we would result in a buffer underflow
-  // due to operator-- on size_type which is an unsigned type.
+  // due to operator-- on size_t which is an unsigned type.
   for (; lev > params_->ctf.finest_level; --lev)
   {
     levels_.at(lev-1)->init(*levels_.at(lev));
@@ -161,7 +161,7 @@ void StereoCtFWarping::solve()
 }
 
 //------------------------------------------------------------------------------
-ImageGpu32fC1::Ptr StereoCtFWarping::computePrimalEnergy(size_type level)
+ImageGpu32fC1::Ptr StereoCtFWarping::computePrimalEnergy(size_t level)
 {
   if (!this->ready())
   {
@@ -174,7 +174,7 @@ ImageGpu32fC1::Ptr StereoCtFWarping::computePrimalEnergy(size_type level)
 }
 
 //------------------------------------------------------------------------------
-StereoCtFWarping::ImageGpu32fC1::Ptr StereoCtFWarping::getDisparities(size_type level)
+StereoCtFWarping::ImageGpu32fC1::Ptr StereoCtFWarping::getDisparities(size_t level)
 {
   if (!this->ready())
   {
@@ -187,7 +187,7 @@ StereoCtFWarping::ImageGpu32fC1::Ptr StereoCtFWarping::getDisparities(size_type 
 }
 
 //------------------------------------------------------------------------------
-StereoCtFWarping::ImageGpu32fC1::Ptr StereoCtFWarping::getOcclusion(size_type level)
+StereoCtFWarping::ImageGpu32fC1::Ptr StereoCtFWarping::getOcclusion(size_t level)
 {
   if (!this->ready())
   {
