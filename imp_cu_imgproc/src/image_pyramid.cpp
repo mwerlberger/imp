@@ -52,7 +52,7 @@ void ImagePyramid<Pixel,pixel_type>::init(const imp::Size2u& size)
   // calculate the maximum number of levels
   float ratio = static_cast<float>(shorter_side)/static_cast<float>(size_bound_);
   // +1 because the original size is level 0
-  std::uint32_t possible_num_levels =
+  size_t possible_num_levels =
       static_cast<int>(-std::log(ratio)/std::log(scale_factor_)) + 1;
   num_levels_ = std::min(max_num_levels_, possible_num_levels);
 
