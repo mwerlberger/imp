@@ -2,8 +2,8 @@
 #define CUCORE_CU_EXCEPTION_HPP
 
 #include <sstream>
+#include <cuda_runtime_api.h>
 #include <imp/core/exception.hpp>
-#include <cuda_runtime.h>
 
 namespace imp { namespace cu {
 
