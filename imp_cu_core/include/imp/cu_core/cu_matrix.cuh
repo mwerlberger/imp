@@ -123,7 +123,7 @@ public:
   }
 
   template<size_t block_rows,size_t block_cols>
-  __host__ __device__ __forceinline__
+  __host__ __forceinline__
   Matrix<Type,block_rows,block_cols> block(size_t top_left_row, size_t top_left_col) const
   {
     Matrix<Type,block_rows,block_cols> out;
