@@ -43,6 +43,11 @@ if(CUDA_VERSION_STRING STREQUAL "7.0")
    # CUDA 7.0
    message(STATUS "found CUDA 7.0")
    add_definitions(-DCUDA_VERSION_70)
+elseif(CUDA_VERSION_STRING STREQUAL "7.5")
+   # CUDA 7.5
+   message(STATUS "found CUDA 7.5")
+   add_definitions(-DCUDA_VERSION_70)
+   add_definitions(-DCUDA_VERSION_75)
 else()
    message(FATAL_ERROR "unknown CUDA version. some things might not be tested.")
 endif()

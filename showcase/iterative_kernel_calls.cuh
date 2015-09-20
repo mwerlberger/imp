@@ -75,21 +75,37 @@ struct Texture2D
     }
   }
 
-  // copy and asignment operator
-  __host__ __device__
-  Texture2D(const Texture2D& other)
-    : tex_object(other.tex_object)
-  {
-  }
-  __host__ __device__
-  Texture2D& operator=(const Texture2D& other)
-  {
-    if  (this != &other)
-    {
-      tex_object = other.tex_object;
-    }
-    return *this;
-  }
+//  // copy and asignment operator
+//  __host__
+//  Texture2D(Texture2D& other)
+//  {
+//    cudaTextureDesc texture_desc;
+////    cudaResourceViewDesc resource_view_desc;
+//    cudaResourceDesc resource_desc;
+
+//    cudaGetTextureObjectTextureDesc(&texture_desc, tex_object);
+////    cudaGetTextureObjectResourceViewDesc(&resource_view_desc, tex_object);
+//    cudaGetTextureObjectResourceDesc(&resource_desc, tex_object);
+
+//    cudaCreateTextureObject(&other.tex_object, &resource_desc, &texture_desc, 0);
+//  }
+//  __host__
+//  Texture2D& operator=(Texture2D& other)
+//  {
+//    if  (this != &other)
+//    {
+//      cudaTextureDesc texture_desc;
+////      cudaResourceViewDesc resource_view_desc;
+//      cudaResourceDesc resource_desc;
+
+//      cudaGetTextureObjectTextureDesc(&texture_desc, tex_object);
+////      cudaGetTextureObjectResourceViewDesc(&resource_view_desc, tex_object);
+//      cudaGetTextureObjectResourceDesc(&resource_desc, tex_object);
+
+//      cudaCreateTextureObject(&other.tex_object, &resource_desc, &texture_desc, 0);
+//    }
+//    return *this;
+//  }
 };
 
 

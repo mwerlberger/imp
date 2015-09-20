@@ -55,7 +55,7 @@ T tex2DFetch(
 
 //-----------------------------------------------------------------------------
 __global__ void kernelCall(float* out_buffer, size_t stride,
-                           Texture2D in_tex,
+                           Texture2D* in_tex,
                            size_t width, size_t height)
 {
   int x = blockIdx.x*blockDim.x + threadIdx.x;
@@ -63,10 +63,26 @@ __global__ void kernelCall(float* out_buffer, size_t stride,
 
   if (x<width && y<height)
   {
-    float val = tex2DFetch<float>(in_tex, x, y);
+    float val = tex2DFetch<float>(*in_tex, x, y);
     out_buffer[y*stride + x] = val;
   }
 }
+
+//-----------------------------------------------------------------------------
+__global__ void kernelCall(float* out_buffer, size_t stride,
+                           cudaTextureObject_t in_tex,
+                           size_t width, size_t height)
+{
+  int x = blockIdx.x*blockDim.x + threadIdx.x;
+  int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+  if (x<width && y<height)
+  {
+    float val = ::tex2D<float>(in_tex, x+.5f, y+.5f);
+    out_buffer[y*stride + x] = val;
+  }
+}
+
 
 //#############################################################################
 // IMPLEMENTATION
@@ -96,7 +112,7 @@ void IterativeKernelCalls::init()
   dim3 dim_grid(divUp(width_, dim_block.x), divUp(height_, dim_block.y));
   kernelCall
       <<< dim_grid, dim_block
-      >>> (out_buffer_, pitch_/sizeof(float), *in_tex_, width_, height_);
+      >>> (out_buffer_, pitch_/sizeof(float), in_tex_->tex_object, width_, height_);
   CU_CHECK_ERROR();
 
 
@@ -128,7 +144,7 @@ void IterativeKernelCalls::run(float* dst, const float* src, size_t pitch,
 
   kernelCall
       <<< dim_grid, dim_block
-      >>> (out_buffer_, pitch_/sizeof(float), *in_tex_, width_, height_);
+      >>> (out_buffer_, pitch_/sizeof(float), in_tex_->tex_object, width_, height_);
   CU_CHECK_ERROR();
 }
 
