@@ -75,37 +75,37 @@ struct Texture2D
     }
   }
 
-//  // copy and asignment operator
-//  __host__
-//  Texture2D(Texture2D& other)
-//  {
-//    cudaTextureDesc texture_desc;
-////    cudaResourceViewDesc resource_view_desc;
-//    cudaResourceDesc resource_desc;
+  // copy and asignment operator
+  __host__
+  Texture2D(Texture2D& other)
+  {
+    cudaTextureDesc texture_desc;
+//    cudaResourceViewDesc resource_view_desc;
+    cudaResourceDesc resource_desc;
 
-//    cudaGetTextureObjectTextureDesc(&texture_desc, tex_object);
-////    cudaGetTextureObjectResourceViewDesc(&resource_view_desc, tex_object);
-//    cudaGetTextureObjectResourceDesc(&resource_desc, tex_object);
+    cudaGetTextureObjectTextureDesc(&texture_desc, other.tex_object);
+//    cudaGetTextureObjectResourceViewDesc(&resource_view_desc, other.tex_object);
+    cudaGetTextureObjectResourceDesc(&resource_desc, other.tex_object);
 
-//    cudaCreateTextureObject(&other.tex_object, &resource_desc, &texture_desc, 0);
-//  }
-//  __host__
-//  Texture2D& operator=(Texture2D& other)
-//  {
-//    if  (this != &other)
-//    {
-//      cudaTextureDesc texture_desc;
-////      cudaResourceViewDesc resource_view_desc;
-//      cudaResourceDesc resource_desc;
+    cudaCreateTextureObject(&this->tex_object, &resource_desc, &texture_desc, 0);
+  }
+  __host__
+  Texture2D& operator=(Texture2D& other)
+  {
+    if  (this != &other)
+    {
+      cudaTextureDesc texture_desc;
+//      cudaResourceViewDesc resource_view_desc;
+      cudaResourceDesc resource_desc;
 
-//      cudaGetTextureObjectTextureDesc(&texture_desc, tex_object);
-////      cudaGetTextureObjectResourceViewDesc(&resource_view_desc, tex_object);
-//      cudaGetTextureObjectResourceDesc(&resource_desc, tex_object);
+      cudaGetTextureObjectTextureDesc(&texture_desc, other.tex_object);
+//      cudaGetTextureObjectResourceViewDesc(&resource_view_desc, other.tex_object);
+      cudaGetTextureObjectResourceDesc(&resource_desc, other.tex_object);
 
-//      cudaCreateTextureObject(&other.tex_object, &resource_desc, &texture_desc, 0);
-//    }
-//    return *this;
-//  }
+      cudaCreateTextureObject(&this->tex_object, &resource_desc, &texture_desc, 0);
+    }
+    return *this;
+  }
 };
 
 
