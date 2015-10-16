@@ -16,23 +16,30 @@
 
 #include <imp/cu_correspondence/variational_stereo.hpp>
 
-int main(int /*argc*/, char** /*argv*/)
+int main(int argc, char** argv)
 {
   using Stereo = imp::cu::VariationalStereo;
   using StereoParameters = Stereo::Parameters;
 
   try
   {
-    imp::cu::ImageGpu32fC1::Ptr d_cones1_32fC1;
-    imp::cu::cvBridgeLoad(d_cones1_32fC1, "/home/mwerlberger/data/std/cones/im2.ppm",
-                          imp::PixelOrder::gray);
-    imp::cu::ImageGpu32fC1::Ptr d_cones2_32fC1;
-    imp::cu::cvBridgeLoad(d_cones2_32fC1, "/home/mwerlberger/data/std/cones/im6.ppm",
-                          imp::PixelOrder::gray);
+    if (argc < 3)
+    {
+      std::cout << "usage: " << argv[0] << " left_image right_image" << std::endl;
+      return EXIT_FAILURE;
+    }
+    std::string in_left(argv[1]);
+    std::string in_right(argv[2]);
+
+
+    imp::cu::ImageGpu32fC1::Ptr left_32fC1;
+    imp::cu::cvBridgeLoad(left_32fC1, in_left, imp::PixelOrder::gray);
+    imp::cu::ImageGpu32fC1::Ptr right_32fC1;
+    imp::cu::cvBridgeLoad(right_32fC1, in_right, imp::PixelOrder::gray);
 
     {
       imp::Pixel32fC1 min_val,max_val;
-      imp::cu::minMax(*d_cones1_32fC1, min_val, max_val);
+      imp::cu::minMax(*left_32fC1, min_val, max_val);
       std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
     }
 
@@ -47,8 +54,8 @@ int main(int /*argc*/, char** /*argv*/)
 
     std::unique_ptr<Stereo> stereo(new Stereo(stereo_params));
 
-    stereo->addImage(d_cones1_32fC1);
-    stereo->addImage(d_cones2_32fC1);
+    stereo->addImage(left_32fC1);
+    stereo->addImage(right_32fC1);
 
     stereo->solve();
 
@@ -61,8 +68,8 @@ int main(int /*argc*/, char** /*argv*/)
       std::cout << "disp: min: " << min_val.x << " max: " << max_val.x << std::endl;
     }
 
-    imp::cu::cvBridgeShow("cones im2", *d_cones1_32fC1);
-    imp::cu::cvBridgeShow("cones im6", *d_cones2_32fC1);
+    imp::cu::cvBridgeShow("left image", *left_32fC1);
+    imp::cu::cvBridgeShow("right image", *right_32fC1);
     *d_disp *= -1;
     {
       imp::Pixel32fC1 min_val,max_val;

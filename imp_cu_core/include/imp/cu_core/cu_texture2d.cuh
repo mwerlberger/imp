@@ -77,18 +77,35 @@ struct Texture2D
     }
   }
 
-  // copy and asignment operator
+  // copy and asignment operator enforcing deep copy
   __host__ __device__
   Texture2D(const Texture2D& other)
     : tex_object(other.tex_object)
   {
+      cudaTextureDesc texture_desc;
+      cudaResourceViewDesc resource_view_desc;
+      cudaResourceDesc resource_desc;
+
+      cudaGetTextureObjectTextureDesc(&texture_desc, other.tex_object);
+      cudaGetTextureObjectResourceViewDesc(&resource_view_desc, other.tex_object);
+      cudaGetTextureObjectResourceDesc(&resource_desc, other.tex_object);
+
+      cudaCreateTextureObject(&this->tex_object, &resource_desc, &texture_desc, &resource_view_desc);
   }
   __host__ __device__
   Texture2D& operator=(const Texture2D& other)
   {
     if  (this != &other)
     {
-      tex_object = other.tex_object;
+      cudaTextureDesc texture_desc;
+      cudaResourceViewDesc resource_view_desc;
+      cudaResourceDesc resource_desc;
+
+      cudaGetTextureObjectTextureDesc(&texture_desc, other.tex_object);
+      cudaGetTextureObjectResourceViewDesc(&resource_view_desc, other.tex_object);
+      cudaGetTextureObjectResourceDesc(&resource_desc, other.tex_object);
+
+      cudaCreateTextureObject(&this->tex_object, &resource_desc, &texture_desc, &resource_view_desc);
     }
     return *this;
   }
