@@ -121,7 +121,7 @@ void minMax(const ImageGpu<Pixel, pixel_type>& img, Pixel& min_val, Pixel& max_v
 //  std::shared_ptr<Texture2D> img_tex = img.genTexture(
 //        false, cudaFilterModePoint, cudaAddressModeClamp, cudaReadModeElementType);
 
-#if 0
+#if 1
   std::shared_ptr<Texture2D> img_tex = img.genTexture();
   IMP_CUDA_CHECK();
   imp::cu::minMax(*img_tex, min_val, max_val, roi);

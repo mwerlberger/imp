@@ -43,7 +43,16 @@ SolverStereoPrecondHuberL1Weighted::SolverStereoPrecondHuberL1Weighted(
   g_->setValue(1.0f);
   occ_.reset(new ImageGpu32fC1(size));
 
-
+  u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
+  u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
+  u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
+  pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
+  q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
+  ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
+  it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
+  xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
+  g_tex_  = g_->genTexture(false, cudaFilterModeLinear);
+  occ_tex_ = occ_->genTexture();
 }
 
 //------------------------------------------------------------------------------
@@ -130,17 +139,6 @@ void SolverStereoPrecondHuberL1Weighted::solve(std::vector<ImageGpu32fC1::Ptr> i
 #endif
     i1_tex_ = images.at(0)->genTexture(false, cudaFilterModeLinear);
     i2_tex_ = images.at(1)->genTexture(false, cudaFilterModeLinear);
-    u_tex_ = u_->genTexture(false, cudaFilterModeLinear);
-    u_prev_tex_ =  u_prev_->genTexture(false, cudaFilterModeLinear);
-    u0_tex_ =  u0_->genTexture(false, cudaFilterModeLinear);
-    pu_tex_ =  pu_->genTexture(false, cudaFilterModeLinear);
-    q_tex_ =  q_->genTexture(false, cudaFilterModeLinear);
-    ix_tex_ =  ix_->genTexture(false, cudaFilterModeLinear);
-    it_tex_ =  it_->genTexture(false, cudaFilterModeLinear);
-    xi_tex_ =  xi_->genTexture(false, cudaFilterModeLinear);
-    g_tex_  = g_->genTexture(false, cudaFilterModeLinear);
-    occ_tex_ = occ_->genTexture();
-
 
     k_warpedGradients
         <<<

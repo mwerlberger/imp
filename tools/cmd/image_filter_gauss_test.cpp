@@ -14,13 +14,18 @@
 #include <imp/cu_imgproc/cu_image_filter.cuh>
 //#include <imp/bridge/opencv/cu_cv_bridge.hpp>
 
-int main(int /*argc*/, char** /*argv*/)
+int main(int argc, char** argv)
 {
   try
   {
-    imp::ImageCv8uC1 h1_lena_8uC1(cv::imread("/home/mwerlberger/data/std/Lena.tiff",
-                                             CV_LOAD_IMAGE_GRAYSCALE),
-                                  imp::PixelOrder::gray);
+    if (argc < 2)
+    {
+      std::cout << "usage: " << argv[0] << " input_image_filename";
+      return EXIT_FAILURE;
+    }
+    std::string in_filename(argv[1]);
+
+    imp::ImageCv8uC1 h1_lena_8uC1(cv::imread(in_filename, CV_LOAD_IMAGE_GRAYSCALE), imp::PixelOrder::gray);
 
     {
       // copy host->device
