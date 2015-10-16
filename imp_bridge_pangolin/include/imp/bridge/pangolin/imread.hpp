@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <pangolin/image_load.h>
+#include <pangolin/image/image_io.h>
 #include <imp/core/image_raw.hpp>
 
 namespace imp
